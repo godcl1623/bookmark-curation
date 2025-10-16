@@ -123,3 +123,13 @@
         @apply cursor-pointer transition-transform duration-300 hover:brightness-80 active:brightness-70;
     }
 }
+
+@layer utilities {
+    .flex-center {
+        @apply flex items-center;
+    }
+
+    .flex-center-between {
+        @apply flex items-center justify-between;
+    }
+}
