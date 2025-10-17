@@ -15,7 +15,7 @@ export default function Header() {
         <div className={"rounded-md bg-blue-600 p-1.5 text-white"}>
           <Bookmark />
         </div>
-        <h1 className={"text-xl font-bold"}>LinkVault</h1>
+        <h1>LinkVault</h1>
       </div>
       <div className={"flex-center gap-2"}>
         <Button size={"icon-sm"} variant={"ghost"}>

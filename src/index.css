@@ -119,6 +119,34 @@
         @apply bg-background text-foreground;
     }
 
+    h1, h2, h3 {
+        @apply font-bold;
+    }
+
+    h1 {
+        @apply text-2xl;
+    }
+
+    h2 {
+        @apply text-xl;
+    }
+
+    h3 {
+        @apply text-lg;
+    }
+
+    h4, h5, h6 {
+        @apply font-semibold;
+    }
+
+    h5 {
+        @apply text-sm;
+    }
+
+    h6 {
+        @apply text-xs;
+    }
+
     button {
         @apply cursor-pointer transition-transform duration-300 hover:brightness-80 active:brightness-70;
     }
@@ -131,5 +159,9 @@
 
     .flex-center-between {
         @apply flex items-center justify-between;
+    }
+
+    .flex-col-center-center {
+        @apply flex flex-col items-center justify-center;
     }
 }
