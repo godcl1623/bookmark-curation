@@ -15,7 +15,7 @@ export default function LabeledElement({ label, children }: LabeledInputProps) {
       )}
       <div
         className={
-          "flex-center gap-3 rounded-lg border border-neutral-200 p-2.5 focus-within:border-blue-500"
+          "flex-center gap-1 rounded-lg border border-neutral-200 p-2.5 focus-within:border-blue-500"
         }
       >
         {children}

@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 
 import Button from "@/shared/components/atoms/button.tsx";
 import ModalLayout from "@/shared/components/layouts/modal";
+import ControlledInput from "@/shared/components/molecules/ControlledInput.tsx";
+import ControlledTextArea from "@/shared/components/molecules/ControlledTextArea.tsx";
 import LabeledElement from "@/shared/components/molecules/LabeledElement.tsx";
 import { Card, CardHeader } from "@/shared/components/organisms/card.tsx";
 import { cn } from "@/shared/lib/utils.ts";
@@ -30,35 +32,40 @@ export default function AddBookmark({
         <form className={"flex flex-col gap-7 p-6 pt-0"}>
           <LabeledElement label={"URL"}>
             <Link className={STYLES.ornament} />
-            <input
+            <ControlledInput
               placeholder={"https://example.com"}
               className={STYLES.input}
             />
-            <Button size={"icon-sm"} variant={"ghost"}>
+            <Button size={"custom"} variant={"ghost"} className={"p-1.5"}>
               <ClipboardPlus className={STYLES.ornament} />
             </Button>
           </LabeledElement>
           <LabeledElement label={"Title"}>
-            <input
+            <ControlledInput
               placeholder={"Enter bookmark title"}
               className={STYLES.input}
             />
           </LabeledElement>
           <LabeledElement label={"Note (Optional)"}>
-            <textarea
+            <ControlledTextArea
               placeholder={"Add your notes here..."}
               className={cn(STYLES.input, STYLES.textarea)}
             />
           </LabeledElement>
           <LabeledElement label={"Tags"}>
             <Tag className={STYLES.ornament} />
-            <input placeholder={"Add tags..."} className={STYLES.input} />
+            <ControlledInput
+              placeholder={"Add tags..."}
+              className={STYLES.input}
+            />
           </LabeledElement>
           <LabeledElement label={"Folder (Optional)"}>
             <Folder className={STYLES.ornament} />
-            <div>No Folder</div>
+            <div className={cn(STYLES.input, "flex items-center")}>
+              No Folder
+            </div>
           </LabeledElement>
-          <div className={"grid grid-cols-2 gap-2"}>
+          <div className={"mt-3 grid grid-cols-2 gap-2"}>
             <FormControl variant={"outline"} onClick={reject}>
               Cancel
             </FormControl>
@@ -74,7 +81,7 @@ export default function AddBookmark({
 
 const STYLES = {
   ornament: "size-5 text-neutral-500",
-  input: "w-full outline-none",
+  input: "w-full h-8 px-2 outline-none",
   textarea: "h-[6rem] resize-none",
 };
 
