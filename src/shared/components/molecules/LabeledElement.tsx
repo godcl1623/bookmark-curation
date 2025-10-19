@@ -8,10 +8,14 @@ interface LabeledInputProps {
 export default function LabeledElement({ label, children }: LabeledInputProps) {
   return (
     <label className={"flex flex-col gap-2"}>
-      {label && <strong className={"text-sm font-semibold"}>{label}</strong>}
+      {label && (
+        <strong className={"text-sm font-semibold text-neutral-700"}>
+          {label}
+        </strong>
+      )}
       <div
         className={
-          "rounded-lg border border-neutral-200 p-2.5 focus-within:border-blue-500"
+          "flex-center gap-3 rounded-lg border border-neutral-200 p-2.5 focus-within:border-blue-500"
         }
       >
         {children}

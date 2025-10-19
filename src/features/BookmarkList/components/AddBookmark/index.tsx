@@ -1,10 +1,11 @@
-import { X } from "lucide-react";
+import { ClipboardPlus, Folder, Link, Tag, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 import Button from "@/shared/components/atoms/button.tsx";
 import ModalLayout from "@/shared/components/layouts/modal";
 import LabeledElement from "@/shared/components/molecules/LabeledElement.tsx";
 import { Card, CardHeader } from "@/shared/components/organisms/card.tsx";
+import { cn } from "@/shared/lib/utils.ts";
 import type { DefaultModalChildrenProps } from "@/shared/providers/ModalProvider/types.ts";
 
 export default function AddBookmark({
@@ -15,7 +16,7 @@ export default function AddBookmark({
     <ModalLayout>
       <Card
         className={
-          "screen-center h-[90vh] max-h-[88.89rem] w-full sm:w-[90%] lg:w-[60%] lg:max-w-[50rem]"
+          "screen-center h-[90vh] max-h-[88.89rem] w-full overflow-y-auto sm:w-[90%] lg:w-[60%] lg:max-w-[50rem]"
         }
       >
         <CardHeader
@@ -27,7 +28,36 @@ export default function AddBookmark({
           </Button>
         </CardHeader>
         <form className={"flex flex-col gap-7 p-6 pt-0"}>
-          <LabeledElement label={"URL"} />
+          <LabeledElement label={"URL"}>
+            <Link className={STYLES.ornament} />
+            <input
+              placeholder={"https://example.com"}
+              className={STYLES.input}
+            />
+            <Button size={"icon-sm"} variant={"ghost"}>
+              <ClipboardPlus className={STYLES.ornament} />
+            </Button>
+          </LabeledElement>
+          <LabeledElement label={"Title"}>
+            <input
+              placeholder={"Enter bookmark title"}
+              className={STYLES.input}
+            />
+          </LabeledElement>
+          <LabeledElement label={"Note (Optional)"}>
+            <textarea
+              placeholder={"Add your notes here..."}
+              className={cn(STYLES.input, STYLES.textarea)}
+            />
+          </LabeledElement>
+          <LabeledElement label={"Tags"}>
+            <Tag className={STYLES.ornament} />
+            <input placeholder={"Add tags..."} className={STYLES.input} />
+          </LabeledElement>
+          <LabeledElement label={"Folder (Optional)"}>
+            <Folder className={STYLES.ornament} />
+            <div>No Folder</div>
+          </LabeledElement>
           <div className={"grid grid-cols-2 gap-2"}>
             <FormControl variant={"outline"} onClick={reject}>
               Cancel
@@ -41,6 +71,12 @@ export default function AddBookmark({
     </ModalLayout>
   );
 }
+
+const STYLES = {
+  ornament: "size-5 text-neutral-500",
+  input: "w-full outline-none",
+  textarea: "h-[6rem] resize-none",
+};
 
 interface FormControlProps {
   variant?: "outline" | "blank";
