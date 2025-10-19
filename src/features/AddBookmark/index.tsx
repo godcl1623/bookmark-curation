@@ -1,6 +1,8 @@
-import { ClipboardPlus, Folder, Link, Tag, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { Folder, Link, Tag, X } from "lucide-react";
+import type { FormEvent, ReactNode } from "react";
 
+import InputWithPaste from "@/features/AddBookmark/components/InputWithPaste";
+import { COMMON_STYLES } from "@/features/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button.tsx";
 import ModalLayout from "@/shared/components/layouts/modal";
 import ControlledInput from "@/shared/components/molecules/ControlledInput.tsx";
@@ -14,6 +16,10 @@ export default function AddBookmark({
   resolve,
   reject,
 }: DefaultModalChildrenProps) {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+  };
+
   return (
     <ModalLayout>
       <Card
@@ -29,39 +35,36 @@ export default function AddBookmark({
             <X className={"size-6"} />
           </Button>
         </CardHeader>
-        <form className={"flex flex-col gap-7 p-6 pt-0"}>
+        <form
+          className={"flex flex-col gap-7 p-6 pt-0"}
+          onSubmit={handleSubmit}
+        >
           <LabeledElement label={"URL"}>
-            <Link className={STYLES.ornament} />
-            <ControlledInput
-              placeholder={"https://example.com"}
-              className={STYLES.input}
-            />
-            <Button size={"custom"} variant={"ghost"} className={"p-1.5"}>
-              <ClipboardPlus className={STYLES.ornament} />
-            </Button>
+            <Link className={COMMON_STYLES.ornament} />
+            <InputWithPaste />
           </LabeledElement>
           <LabeledElement label={"Title"}>
             <ControlledInput
               placeholder={"Enter bookmark title"}
-              className={STYLES.input}
+              className={COMMON_STYLES.input}
             />
           </LabeledElement>
           <LabeledElement label={"Note (Optional)"}>
             <ControlledTextArea
               placeholder={"Add your notes here..."}
-              className={cn(STYLES.input, STYLES.textarea)}
+              className={cn(COMMON_STYLES.input, STYLES.textarea)}
             />
           </LabeledElement>
           <LabeledElement label={"Tags"}>
-            <Tag className={STYLES.ornament} />
+            <Tag className={COMMON_STYLES.ornament} />
             <ControlledInput
               placeholder={"Add tags..."}
-              className={STYLES.input}
+              className={COMMON_STYLES.input}
             />
           </LabeledElement>
           <LabeledElement label={"Folder (Optional)"}>
-            <Folder className={STYLES.ornament} />
-            <div className={cn(STYLES.input, "flex items-center")}>
+            <Folder className={COMMON_STYLES.ornament} />
+            <div className={cn(COMMON_STYLES.input, "flex items-center")}>
               No Folder
             </div>
           </LabeledElement>
@@ -80,8 +83,6 @@ export default function AddBookmark({
 }
 
 const STYLES = {
-  ornament: "size-5 text-neutral-500",
-  input: "w-full h-8 px-2 outline-none",
   textarea: "h-[6rem] resize-none",
 };
 

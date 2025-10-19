@@ -1,4 +1,4 @@
-import AddBookmark from "@/features/BookmarkList/components/AddBookmark";
+import AddBookmark from "@/features/AddBookmark";
 import Button from "@/shared/components/atoms/button.tsx";
 import { useModal } from "@/shared/providers/ModalProvider/context";
 
