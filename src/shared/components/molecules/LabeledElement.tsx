@@ -7,7 +7,7 @@ interface LabeledInputProps {
 
 export default function LabeledElement({ label, children }: LabeledInputProps) {
   return (
-    <label className={"flex flex-col gap-2"}>
+    <label className={"flex w-full flex-col gap-2"}>
       {label && (
         <strong className={"text-sm font-semibold text-neutral-700"}>
           {label}

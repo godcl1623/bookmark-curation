@@ -1,6 +1,7 @@
-import { Folder, Link, Tag, X } from "lucide-react";
+import { Folder, Link, X } from "lucide-react";
 import type { FormEvent, ReactNode } from "react";
 
+import AddTags from "@/features/AddBookmark/components/AddTags";
 import InputWithPaste from "@/features/AddBookmark/components/InputWithPaste";
 import { COMMON_STYLES } from "@/features/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button.tsx";
@@ -55,13 +56,7 @@ export default function AddBookmark({
               className={cn(COMMON_STYLES.input, STYLES.textarea)}
             />
           </LabeledElement>
-          <LabeledElement label={"Tags"}>
-            <Tag className={COMMON_STYLES.ornament} />
-            <ControlledInput
-              placeholder={"Add tags..."}
-              className={COMMON_STYLES.input}
-            />
-          </LabeledElement>
+          <AddTags />
           <LabeledElement label={"Folder (Optional)"}>
             <Folder className={COMMON_STYLES.ornament} />
             <div className={cn(COMMON_STYLES.input, "flex items-center")}>
