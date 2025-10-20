@@ -22,7 +22,7 @@ export default function AddBookmark({
   };
 
   return (
-    <ModalLayout>
+    <ModalLayout reject={reject}>
       <Card
         className={
           "screen-center h-[90vh] max-h-[88.89rem] w-full overflow-y-auto sm:w-[90%] lg:w-[60%] lg:max-w-[50rem]"
@@ -32,7 +32,11 @@ export default function AddBookmark({
           className={"flex-center-between border-b border-neutral-200"}
         >
           <h1>Add New Bookmark</h1>
-          <Button variant={"ghost"} className={"text-neutral-500"}>
+          <Button
+            variant={"ghost"}
+            className={"text-neutral-500"}
+            onClick={reject}
+          >
             <X className={"size-6"} />
           </Button>
         </CardHeader>

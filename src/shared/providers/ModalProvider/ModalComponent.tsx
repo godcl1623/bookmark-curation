@@ -14,12 +14,12 @@ interface ModalComponentProps {
 export default function ModalComponent({ modal }: ModalComponentProps) {
   const { resolveModal, rejectModal } = useModal();
 
-  const resolve = (result?: any) => {
+  const resolve = (result?: unknown) => {
     resolveModal(modal, result);
   };
 
-  const reject = () => {
-    rejectModal(modal);
+  const reject = (reason?: unknown) => {
+    rejectModal(modal, reason);
   };
 
   return (

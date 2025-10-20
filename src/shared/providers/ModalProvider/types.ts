@@ -4,8 +4,8 @@ export interface ModalDetail {
   id: string;
   component: FunctionComponent<HTMLElement>;
   props?: Attributes & Record<string, unknown>;
-  resolve: (param?: any) => any;
-  reject: () => void;
+  resolve: (param?: unknown) => void;
+  reject: (param?: unknown) => void;
   reset?: () => void;
 }
 
@@ -15,6 +15,6 @@ export interface ModalStore {
 }
 
 export interface DefaultModalChildrenProps {
-  resolve: (result?: any) => void;
-  reject: () => void;
+  resolve: (result?: unknown) => void;
+  reject: (reason?: unknown) => void;
 }

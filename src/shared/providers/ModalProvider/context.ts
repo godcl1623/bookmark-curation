@@ -57,8 +57,8 @@ export const useModal = () => {
     closeModal(modal.id);
   };
 
-  const rejectModal = (modal: ModalDetail) => {
-    modal.reject();
+  const rejectModal = (modal: ModalDetail, reason?: unknown) => {
+    modal.reject(reason ?? { cancelled: true });
     closeModal(modal.id);
   };
 

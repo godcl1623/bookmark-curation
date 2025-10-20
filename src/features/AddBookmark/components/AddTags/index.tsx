@@ -37,9 +37,9 @@ export default function AddTags() {
           Add
         </Button>
       </div>
-      <ul className={"flex gap-2"}>
-        {tags.map((tag) => (
-          <li key={`tag-${tag}`}>
+      <ul className={"flex w-full flex-wrap gap-2"}>
+        {tags.map((tag, index) => (
+          <li key={`tag-${tag}-${index}`}>
             <TagItem tag={tag} onClick={() => removeTag(tag)} />
           </li>
         ))}
@@ -51,10 +51,11 @@ export default function AddTags() {
 const handleKeyDown =
   (callback?: (param?: unknown) => unknown) =>
   (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && !event.nativeEvent.isComposing) {
       event.preventDefault();
       event.stopPropagation();
       callback?.();
+      return;
     }
   };
 
@@ -62,7 +63,8 @@ const useTags = () => {
   const [tags, setTags] = useState<string[]>([]);
 
   const addTag = (tag: string) => {
-    setTags([...tags, tag]);
+    if (tag.trim() === "") return;
+    setTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
   };
 
   const removeTag = (target: string) => {
