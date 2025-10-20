@@ -1,5 +1,5 @@
 import { Folder, Link, X } from "lucide-react";
-import type { FormEvent, ReactNode } from "react";
+import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 
 import AddTags from "@/features/AddBookmark/components/AddTags";
 import InputWithPaste from "@/features/AddBookmark/components/InputWithPaste";
@@ -39,6 +39,7 @@ export default function AddBookmark({
         <form
           className={"flex flex-col gap-7 p-6 pt-0"}
           onSubmit={handleSubmit}
+          onKeyDown={disableKeyDown}
         >
           <LabeledElement label={"URL"}>
             <Link className={COMMON_STYLES.ornament} />
@@ -79,6 +80,13 @@ export default function AddBookmark({
 
 const STYLES = {
   textarea: "h-[6rem] resize-none",
+};
+
+const disableKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    event.stopPropagation();
+  }
 };
 
 interface FormControlProps {

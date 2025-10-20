@@ -1,5 +1,5 @@
 import { Tag, X } from "lucide-react";
-import { useState } from "react";
+import { type KeyboardEvent, useState } from "react";
 
 import { COMMON_STYLES } from "@/features/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button.tsx";
@@ -22,15 +22,16 @@ export default function AddTags() {
           <Tag className={COMMON_STYLES.ornament} />
           <input
             value={inputValue}
-            onChange={handleChange}
             placeholder={"Add tags..."}
             className={COMMON_STYLES.input}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown(submitTag)}
           />
         </LabeledElement>
         <Button
           size={"custom"}
           variant={"blank"}
-          className={"bg-blue-50 p-3 text-lg text-blue-500"}
+          className={"bg-blue-50 px-6 py-[13px] text-lg text-blue-500"}
           onClick={submitTag}
         >
           Add
@@ -46,6 +47,16 @@ export default function AddTags() {
     </div>
   );
 }
+
+const handleKeyDown =
+  (callback?: (param?: unknown) => unknown) =>
+  (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
+      callback?.();
+    }
+  };
 
 const useTags = () => {
   const [tags, setTags] = useState<string[]>([]);
