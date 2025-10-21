@@ -3,11 +3,18 @@ import type { ReactNode } from "react";
 interface LabeledInputProps {
   label?: string;
   children?: ReactNode;
+  asLabel?: boolean;
 }
 
-export default function LabeledElement({ label, children }: LabeledInputProps) {
+export default function LabeledElement({
+  label,
+  children,
+  asLabel = true,
+}: LabeledInputProps) {
+  const Wrapper = asLabel ? "label" : "div";
+
   return (
-    <label className={"flex w-full flex-col gap-2"}>
+    <Wrapper className={"flex w-full flex-col gap-2"}>
       {label && (
         <strong className={"text-sm font-semibold text-neutral-700"}>
           {label}
@@ -20,6 +27,6 @@ export default function LabeledElement({ label, children }: LabeledInputProps) {
       >
         {children}
       </div>
-    </label>
+    </Wrapper>
   );
 }

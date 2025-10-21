@@ -3,6 +3,7 @@ import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 
 import AddTags from "@/features/AddBookmark/components/AddTags";
 import InputWithPaste from "@/features/AddBookmark/components/InputWithPaste";
+import SelectFolder from "@/features/AddBookmark/components/SelectFolder";
 import { COMMON_STYLES } from "@/features/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button.tsx";
 import ModalLayout from "@/shared/components/layouts/modal";
@@ -62,11 +63,9 @@ export default function AddBookmark({
             />
           </LabeledElement>
           <AddTags />
-          <LabeledElement label={"Folder (Optional)"}>
+          <LabeledElement label={"Folder (Optional)"} asLabel={false}>
             <Folder className={COMMON_STYLES.ornament} />
-            <div className={cn(COMMON_STYLES.input, "flex items-center")}>
-              No Folder
-            </div>
+            <SelectFolder />
           </LabeledElement>
           <div className={"mt-3 grid grid-cols-2 gap-2"}>
             <FormControl variant={"outline"} onClick={reject}>
