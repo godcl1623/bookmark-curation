@@ -1,3 +1,5 @@
+import { Toaster } from "react-hot-toast";
+
 import BookmarkList from "@/features/BookmarkList";
 import DirectoryTree from "@/features/DirectoryTree";
 import Header from "@/features/Header";
@@ -11,6 +13,7 @@ function App() {
         <DirectoryTree />
         <BookmarkList />
       </ClientViewLayout>
+      <Toaster />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import BlankFallback from "@/features/BookmarkList/BlankFallback.tsx";
+import BlankFallback from "@/features/BookmarkList/components/BlankFallback";
 
 export default function BookmarkList() {
   return (

@@ -1,6 +1,6 @@
 import { Bookmark } from "lucide-react";
 
-import Button from "@/shared/components/atoms/button.tsx";
+import AddBookmarkButton from "@/features/BookmarkList/components/BlankFallback/AddBookmarkButton";
 
 export default function BlankFallback() {
   return (
@@ -12,12 +12,7 @@ export default function BlankFallback() {
       <p className={"text-muted-foreground"}>
         Start building your collection by adding your first bookmark
       </p>
-      <Button
-        variant={"blank"}
-        className={"bg-blue-500 text-white hover:bg-blue-700"}
-      >
-        Add Bookmark
-      </Button>
+      <AddBookmarkButton />
     </article>
   );
 }
