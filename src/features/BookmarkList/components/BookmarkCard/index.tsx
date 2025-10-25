@@ -12,46 +12,64 @@ import {
 import { cn } from "@/shared/lib/utils.ts";
 import type { BasicComponentProps } from "@/shared/types";
 
+interface BookmarkCardProps {
+  isCard?: boolean;
+}
+
 interface BookmarkCommonProps extends BasicComponentProps {
   isLoading?: boolean;
 }
 
-export default function BookmarkCard() {
+export default function BookmarkCard({ isCard = true }: BookmarkCardProps) {
   const isLoading = false;
 
   return (
     <Card
-      className={
-        "h-[360px] w-[320px] cursor-pointer gap-0 p-0 hover:shadow-md active:[&:not(:has(button:active))]:brightness-90"
-      }
+      className={cn(
+        STYLES.container.common,
+        isCard ? STYLES.container.card : STYLES.container.list
+      )}
     >
-      <div className={"h-1/2 w-full rounded-t-xl bg-neutral-100"} />
+      <div
+        className={cn(
+          STYLES.thumbnail.common,
+          isCard ? STYLES.thumbnail.card : STYLES.thumbnail.list
+        )}
+      />
       <CardContent className={"h-1/2 px-5 py-3"}>
-        <BookmarkTitle isLoading={isLoading}>Test Title</BookmarkTitle>
+        <BookmarkHeader isLoading={isLoading}>
+          <BookmarkTitle isLoading={isLoading}>Test Title</BookmarkTitle>
+          <FolderTag>Folder 1</FolderTag>
+        </BookmarkHeader>
         <BookmarkDescription isLoading={isLoading}>
           Test Description
         </BookmarkDescription>
-        <BookmarkTags isLoading={isLoading}>
-          {DUMMY_TAG_LIST.map((tag, index) => (
-            <li key={`tag-${index}`}>
-              <TagItem tag={tag} size={"sm"} />
-            </li>
-          ))}
-        </BookmarkTags>
-        <div
-          className={"flex-center-between border-t border-neutral-200 p-1 pb-0"}
-        >
-          <div className={"flex gap-2"}>
+        <div className={isCard ? STYLES.metadata.card : STYLES.metadata.list}>
+          <BookmarkTags isLoading={isLoading}>
+            {DUMMY_TAG_LIST.map((tag, index) => (
+              <li key={`tag-${index}`}>
+                <TagItem tag={tag} size={"sm"} />
+              </li>
+            ))}
+          </BookmarkTags>
+          <div
+            className={cn(
+              STYLES.options.common,
+              isCard ? STYLES.options.card : STYLES.options.list
+            )}
+          >
+            <div className={"flex gap-2"}>
+              <OptionButton isLoading={isLoading}>
+                <Star />
+              </OptionButton>
+              <OptionButton isLoading={isLoading}>
+                <Share2 />
+              </OptionButton>
+            </div>
             <OptionButton isLoading={isLoading}>
-              <Star />
-            </OptionButton>
-            <OptionButton isLoading={isLoading}>
-              <Share2 />
+              <EllipsisVertical />
             </OptionButton>
           </div>
-          <OptionButton isLoading={isLoading}>
-            <EllipsisVertical />
-          </OptionButton>
         </div>
       </CardContent>
     </Card>
@@ -59,6 +77,29 @@ export default function BookmarkCard() {
 }
 
 const DUMMY_TAG_LIST = ["foo", "bar", "doh"];
+
+const STYLES = {
+  container: {
+    common:
+      "cursor-pointer gap-0 p-0 hover:shadow-md hover:brightness-95 active:[&:not(:has(button:active))]:brightness-90",
+    card: "h-[360px] w-[320px]",
+    list: "grid w-full grid-cols-[max-content_1fr] rounded-xl bg-white p-2 shadow-sm",
+  },
+  thumbnail: {
+    common: "bg-neutral-100 rounded-t-xl",
+    card: "h-1/2 w-full",
+    list: "aspect-video h-full rounded-b-xl",
+  },
+  metadata: {
+    card: "",
+    list: "flex-center-between",
+  },
+  options: {
+    common: "flex items-center p-1 pb-0",
+    card: "justify-between border-t border-neutral-200",
+    list: "flex-1 justify-end gap-2",
+  },
+};
 
 interface LoadingComponentProps {
   size?: "sm" | "fill";
@@ -72,11 +113,33 @@ function LoadingComponent({ size = "fill" }: LoadingComponentProps) {
   );
 }
 
+function BookmarkHeader({ isLoading = true, children }: BookmarkCommonProps) {
+  return (
+    <header className={"flex-center-between h-8 py-2"}>
+      {isLoading ? <LoadingComponent /> : children}
+    </header>
+  );
+}
+
 function BookmarkTitle({ isLoading = true, children }: BookmarkCommonProps) {
   return (
-    <CardTitle className={"line-clamp-1 h-8 py-2 text-left"}>
+    <CardTitle className={"line-clamp-1 text-left"}>
       {isLoading ? <LoadingComponent /> : children}
     </CardTitle>
+  );
+}
+
+function FolderTag({ children }: BasicComponentProps) {
+  if (!children) return null;
+
+  return (
+    <div
+      className={
+        "min-w-max rounded-full bg-red-500/70 px-3 py-1 text-xs font-bold text-white"
+      }
+    >
+      {children}
+    </div>
   );
 }
 
