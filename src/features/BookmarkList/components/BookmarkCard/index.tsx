@@ -1,6 +1,7 @@
 import { EllipsisVertical, Share2, Star } from "lucide-react";
 import type { MouseEvent } from "react";
 
+import FolderTag from "@/features/BookmarkList/components/BookmarkCard/FolderTag.tsx";
 import Button from "@/shared/components/atoms/button.tsx";
 import TagItem from "@/shared/components/molecules/TagItem.tsx";
 import {
@@ -124,22 +125,8 @@ function BookmarkHeader({ isLoading = true, children }: BookmarkCommonProps) {
 function BookmarkTitle({ isLoading = true, children }: BookmarkCommonProps) {
   return (
     <CardTitle className={"line-clamp-1 text-left"}>
-      {isLoading ? <LoadingComponent /> : children}
+      {isLoading ? <LoadingComponent /> : <h2>{children}</h2>}
     </CardTitle>
-  );
-}
-
-function FolderTag({ children }: BasicComponentProps) {
-  if (!children) return null;
-
-  return (
-    <div
-      className={
-        "min-w-max rounded-full bg-red-500/70 px-3 py-1 text-xs font-bold text-white"
-      }
-    >
-      {children}
-    </div>
   );
 }
 
