@@ -2,6 +2,7 @@ import { EllipsisVertical, Share2, Star } from "lucide-react";
 import type { MouseEvent } from "react";
 
 import FolderTag from "@/features/BookmarkList/components/BookmarkCard/FolderTag.tsx";
+import BookmarkDetail from "@/features/BookmarkList/components/BookmarkDetail";
 import Button from "@/shared/components/atoms/button.tsx";
 import TagItem from "@/shared/components/molecules/TagItem.tsx";
 import {
@@ -11,6 +12,7 @@ import {
   CardTitle,
 } from "@/shared/components/organisms/card.tsx";
 import { cn } from "@/shared/lib/utils.ts";
+import { useModal } from "@/shared/providers/ModalProvider/context.ts";
 import type { BasicComponentProps } from "@/shared/types";
 
 interface BookmarkCardProps {
@@ -22,7 +24,12 @@ interface BookmarkCommonProps extends BasicComponentProps {
 }
 
 export default function BookmarkCard({ isCard = true }: BookmarkCardProps) {
+  const { openModal } = useModal();
   const isLoading = false;
+
+  const handleClickCard = () => {
+    openModal(BookmarkDetail, {});
+  };
 
   return (
     <Card
@@ -30,6 +37,7 @@ export default function BookmarkCard({ isCard = true }: BookmarkCardProps) {
         STYLES.container.common,
         isCard ? STYLES.container.card : STYLES.container.list
       )}
+      onClick={handleClickCard}
     >
       <div
         className={cn(
