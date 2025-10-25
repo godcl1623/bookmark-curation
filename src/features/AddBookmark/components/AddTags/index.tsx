@@ -1,9 +1,10 @@
-import { Tag, X } from "lucide-react";
+import { Tag } from "lucide-react";
 import { type KeyboardEvent, useState } from "react";
 
 import { COMMON_STYLES } from "@/features/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button.tsx";
 import LabeledElement from "@/shared/components/molecules/LabeledElement.tsx";
+import TagItem from "@/shared/components/molecules/TagItem.tsx";
 import useInput from "@/shared/hooks/useInput.ts";
 
 export default function AddTags() {
@@ -40,7 +41,7 @@ export default function AddTags() {
       <ul className={"flex w-full flex-wrap gap-2"}>
         {tags.map((tag, index) => (
           <li key={`tag-${tag}-${index}`}>
-            <TagItem tag={tag} onClick={() => removeTag(tag)} />
+            <TagItem tag={tag} needClose onClick={() => removeTag(tag)} />
           </li>
         ))}
       </ul>
@@ -73,27 +74,3 @@ const useTags = () => {
 
   return { tags, addTag, removeTag };
 };
-
-interface TagItemProps {
-  tag: string;
-  onClick?: () => void;
-}
-
-function TagItem({ tag, onClick }: TagItemProps) {
-  const handleClick = () => {
-    if (onClick != null) onClick();
-  };
-
-  return (
-    <div
-      className={
-        "flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-700"
-      }
-    >
-      #{tag}
-      <button onClick={handleClick}>
-        <X className={"size-4"} />
-      </button>
-    </div>
-  );
-}

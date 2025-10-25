@@ -165,6 +165,10 @@
         @apply flex items-center justify-between;
     }
 
+    .flex-center-center {
+        @apply flex items-center justify-center;
+    }
+
     .flex-col-center-center {
         @apply flex flex-col items-center justify-center;
     }
