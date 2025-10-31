@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { COMMON_STYLES } from "@/features/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button.tsx";
+import { DUMMY_FOLDERS } from "@/shared/consts";
 import { cn } from "@/shared/lib/utils.ts";
 
 export default function SelectFolder() {
@@ -39,18 +40,6 @@ export default function SelectFolder() {
     </div>
   );
 }
-
-const DUMMY_FOLDERS = [
-  "No Folder",
-  "Folder 1",
-  "Folder 2",
-  "Folder 3",
-  "Folder 4",
-  "Folder 5",
-  "Folder 6",
-  "Folder 7",
-  "Folder 8",
-];
 
 const STYLES = {
   buttonHeight: "h-8",
