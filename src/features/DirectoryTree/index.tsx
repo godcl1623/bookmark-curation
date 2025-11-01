@@ -5,57 +5,19 @@ import Button from "@/shared/components/atoms/button";
 import { DIRECTORY } from "@/shared/consts";
 import { cn } from "@/shared/lib/utils.ts";
 import type { BasicComponentProps } from "@/shared/types";
-import type { BookmarkType } from "@/shared/types/bookmark";
+import type { Bookmark, BookmarkType } from "@/shared/types/bookmark";
 
 export default function DirectoryTree() {
-  const [selectedFolder, changeSelectedFolder] = useDirectory();
-
   return (
-    <aside className={"flex w-[15%] flex-col gap-5 bg-stone-50/50 p-5"}>
+    <aside
+      className={
+        "flex w-[15%] flex-col gap-5 overflow-y-auto bg-stone-50/50 p-5"
+      }
+    >
       <DefaultFilterButton>All</DefaultFilterButton>
       <DefaultFilterButton>Favorites</DefaultFilterButton>
       <nav>
-        <ul className={"flex flex-col gap-2"}>
-          {/* FIXME: 루트에 파일이 올 수도 있도록 수정 */}
-          {DIRECTORY.map((folder) => {
-            const isOpen = selectedFolder.includes(folder.id);
-
-            return (
-              <li key={folder.id}>
-                <DirectoryButton
-                  isOpen={isOpen}
-                  dataType={folder.type}
-                  parent={folder.parent}
-                  onClick={changeSelectedFolder(folder.id)}
-                >
-                  {folder.name}
-                </DirectoryButton>
-                {isOpen && (
-                  <ul>
-                    {folder.children?.map((subDirectory) => {
-                      const isSubOpen =
-                        subDirectory.type === "folder" &&
-                        selectedFolder.includes(subDirectory.id);
-
-                      return (
-                        <li key={subDirectory.id}>
-                          <DirectoryButton
-                            isOpen={isSubOpen}
-                            dataType={subDirectory.type}
-                            parent={subDirectory.parent}
-                            onClick={changeSelectedFolder(subDirectory.id)}
-                          >
-                            {subDirectory.name}
-                          </DirectoryButton>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        <DirectoryList directoryList={DIRECTORY} />
       </nav>
     </aside>
   );
@@ -120,5 +82,40 @@ function DirectoryButton({
         <ChevronRight className={isOpen ? "rotate-90" : ""} />
       )}
     </Button>
+  );
+}
+
+interface DirectoryListProps {
+  directoryList: Bookmark[];
+}
+
+function DirectoryList({ directoryList }: DirectoryListProps) {
+  const [selectedFolder, changeSelectedFolder] = useDirectory();
+
+  return (
+    <ul className={"flex flex-col gap-2"}>
+      {/* FIXME: 루트에 파일이 올 수도 있도록 수정 */}
+      {directoryList?.map((folder) => {
+        const isOpen = selectedFolder.includes(folder.id);
+
+        return (
+          <li key={folder.id}>
+            <DirectoryButton
+              isOpen={isOpen}
+              dataType={folder.type}
+              parent={folder.parent}
+              onClick={
+                folder.type === "folder"
+                  ? changeSelectedFolder(folder.id)
+                  : () => null
+              }
+            >
+              {folder.name}
+            </DirectoryButton>
+            {isOpen && <DirectoryList directoryList={folder.children ?? []} />}
+          </li>
+        );
+      })}
+    </ul>
   );
 }

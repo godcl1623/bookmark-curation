@@ -7,7 +7,7 @@ export default function BookmarkList() {
   const dummyList = useRandomDummyList();
 
   return (
-    <main className={"w-[85%] bg-blue-50/75 p-5"}>
+    <main className={"h-[calc(100vh-64px)] w-[85%] bg-blue-50/75 p-5"}>
       {dummyList.length === 0 ? (
         <BlankFallback />
       ) : (

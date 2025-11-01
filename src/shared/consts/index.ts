@@ -1,4 +1,4 @@
-import type { BookmarkType } from "@/shared/types/bookmark.ts";
+import type { Bookmark } from "@/shared/types/bookmark.ts";
 
 export const DUMMY_FOLDERS = [
   "No Folder",
@@ -11,14 +11,6 @@ export const DUMMY_FOLDERS = [
   "Folder 7",
   "Folder 8",
 ];
-
-interface Bookmark {
-  id: string;
-  type: BookmarkType;
-  parent: string | null;
-  name: string;
-  children?: Bookmark[];
-}
 
 export const DIRECTORY: Bookmark[] = [
   {
