@@ -1,13 +1,14 @@
-import { ChevronRight, Folder } from "lucide-react";
-import { type ComponentProps, useState } from "react";
+import { ChevronRight, File, Folder } from "lucide-react";
+import { type ComponentProps, useMemo, useState } from "react";
 
-import Button from "@/shared/components/atoms/button.tsx";
-import { DUMMY_FOLDERS } from "@/shared/consts";
+import Button from "@/shared/components/atoms/button";
+import { DIRECTORY } from "@/shared/consts";
+import { cn } from "@/shared/lib/utils.ts";
 import type { BasicComponentProps } from "@/shared/types";
+import type { BookmarkType } from "@/shared/types/bookmark";
 
 export default function DirectoryTree() {
   const [selectedFolder, changeSelectedFolder] = useDirectory();
-  console.log(selectedFolder);
 
   return (
     <aside className={"flex w-[15%] flex-col gap-5 bg-stone-50/50 p-5"}>
@@ -15,40 +16,58 @@ export default function DirectoryTree() {
       <DefaultFilterButton>Favorites</DefaultFilterButton>
       <nav>
         <ul className={"flex flex-col gap-2"}>
-          {DUMMY_FOLDERS.slice(1).map((folder, index) => (
-            <li key={`${folder}_${index}`}>
-              <DirectoryButton
-                isOpen={selectedFolder.includes(folder)}
-                onClick={changeSelectedFolder(folder)}
-              >
-                {folder}
-              </DirectoryButton>
-              {selectedFolder.includes(folder) && (
-                <ul>
-                  {DUMMY_SUB_DIRECTORY.map((subFolder, subIndex) => (
-                    <li key={`${folder}_${subFolder}_${subIndex}`}>
-                      {subFolder}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
+          {/* FIXME: 루트에 파일이 올 수도 있도록 수정 */}
+          {DIRECTORY.map((folder) => {
+            const isOpen = selectedFolder.includes(folder.id);
+
+            return (
+              <li key={folder.id}>
+                <DirectoryButton
+                  isOpen={isOpen}
+                  dataType={folder.type}
+                  parent={folder.parent}
+                  onClick={changeSelectedFolder(folder.id)}
+                >
+                  {folder.name}
+                </DirectoryButton>
+                {isOpen && (
+                  <ul>
+                    {folder.children?.map((subDirectory) => {
+                      const isSubOpen =
+                        subDirectory.type === "folder" &&
+                        selectedFolder.includes(subDirectory.id);
+
+                      return (
+                        <li key={subDirectory.id}>
+                          <DirectoryButton
+                            isOpen={isSubOpen}
+                            dataType={subDirectory.type}
+                            parent={subDirectory.parent}
+                            onClick={changeSelectedFolder(subDirectory.id)}
+                          >
+                            {subDirectory.name}
+                          </DirectoryButton>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </aside>
   );
 }
 
-const DUMMY_SUB_DIRECTORY = ["Sub 1", "Sub 2", "Sub 3"];
-
 const useDirectory = () => {
   const [selectedFolder, setSelectedFolder] = useState<string[]>([]);
 
-  const changeSelectedFolder = (folder: string) => () => {
-    if (selectedFolder.includes(folder))
-      setSelectedFolder((prev) => prev.filter((opened) => opened !== folder));
-    else setSelectedFolder((prev) => [...prev, folder]);
+  const changeSelectedFolder = (folderId: string) => () => {
+    if (selectedFolder.includes(folderId))
+      setSelectedFolder((prev) => prev.filter((opened) => opened !== folderId));
+    else setSelectedFolder((prev) => [...prev, folderId]);
   };
 
   return [selectedFolder, changeSelectedFolder] as const;
@@ -64,24 +83,42 @@ function DefaultFilterButton({ children }: BasicComponentProps) {
 
 interface DirectoryButtonProps {
   isOpen?: boolean;
+  dataType?: BookmarkType;
+  parent?: string | null;
 }
 
 function DirectoryButton({
   isOpen = false,
+  dataType = "bookmark",
+  parent = null,
   children,
   onClick,
 }: DirectoryButtonProps & ComponentProps<"button">) {
+  const icon = useMemo(
+    () => (dataType === "bookmark" ? <File /> : <Folder />),
+    [dataType]
+  );
+  const hierarchy = parent == null ? 0 : parent.split("/").length;
+
   return (
     <Button
       variant={"ghost"}
-      className={"w-full justify-between px-2 text-sm"}
+      className={cn(
+        "w-full pr-2 text-sm",
+        dataType === "folder" ? "justify-between" : "justify-start"
+      )}
       onClick={onClick}
+      style={{
+        paddingLeft: `${Math.max(8, hierarchy * 16 + 8)}px`,
+      }}
     >
       <div className={"flex items-center gap-2 px-2"}>
-        <Folder />
+        {icon}
         {children}
       </div>
-      <ChevronRight className={isOpen ? "rotate-90" : ""} />
+      {dataType !== "bookmark" && (
+        <ChevronRight className={isOpen ? "rotate-90" : ""} />
+      )}
     </Button>
   );
 }
