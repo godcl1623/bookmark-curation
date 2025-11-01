@@ -18,11 +18,20 @@ export default function DirectoryTree() {
           {DUMMY_FOLDERS.slice(1).map((folder, index) => (
             <li key={`${folder}_${index}`}>
               <DirectoryButton
-                isOpen={selectedFolder === folder}
+                isOpen={selectedFolder.includes(folder)}
                 onClick={changeSelectedFolder(folder)}
               >
                 {folder}
               </DirectoryButton>
+              {selectedFolder.includes(folder) && (
+                <ul>
+                  {DUMMY_SUB_DIRECTORY.map((subFolder, subIndex) => (
+                    <li key={`${folder}_${subFolder}_${subIndex}`}>
+                      {subFolder}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>
@@ -31,12 +40,15 @@ export default function DirectoryTree() {
   );
 }
 
+const DUMMY_SUB_DIRECTORY = ["Sub 1", "Sub 2", "Sub 3"];
+
 const useDirectory = () => {
-  const [selectedFolder, setSelectedFolder] = useState(DUMMY_FOLDERS[0]);
+  const [selectedFolder, setSelectedFolder] = useState<string[]>([]);
 
   const changeSelectedFolder = (folder: string) => () => {
-    if (selectedFolder === folder) setSelectedFolder(DUMMY_FOLDERS[0]);
-    else setSelectedFolder(folder);
+    if (selectedFolder.includes(folder))
+      setSelectedFolder((prev) => prev.filter((opened) => opened !== folder));
+    else setSelectedFolder((prev) => [...prev, folder]);
   };
 
   return [selectedFolder, changeSelectedFolder] as const;
