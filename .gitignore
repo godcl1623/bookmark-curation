@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 .editorconfig
 .env*
+.claude
+
+/generated/prisma
