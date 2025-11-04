@@ -26,7 +26,7 @@ export default App;
 
 const useTemporalHealthCheck = () => {
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/health`).then((res) => {
+    axios.get(`${import.meta.env.VITE_API_URL}/db-health`).then((res) => {
       console.log(res.data);
     });
   }, []);

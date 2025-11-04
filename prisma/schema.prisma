@@ -1,11 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -14,9 +8,165 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
+model bookmark_history {
+  id          Int        @id @default(autoincrement())
+  bookmark_id Int?
+  user_id     Int?
+  action      String     @db.VarChar(50)
+  payload     Json?
+  created_at  DateTime?  @default(now()) @db.Timestamptz(6)
+  bookmarks   bookmarks? @relation(fields: [bookmark_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users       users?     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model bookmark_tags {
+  bookmark_id Int
+  tag_id      Int
+  user_id     Int
+  bookmarks   bookmarks @relation(fields: [bookmark_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tags        tags      @relation(fields: [tag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users       users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([bookmark_id, tag_id])
+  @@index([tag_id], map: "idx_bookmark_tags_tag")
+  @@index([user_id], map: "idx_bookmark_tags_user")
+}
+
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model bookmarks {
+  id               Int                      @id @default(autoincrement())
+  user_id          Int
+  folder_id        Int?
+  title            String?                  @db.VarChar(500)
+  description      String?
+  url              String
+  domain           String?                  @db.VarChar(255)
+  favicon_url      String?
+  preview_image    String?
+  metadata         Json?                    @default("{}")
+  is_favorite      Boolean?                 @default(false)
+  is_archived      Boolean?                 @default(false)
+  is_private       Boolean?                 @default(true)
+  position         Int?                     @default(0)
+  view_count       BigInt?                  @default(0)
+  click_count      BigInt?                  @default(0)
+  created_at       DateTime?                @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime?                @default(now()) @db.Timestamptz(6)
+  deleted_at       DateTime?                @db.Timestamptz(6)
+  tsv              Unsupported("tsvector")? @default(dbgenerated("to_tsvector('simple'::regconfig, (((((COALESCE(title, ''::character varying))::text || ' '::text) || COALESCE(description, ''::text)) || ' '::text) || COALESCE(url, ''::text)))"))
+  bookmark_history bookmark_history[]
+  bookmark_tags    bookmark_tags[]
+  folders          folders?                 @relation(fields: [folder_id], references: [id], onUpdate: NoAction)
+  users            users                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  media            media[]
+
+  @@index([tsv], map: "idx_bookmarks_tsv", type: Gin)
+  @@index([url(ops: raw("gin_trgm_ops"))], map: "idx_bookmarks_url_trgm", type: Gin)
+  @@index([user_id, folder_id], map: "idx_bookmarks_user_folder")
+  @@index([user_id, title], map: "idx_bookmarks_user_title")
+}
+
+model folders {
+  id            Int         @id @default(autoincrement())
+  user_id       Int
+  name          String      @db.VarChar(200)
+  color         String?     @db.VarChar(50)
+  parent_id     Int?
+  position      Int?        @default(0)
+  created_at    DateTime?   @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime?   @default(now()) @db.Timestamptz(6)
+  deleted_at    DateTime?   @db.Timestamptz(6)
+  bookmarks     bookmarks[]
+  folders       folders?    @relation("foldersTofolders", fields: [parent_id], references: [id], onUpdate: NoAction)
+  other_folders folders[]   @relation("foldersTofolders")
+  users         users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, parent_id, name], map: "folders_user_parent_name_unique")
+}
+
+model media {
+  id          Int        @id @default(autoincrement())
+  bookmark_id Int?
+  type        String?    @db.VarChar(50)
+  url         String
+  width       Int?
+  height      Int?
+  created_at  DateTime?  @default(now()) @db.Timestamptz(6)
+  bookmarks   bookmarks? @relation(fields: [bookmark_id], references: [id], onUpdate: NoAction)
+}
+
+model sessions {
+  id                 Int       @id @default(autoincrement())
+  user_id            Int
+  refresh_token_hash String    @db.VarChar(200)
+  user_agent         String?
+  ip                 String?   @db.VarChar(50)
+  created_at         DateTime? @default(now()) @db.Timestamptz(6)
+  last_used_at       DateTime? @default(now()) @db.Timestamptz(6)
+  expires_at         DateTime? @db.Timestamptz(6)
+  revoked            Boolean?  @default(false)
+  users              users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_sessions_user")
+}
+
+model tags {
+  id            Int             @id @default(autoincrement())
+  user_id       Int
+  name          String          @db.VarChar(100)
+  slug          String          @db.VarChar(100)
+  color         String?         @db.VarChar(50)
+  created_at    DateTime?       @default(now()) @db.Timestamptz(6)
+  bookmark_tags bookmark_tags[]
+  users         users           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, slug], map: "tags_user_slug_unique")
+  @@index([user_id, slug], map: "idx_tags_user_slug")
+}
+
+model user_providers {
+  id                Int       @id @default(autoincrement())
+  user_id           Int
+  provider          String    @db.VarChar(50)
+  provider_user_id  String    @db.VarChar(255)
+  provider_email    String?   @db.VarChar(255)
+  access_token_enc  String?
+  refresh_token_enc String?
+  scope             String?
+  created_at        DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime? @default(now()) @db.Timestamptz(6)
+  users             users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([provider, provider_user_id])
+  @@unique([user_id, provider])
+}
+
+model user_settings {
+  user_id    Int       @id
+  settings   Json?     @default("{}")
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model users {
+  id               Int                @id @default(autoincrement())
+  uuid             String             @unique(map: "users_uuid_unique") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email            String?            @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified   Boolean?           @default(false)
+  display_name     String?            @db.VarChar(255)
+  avatar_url       String?
+  locale           String?            @db.VarChar(20)
+  is_active        Boolean?           @default(true)
+  created_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  last_login_at    DateTime?          @db.Timestamptz(6)
+  deleted_at       DateTime?          @db.Timestamptz(6)
+  bookmark_history bookmark_history[]
+  bookmark_tags    bookmark_tags[]
+  bookmarks        bookmarks[]
+  folders          folders[]
+  sessions         sessions[]
+  tags             tags[]
+  user_providers   user_providers[]
+  user_settings    user_settings?
 }
