@@ -2,6 +2,15 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { PrismaClient } from "../../../generated/prisma/index.js";
+import {
+  mockBookmarkHistory,
+  mockBookmarks,
+  mockBookmarkTags,
+  mockFolders,
+  mockMedia,
+  mockTags,
+  mockUsers,
+} from "./data/mock-data.js";
 
 const prisma = new PrismaClient();
 
@@ -44,9 +53,374 @@ app.get("/db-health", async (_req, res) => {
     res.status(503).json({
       ok: false,
       database: "disconnected",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// API Routes for test data
+app.get("/api/users", async (_req, res) => {
+  // Using mock data for development
+  res.json({ ok: true, data: mockUsers });
+
+  /* DB version (for later):
+  try {
+    const users = await prisma.users.findMany({
+      select: {
+        id: true,
+        uuid: true,
+        email: true,
+        display_name: true,
+        avatar_url: true,
+        locale: true,
+        is_active: true,
+        created_at: true,
+        updated_at: true,
+        last_login_at: true,
+      },
+    });
+    res.json({ ok: true, data: users });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
       error: error instanceof Error ? error.message : "Unknown error"
     });
   }
+  */
+});
+
+app.get("/api/bookmarks", (_req, res) => {
+  // Using mock data for development - enrich bookmarks with related data
+  const enrichedBookmarks = mockBookmarks.map((bookmark) => {
+    const user = mockUsers.find((u) => u.id === bookmark.user_id);
+    const folder = mockFolders.find((f) => f.id === bookmark.folder_id);
+    const bookmarkTagRelations = mockBookmarkTags.filter(
+      (bt) => bt.bookmark_id === bookmark.id,
+    );
+    const tags = bookmarkTagRelations
+      .map((bt) => mockTags.find((t) => t.id === bt.tag_id))
+      .filter(Boolean);
+    const media = mockMedia.filter((m) => m.bookmark_id === bookmark.id);
+
+    return {
+      ...bookmark,
+      users: user
+        ? {
+            id: user.id,
+            display_name: user.display_name,
+            avatar_url: user.avatar_url,
+          }
+        : null,
+      folders: folder
+        ? {
+            id: folder.id,
+            name: folder.name,
+            color: folder.color,
+          }
+        : null,
+      bookmark_tags: tags.map((tag) => ({ tags: tag })),
+      media,
+    };
+  });
+
+  res.json({ ok: true, data: enrichedBookmarks });
+
+  /* DB version (for later):
+  try {
+    const bookmarks = await prisma.bookmarks.findMany({
+      include: {
+        users: {
+          select: {
+            id: true,
+            display_name: true,
+            avatar_url: true,
+          },
+        },
+        folders: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
+        bookmark_tags: {
+          include: {
+            tags: true,
+          },
+        },
+        media: true,
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
+    res.json({ ok: true, data: bookmarks });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+  */
+});
+
+app.get("/api/bookmarks/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    return res.status(400).json({ ok: false, error: "Invalid bookmark ID" });
+  }
+
+  // Using mock data for development
+  const bookmark = mockBookmarks.find((b) => b.id === id);
+
+  if (!bookmark) {
+    return res.status(404).json({ ok: false, error: "Bookmark not found" });
+  }
+
+  const user = mockUsers.find((u) => u.id === bookmark.user_id);
+  const folder = mockFolders.find((f) => f.id === bookmark.folder_id);
+  const bookmarkTagRelations = mockBookmarkTags.filter(
+    (bt) => bt.bookmark_id === bookmark.id,
+  );
+  const tags = bookmarkTagRelations
+    .map((bt) => mockTags.find((t) => t.id === bt.tag_id))
+    .filter(Boolean);
+  const media = mockMedia.filter((m) => m.bookmark_id === bookmark.id);
+  const history = mockBookmarkHistory
+    .filter((h) => h.bookmark_id === bookmark.id)
+    .slice(0, 10);
+
+  const enrichedBookmark = {
+    ...bookmark,
+    users: user
+      ? {
+          id: user.id,
+          display_name: user.display_name,
+          avatar_url: user.avatar_url,
+        }
+      : null,
+    folders: folder || null,
+    bookmark_tags: tags.map((tag) => ({ tags: tag })),
+    media,
+    bookmark_history: history,
+  };
+
+  res.json({ ok: true, data: enrichedBookmark });
+
+  /* DB version (for later):
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ ok: false, error: "Invalid bookmark ID" });
+    }
+
+    const bookmark = await prisma.bookmarks.findUnique({
+      where: { id },
+      include: {
+        users: {
+          select: {
+            id: true,
+            display_name: true,
+            avatar_url: true,
+          },
+        },
+        folders: true,
+        bookmark_tags: {
+          include: {
+            tags: true,
+          },
+        },
+        media: true,
+        bookmark_history: {
+          orderBy: {
+            created_at: 'desc',
+          },
+          take: 10,
+        },
+      },
+    });
+
+    if (!bookmark) {
+      return res.status(404).json({ ok: false, error: "Bookmark not found" });
+    }
+
+    res.json({ ok: true, data: bookmark });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+  */
+});
+
+app.get("/api/folders", (_req, res) => {
+  // Using mock data for development
+  const enrichedFolders = mockFolders.map((folder) => {
+    const user = mockUsers.find((u) => u.id === folder.user_id);
+    const parentFolder = folder.parent_id
+      ? mockFolders.find((f) => f.id === folder.parent_id)
+      : null;
+    const bookmarkCount = mockBookmarks.filter(
+      (b) => b.folder_id === folder.id,
+    ).length;
+    const subfolderCount = mockFolders.filter(
+      (f) => f.parent_id === folder.id,
+    ).length;
+
+    return {
+      ...folder,
+      users: user
+        ? {
+            id: user.id,
+            display_name: user.display_name,
+          }
+        : null,
+      folders: parentFolder
+        ? {
+            id: parentFolder.id,
+            name: parentFolder.name,
+            color: parentFolder.color,
+          }
+        : null,
+      _count: {
+        bookmarks: bookmarkCount,
+        other_folders: subfolderCount,
+      },
+    };
+  });
+
+  res.json({ ok: true, data: enrichedFolders });
+
+  /* DB version (for later):
+  try {
+    const folders = await prisma.folders.findMany({
+      include: {
+        users: {
+          select: {
+            id: true,
+            display_name: true,
+          },
+        },
+        folders: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
+        _count: {
+          select: {
+            bookmarks: true,
+            other_folders: true,
+          },
+        },
+      },
+      orderBy: {
+        position: 'asc',
+      },
+    });
+    res.json({ ok: true, data: folders });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+  */
+});
+
+app.get("/api/tags", (_req, res) => {
+  // Using mock data for development
+  const enrichedTags = mockTags.map((tag) => {
+    const user = mockUsers.find((u) => u.id === tag.user_id);
+    const bookmarkTagCount = mockBookmarkTags.filter(
+      (bt) => bt.tag_id === tag.id,
+    ).length;
+
+    return {
+      ...tag,
+      users: user
+        ? {
+            id: user.id,
+            display_name: user.display_name,
+          }
+        : null,
+      _count: {
+        bookmark_tags: bookmarkTagCount,
+      },
+    };
+  });
+
+  res.json({ ok: true, data: enrichedTags });
+
+  /* DB version (for later):
+  try {
+    const tags = await prisma.tags.findMany({
+      include: {
+        users: {
+          select: {
+            id: true,
+            display_name: true,
+          },
+        },
+        _count: {
+          select: {
+            bookmark_tags: true,
+          },
+        },
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+    res.json({ ok: true, data: tags });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+  */
+});
+
+app.get("/api/stats", (_req, res) => {
+  // Using mock data for development
+  res.json({
+    ok: true,
+    data: {
+      users: mockUsers.length,
+      bookmarks: mockBookmarks.length,
+      folders: mockFolders.length,
+      tags: mockTags.length,
+    },
+  });
+
+  /* DB version (for later):
+  try {
+    const [userCount, bookmarkCount, folderCount, tagCount] = await Promise.all([
+      prisma.users.count(),
+      prisma.bookmarks.count(),
+      prisma.folders.count(),
+      prisma.tags.count(),
+    ]);
+
+    res.json({
+      ok: true,
+      data: {
+        users: userCount,
+        bookmarks: bookmarkCount,
+        folders: folderCount,
+        tags: tagCount,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+  */
 });
 
 const PORT = process.env.PORT ?? 3001;

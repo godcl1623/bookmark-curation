@@ -1,43 +1,43 @@
 import { X } from "lucide-react";
 
-import { cn } from "../../lib/utils.ts";
+import { cn } from "../../lib/utils";
 
 interface TagItemProps {
-    tag: string;
-    onClick?: () => void;
-    needClose?: boolean;
-    size?: "sm" | "md" | "lg";
+  tag: string;
+  onClick?: () => void;
+  needClose?: boolean;
+  size?: "sm" | "md" | "lg";
 }
 
 export default function TagItem({
-    tag,
-    onClick,
-    needClose = false,
-    size = "md",
+  tag,
+  onClick,
+  needClose = false,
+  size = "md",
 }: TagItemProps) {
-    const handleClick = () => {
-        if (onClick != null) onClick();
-    };
+  const handleClick = () => {
+    if (onClick != null) onClick();
+  };
 
-    return (
-        <div
-            className={cn(
-                "flex items-center gap-2 rounded-full bg-blue-100 text-blue-700",
-                SIZES[size],
-            )}
-        >
-            #{tag}
-            {needClose && (
-                <button onClick={handleClick}>
-                    <X className={"size-4"}/>
-                </button>
-            )}
-        </div>
-    );
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 rounded-full bg-blue-100 text-blue-700",
+        SIZES[size]
+      )}
+    >
+      #{tag}
+      {needClose && (
+        <button onClick={handleClick}>
+          <X className={"size-4"} />
+        </button>
+      )}
+    </div>
+  );
 }
 
 const SIZES = {
-    sm: "px-1.5 py-0.5 text-xs",
-    md: "px-3 py-1 text-sm",
-    lg: "px-6 py-2",
+  sm: "px-1.5 py-0.5 text-xs",
+  md: "px-3 py-1 text-sm",
+  lg: "px-6 py-2",
 };
