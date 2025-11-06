@@ -1,13 +1,17 @@
+import type { DataType, Folder as FolderType } from "@linkvault/shared/types";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, File, Folder } from "lucide-react";
 import { type ComponentProps, useMemo, useState } from "react";
 
-import Button from "../../../shared/components/atoms/button.tsx";
-import { DIRECTORY } from "../../../shared/consts";
+import Button from "../../../shared/components/atoms/button";
 import { cn } from "../../../shared/lib/utils";
+import getDirectoryList from "../../../shared/services/directories/get-directory-list";
+import DIRECTORY_QUERY_KEY from "../../../shared/services/directories/queryKey";
 import type { BasicComponentProps } from "../../../shared/types";
-import type { Bookmark, BookmarkType } from "../../../shared/types/bookmark.ts";
 
 export default function DirectoryTree() {
+  const { folders, bookmarks } = useDirectoryData();
+
   return (
     <aside
       className={
@@ -17,11 +21,25 @@ export default function DirectoryTree() {
       <DefaultFilterButton>All</DefaultFilterButton>
       <DefaultFilterButton>Favorites</DefaultFilterButton>
       <nav>
-        <DirectoryList directoryList={DIRECTORY} />
+        <DirectoryList directoryList={[...folders, ...bookmarks]} />
       </nav>
     </aside>
   );
 }
+
+const useDirectoryData = () => {
+  const { data: directoryData } = useQuery({
+    queryKey: DIRECTORY_QUERY_KEY.CONTENTS(null),
+    queryFn: getDirectoryList,
+  });
+
+  const directoryList = useMemo(() => directoryData?.data, [directoryData]);
+
+  return {
+    folders: directoryList?.folders ?? [],
+    bookmarks: directoryList?.bookmarks ?? [],
+  };
+};
 
 const useDirectory = () => {
   const [selectedFolder, setSelectedFolder] = useState<string[]>([]);
@@ -45,14 +63,14 @@ function DefaultFilterButton({ children }: BasicComponentProps) {
 
 interface DirectoryButtonProps {
   isOpen?: boolean;
-  dataType?: BookmarkType;
-  parent?: string | null;
+  dataType?: DataType;
+  parentId?: string | null;
 }
 
 function DirectoryButton({
   isOpen = false,
   dataType = "bookmark",
-  parent = null,
+  parentId = null,
   children,
   onClick,
 }: DirectoryButtonProps & ComponentProps<"button">) {
@@ -60,7 +78,7 @@ function DirectoryButton({
     () => (dataType === "bookmark" ? <File /> : <Folder />),
     [dataType]
   );
-  const hierarchy = parent == null ? 0 : parent.split("/").length;
+  const hierarchy = parentId == null ? 0 : parentId.split("/").length;
 
   return (
     <Button
@@ -86,7 +104,7 @@ function DirectoryButton({
 }
 
 interface DirectoryListProps {
-  directoryList: Bookmark[];
+  directoryList: FolderType[];
 }
 
 function DirectoryList({ directoryList }: DirectoryListProps) {
@@ -96,23 +114,24 @@ function DirectoryList({ directoryList }: DirectoryListProps) {
     <ul className={"flex flex-col gap-2"}>
       {/* FIXME: 루트에 파일이 올 수도 있도록 수정 */}
       {directoryList?.map((folder) => {
-        const isOpen = selectedFolder.includes(folder.id);
+        const isOpen = selectedFolder.includes(folder.data_id);
 
         return (
           <li key={folder.id}>
             <DirectoryButton
               isOpen={isOpen}
               dataType={folder.type}
-              parent={folder.parent}
+              parentId={folder.parent_id}
               onClick={
                 folder.type === "folder"
-                  ? changeSelectedFolder(folder.id)
+                  ? changeSelectedFolder(folder.data_id)
                   : () => null
               }
             >
-              {folder.name}
+              {folder.title}
             </DirectoryButton>
-            {isOpen && <DirectoryList directoryList={folder.children ?? []} />}
+            {/*{isOpen && <DirectoryList directoryList={folder.children ?? []} />}*/}
+            {isOpen && <DirectoryList directoryList={[]} />}
           </li>
         );
       })}

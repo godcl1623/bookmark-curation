@@ -1,4 +1,5 @@
-import SERVICE_ENDPOINTS from "../../../../../shared/services/endpoints.ts";
+import { SERVICE_ENDPOINTS } from "@linkvault/shared";
+
 import instance from "../../lib/http/axios.ts";
 
 const getDirectoryList = async () => {

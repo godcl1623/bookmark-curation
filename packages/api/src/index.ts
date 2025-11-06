@@ -3,15 +3,23 @@ import express from "express";
 import cors from "cors";
 import { PrismaClient } from "../../../generated/prisma/index.js";
 import {
-  mockBookmarkHistory,
   mockBookmarks,
   mockBookmarkTags,
   mockFolders,
-  mockMedia,
   mockTags,
   mockUsers,
-} from "./data/mock-data.js";
+} from "./data/mock-data";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
+import {
+  findBookmarksRelatedTags,
+  findFolder,
+  findHistory,
+  findMedia,
+  findParentFolder,
+  findTags,
+  findUser,
+  getCount,
+} from "@/utils";
 
 const prisma = new PrismaClient();
 
@@ -93,15 +101,11 @@ app.get(SERVICE_ENDPOINTS.USERS.path, async (_req, res) => {
 app.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, (_req, res) => {
   // Using mock data for development - enrich bookmarks with related data
   const enrichedBookmarks = mockBookmarks.map((bookmark) => {
-    const user = mockUsers.find((u) => u.id === bookmark.user_id);
-    const folder = mockFolders.find((f) => f.id === bookmark.folder_id);
-    const bookmarkTagRelations = mockBookmarkTags.filter(
-      (bt) => bt.bookmark_id === bookmark.id,
-    );
-    const tags = bookmarkTagRelations
-      .map((bt) => mockTags.find((t) => t.id === bt.tag_id))
-      .filter(Boolean);
-    const media = mockMedia.filter((m) => m.bookmark_id === bookmark.id);
+    const user = findUser(bookmark.user_id);
+    const folder = findFolder(bookmark.parent_id);
+    const bookmarkTagRelations = findBookmarksRelatedTags(bookmark.id);
+    const tags = findTags(bookmarkTagRelations);
+    const media = findMedia(bookmark.id);
 
     return {
       ...bookmark,
@@ -115,7 +119,7 @@ app.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, (_req, res) => {
       folders: folder
         ? {
             id: folder.id,
-            name: folder.name,
+            name: folder.title,
             color: folder.color,
           }
         : null,
@@ -178,18 +182,12 @@ app.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, (req, res) => {
     return res.status(404).json({ ok: false, error: "Bookmark not found" });
   }
 
-  const user = mockUsers.find((u) => u.id === bookmark.user_id);
-  const folder = mockFolders.find((f) => f.id === bookmark.folder_id);
-  const bookmarkTagRelations = mockBookmarkTags.filter(
-    (bt) => bt.bookmark_id === bookmark.id,
-  );
-  const tags = bookmarkTagRelations
-    .map((bt) => mockTags.find((t) => t.id === bt.tag_id))
-    .filter(Boolean);
-  const media = mockMedia.filter((m) => m.bookmark_id === bookmark.id);
-  const history = mockBookmarkHistory
-    .filter((h) => h.bookmark_id === bookmark.id)
-    .slice(0, 10);
+  const user = findUser(bookmark.user_id);
+  const folder = findFolder(bookmark.parent_id);
+  const bookmarkTagRelations = findBookmarksRelatedTags(bookmark.id);
+  const tags = findTags(bookmarkTagRelations);
+  const media = findMedia(bookmark.id);
+  const history = findHistory(bookmark.id);
 
   const enrichedBookmark = {
     ...bookmark,
@@ -258,16 +256,10 @@ app.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, (req, res) => {
 app.get(SERVICE_ENDPOINTS.FOLDERS.path, (_req, res) => {
   // Using mock data for development
   const enrichedFolders = mockFolders.map((folder) => {
-    const user = mockUsers.find((u) => u.id === folder.user_id);
-    const parentFolder = folder.parent_id
-      ? mockFolders.find((f) => f.id === folder.parent_id)
-      : null;
-    const bookmarkCount = mockBookmarks.filter(
-      (b) => b.folder_id === folder.id,
-    ).length;
-    const subfolderCount = mockFolders.filter(
-      (f) => f.parent_id === folder.id,
-    ).length;
+    const user = findUser(folder.user_id);
+    const parentFolder = findParentFolder(folder.parent_id);
+    const bookmarkCount = getCount(mockBookmarks, "parent_id", folder.id);
+    const subfolderCount = getCount(mockFolders, "parent_id", folder.id);
 
     return {
       ...folder,
@@ -280,7 +272,7 @@ app.get(SERVICE_ENDPOINTS.FOLDERS.path, (_req, res) => {
       folders: parentFolder
         ? {
             id: parentFolder.id,
-            name: parentFolder.name,
+            name: parentFolder.title,
             color: parentFolder.color,
           }
         : null,
@@ -334,10 +326,8 @@ app.get(SERVICE_ENDPOINTS.FOLDERS.path, (_req, res) => {
 app.get(SERVICE_ENDPOINTS.TAGS.path, (_req, res) => {
   // Using mock data for development
   const enrichedTags = mockTags.map((tag) => {
-    const user = mockUsers.find((u) => u.id === tag.user_id);
-    const bookmarkTagCount = mockBookmarkTags.filter(
-      (bt) => bt.tag_id === tag.id,
-    ).length;
+    const user = findUser(tag.user_id);
+    const bookmarkTagCount = getCount(mockBookmarkTags, "tag_id", tag.id);
 
     return {
       ...tag,
@@ -418,7 +408,7 @@ app.get(SERVICE_ENDPOINTS.STATS.path, (_req, res) => {
   } catch (error) {
     res.status(500).json({
       ok: false,
-      error: error instanceof Error ? error.message : "Unknown error"
+      error: error instanceof Error ? error.message: "Unknown error"
     });
   }
   */
@@ -433,7 +423,11 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, (req, res) => {
       ? null
       : parseInt(parentIdParam as string);
 
-  if (parentIdParam !== undefined && parentIdParam !== "null" && isNaN(parentId as number)) {
+  if (
+    parentIdParam !== undefined &&
+    parentIdParam !== "null" &&
+    isNaN(parentId as number)
+  ) {
     return res.status(400).json({ ok: false, error: "Invalid parent_id" });
   }
 
@@ -441,13 +435,9 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, (req, res) => {
   const childFolders = mockFolders
     .filter((folder) => folder.parent_id === parentId)
     .map((folder) => {
-      const user = mockUsers.find((u) => u.id === folder.user_id);
-      const bookmarkCount = mockBookmarks.filter(
-        (b) => b.folder_id === folder.id,
-      ).length;
-      const subfolderCount = mockFolders.filter(
-        (f) => f.parent_id === folder.id,
-      ).length;
+      const user = findUser(folder.user_id);
+      const bookmarkCount = getCount(mockBookmarks, "parent_id", folder.id);
+      const subfolderCount = getCount(mockFolders, "parent_id", folder.id);
 
       return {
         ...folder,
@@ -466,17 +456,13 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, (req, res) => {
 
   // Get bookmarks with matching folder_id (which acts as parent_id)
   const childBookmarks = mockBookmarks
-    .filter((bookmark) => bookmark.folder_id === parentId)
+    .filter((bookmark) => bookmark.parent_id === parentId)
     .map((bookmark) => {
-      const user = mockUsers.find((u) => u.id === bookmark.user_id);
-      const folder = mockFolders.find((f) => f.id === bookmark.folder_id);
-      const bookmarkTagRelations = mockBookmarkTags.filter(
-        (bt) => bt.bookmark_id === bookmark.id,
-      );
-      const tags = bookmarkTagRelations
-        .map((bt) => mockTags.find((t) => t.id === bt.tag_id))
-        .filter(Boolean);
-      const media = mockMedia.filter((m) => m.bookmark_id === bookmark.id);
+      const user = findUser(bookmark.user_id);
+      const folder = findFolder(bookmark.parent_id);
+      const bookmarkTagRelations = findBookmarksRelatedTags(bookmark.id);
+      const tags = findTags(bookmarkTagRelations);
+      const media = findMedia(bookmark.id);
 
       return {
         ...bookmark,
@@ -490,7 +476,7 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, (req, res) => {
         folders: folder
           ? {
               id: folder.id,
-              name: folder.name,
+              name: folder.title,
               color: folder.color,
             }
           : null,
