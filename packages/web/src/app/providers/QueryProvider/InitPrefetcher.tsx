@@ -1,11 +1,14 @@
-import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 
-import getFoldersList from "../../../shared/services/folders/get-folders-list.ts";
+import getDirectoryList from "../../../shared/services/directories/get-directory-list.ts";
+import DIRECTORY_QUERY_KEY from "../../../shared/services/directories/queryKey.ts";
 import type { BasicComponentProps } from "../../../shared/types";
 
 export default function InitPrefetcher({ children }: BasicComponentProps) {
-  useEffect(() => {
-    getFoldersList().then((res) => console.log(res));
-  }, []);
+  useQuery({
+    queryKey: DIRECTORY_QUERY_KEY.CONTENTS(null),
+    queryFn: getDirectoryList,
+  });
+
   return children;
 }

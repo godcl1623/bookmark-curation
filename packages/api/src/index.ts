@@ -11,6 +11,7 @@ import {
   mockTags,
   mockUsers,
 } from "./data/mock-data.js";
+import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 
 const prisma = new PrismaClient();
 
@@ -41,11 +42,11 @@ app.use(
 );
 app.use(express.json());
 
-app.get("/health", (_req, res) => {
+app.get(SERVICE_ENDPOINTS.HEALTH_CHECK.SERVER.path, (_req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/db-health", async (_req, res) => {
+app.get(SERVICE_ENDPOINTS.HEALTH_CHECK.DB.path, async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ ok: true, database: "connected" });
@@ -59,7 +60,7 @@ app.get("/db-health", async (_req, res) => {
 });
 
 // API Routes for test data
-app.get("/api/users", async (_req, res) => {
+app.get(SERVICE_ENDPOINTS.USERS.path, async (_req, res) => {
   // Using mock data for development
   res.json({ ok: true, data: mockUsers });
 
@@ -89,7 +90,7 @@ app.get("/api/users", async (_req, res) => {
   */
 });
 
-app.get("/api/bookmarks", (_req, res) => {
+app.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, (_req, res) => {
   // Using mock data for development - enrich bookmarks with related data
   const enrichedBookmarks = mockBookmarks.map((bookmark) => {
     const user = mockUsers.find((u) => u.id === bookmark.user_id);
@@ -164,7 +165,7 @@ app.get("/api/bookmarks", (_req, res) => {
   */
 });
 
-app.get("/api/bookmarks/:id", (req, res) => {
+app.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, (req, res) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) {
     return res.status(400).json({ ok: false, error: "Invalid bookmark ID" });
@@ -254,7 +255,7 @@ app.get("/api/bookmarks/:id", (req, res) => {
   */
 });
 
-app.get("/api/folders", (_req, res) => {
+app.get(SERVICE_ENDPOINTS.FOLDERS.path, (_req, res) => {
   // Using mock data for development
   const enrichedFolders = mockFolders.map((folder) => {
     const user = mockUsers.find((u) => u.id === folder.user_id);
@@ -330,7 +331,7 @@ app.get("/api/folders", (_req, res) => {
   */
 });
 
-app.get("/api/tags", (_req, res) => {
+app.get(SERVICE_ENDPOINTS.TAGS.path, (_req, res) => {
   // Using mock data for development
   const enrichedTags = mockTags.map((tag) => {
     const user = mockUsers.find((u) => u.id === tag.user_id);
@@ -384,7 +385,7 @@ app.get("/api/tags", (_req, res) => {
   */
 });
 
-app.get("/api/stats", (_req, res) => {
+app.get(SERVICE_ENDPOINTS.STATS.path, (_req, res) => {
   // Using mock data for development
   res.json({
     ok: true,
@@ -412,6 +413,170 @@ app.get("/api/stats", (_req, res) => {
         bookmarks: bookmarkCount,
         folders: folderCount,
         tags: tagCount,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+  */
+});
+
+// Get directory contents (folders and bookmarks) by parent_id
+app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, (req, res) => {
+  // parent_id from query parameter, defaults to null for root level
+  const parentIdParam = req.query.parent_id;
+  const parentId =
+    parentIdParam === undefined || parentIdParam === "null"
+      ? null
+      : parseInt(parentIdParam as string);
+
+  if (parentIdParam !== undefined && parentIdParam !== "null" && isNaN(parentId as number)) {
+    return res.status(400).json({ ok: false, error: "Invalid parent_id" });
+  }
+
+  // Get folders with matching parent_id
+  const childFolders = mockFolders
+    .filter((folder) => folder.parent_id === parentId)
+    .map((folder) => {
+      const user = mockUsers.find((u) => u.id === folder.user_id);
+      const bookmarkCount = mockBookmarks.filter(
+        (b) => b.folder_id === folder.id,
+      ).length;
+      const subfolderCount = mockFolders.filter(
+        (f) => f.parent_id === folder.id,
+      ).length;
+
+      return {
+        ...folder,
+        users: user
+          ? {
+              id: user.id,
+              display_name: user.display_name,
+            }
+          : null,
+        _count: {
+          bookmarks: bookmarkCount,
+          subfolders: subfolderCount,
+        },
+      };
+    });
+
+  // Get bookmarks with matching folder_id (which acts as parent_id)
+  const childBookmarks = mockBookmarks
+    .filter((bookmark) => bookmark.folder_id === parentId)
+    .map((bookmark) => {
+      const user = mockUsers.find((u) => u.id === bookmark.user_id);
+      const folder = mockFolders.find((f) => f.id === bookmark.folder_id);
+      const bookmarkTagRelations = mockBookmarkTags.filter(
+        (bt) => bt.bookmark_id === bookmark.id,
+      );
+      const tags = bookmarkTagRelations
+        .map((bt) => mockTags.find((t) => t.id === bt.tag_id))
+        .filter(Boolean);
+      const media = mockMedia.filter((m) => m.bookmark_id === bookmark.id);
+
+      return {
+        ...bookmark,
+        users: user
+          ? {
+              id: user.id,
+              display_name: user.display_name,
+              avatar_url: user.avatar_url,
+            }
+          : null,
+        folders: folder
+          ? {
+              id: folder.id,
+              name: folder.name,
+              color: folder.color,
+            }
+          : null,
+        bookmark_tags: tags.map((tag) => ({ tags: tag })),
+        media,
+      };
+    });
+
+  res.json({
+    ok: true,
+    data: {
+      parent_id: parentId,
+      folders: childFolders,
+      bookmarks: childBookmarks,
+    },
+  });
+
+  /* DB version (for later):
+  try {
+    const parentIdParam = req.query.parent_id;
+    const parentId =
+      parentIdParam === undefined || parentIdParam === "null"
+        ? null
+        : parseInt(parentIdParam as string);
+
+    if (parentIdParam !== undefined && parentIdParam !== "null" && isNaN(parentId as number)) {
+      return res.status(400).json({ ok: false, error: "Invalid parent_id" });
+    }
+
+    const [folders, bookmarks] = await Promise.all([
+      prisma.folders.findMany({
+        where: { parent_id: parentId },
+        include: {
+          users: {
+            select: {
+              id: true,
+              display_name: true,
+            },
+          },
+          _count: {
+            select: {
+              bookmarks: true,
+              other_folders: true,
+            },
+          },
+        },
+        orderBy: {
+          position: 'asc',
+        },
+      }),
+      prisma.bookmarks.findMany({
+        where: { folder_id: parentId },
+        include: {
+          users: {
+            select: {
+              id: true,
+              display_name: true,
+              avatar_url: true,
+            },
+          },
+          folders: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+            },
+          },
+          bookmark_tags: {
+            include: {
+              tags: true,
+            },
+          },
+          media: true,
+        },
+        orderBy: {
+          position: 'asc',
+        },
+      }),
+    ]);
+
+    res.json({
+      ok: true,
+      data: {
+        parent_id: parentId,
+        folders,
+        bookmarks,
       },
     });
   } catch (error) {

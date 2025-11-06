@@ -1,4 +1,4 @@
-import { default as axios, type InternalAxiosRequestConfig } from "axios";
+import axios, { type InternalAxiosRequestConfig } from "axios";
 
 const instance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
