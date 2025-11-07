@@ -421,15 +421,7 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, (req, res) => {
   const parentId =
     parentIdParam === undefined || parentIdParam === "null"
       ? null
-      : parseInt(parentIdParam as string);
-
-  if (
-    parentIdParam !== undefined &&
-    parentIdParam !== "null" &&
-    isNaN(parentId as number)
-  ) {
-    return res.status(400).json({ ok: false, error: "Invalid parent_id" });
-  }
+      : parentIdParam;
 
   // Get folders with matching parent_id
   const childFolders = mockFolders
