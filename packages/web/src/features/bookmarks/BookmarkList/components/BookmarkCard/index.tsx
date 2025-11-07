@@ -1,19 +1,20 @@
 import { EllipsisVertical, Share2, Star } from "lucide-react";
 import type { MouseEvent } from "react";
 
-import { useModal } from "../../../../../app/providers/ModalProvider/context.ts";
-import Button from "../../../../../shared/components/atoms/button.tsx";
-import TagItem from "../../../../../shared/components/molecules/TagItem.tsx";
+import { useModal } from "@/app/providers/ModalProvider/context";
+import Button from "@/shared/components/atoms/button";
+import TagItem from "@/shared/components/molecules/TagItem";
 import {
   Card,
   CardContent,
   CardDescription,
   CardTitle,
-} from "../../../../../shared/components/organisms/card.tsx";
-import { cn } from "../../../../../shared/lib/utils";
-import type { BasicComponentProps } from "../../../../../shared/types";
+} from "@/shared/components/organisms/card";
+import { cn } from "@/shared/lib/utils";
+import type { BasicComponentProps } from "@/shared/types";
+
 import BookmarkDetail from "../BookmarkDetail";
-import FolderTag from "./FolderTag.tsx";
+import FolderTag from "./FolderTag";
 
 interface BookmarkCardProps {
   isCard?: boolean;

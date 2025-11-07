@@ -1,9 +1,9 @@
 import { useState } from "react";
 
-import Button from "../../../../../shared/components/atoms/button.tsx";
-import { DUMMY_FOLDERS } from "../../../../../shared/consts";
-import { cn } from "../../../../../shared/lib/utils";
-import { COMMON_STYLES } from "../../consts";
+import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
+import Button from "@/shared/components/atoms/button";
+import { DUMMY_FOLDERS } from "@/shared/consts";
+import { cn } from "@/shared/lib/utils";
 
 export default function SelectFolder() {
   const { isOpen, toggleDropdown, selectedFolder, setFolder } =

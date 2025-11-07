@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 
-import Button from "../../../shared/components/atoms/button";
-import type { BasicComponentProps } from "../../../shared/types";
+import Button from "@/shared/components/atoms/button";
+import type { BasicComponentProps } from "@/shared/types";
+
 import DirectoryList from "./components/DirectoryList";
-import useDirectoriesData from "./hooks/useDirectoriesData.ts";
+import useDirectoriesData from "./hooks/useDirectoriesData";
 
 export default function DirectoryTree() {
   const loadedDirectories = useDirectoriesData();

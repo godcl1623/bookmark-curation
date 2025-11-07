@@ -1,11 +1,11 @@
 import { Tag } from "lucide-react";
 import { type KeyboardEvent, useState } from "react";
 
-import Button from "../../../../../shared/components/atoms/button.tsx";
-import LabeledElement from "../../../../../shared/components/molecules/LabeledElement.tsx";
-import TagItem from "../../../../../shared/components/molecules/TagItem.tsx";
-import useInput from "../../../../../shared/hooks/useInput.ts";
-import { COMMON_STYLES } from "../../consts";
+import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
+import Button from "@/shared/components/atoms/button";
+import LabeledElement from "@/shared/components/molecules/LabeledElement";
+import TagItem from "@/shared/components/molecules/TagItem";
+import useInput from "@/shared/hooks/useInput";
 
 export default function AddTags() {
   const { tags, addTag, removeTag } = useTags();

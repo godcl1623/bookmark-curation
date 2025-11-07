@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import type { BasicComponentProps } from "../../../shared/types";
-import { ModalContext } from "./context.ts";
-import ModalComponent from "./ModalComponent.tsx";
-import type { ModalDetail, ModalStore } from "./types.ts";
+import type { BasicComponentProps } from "@/shared/types";
+
+import { ModalContext } from "./context";
+import ModalComponent from "./ModalComponent";
+import type { ModalDetail, ModalStore } from "./types";
 
 export default function ModalProvider({ children }: BasicComponentProps) {
   const [modalList, setModalList] = useState<ModalDetail[]>([]);

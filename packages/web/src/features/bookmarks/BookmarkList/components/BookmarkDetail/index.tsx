@@ -10,20 +10,21 @@ import {
   X,
 } from "lucide-react";
 
-import type { DefaultModalChildrenProps } from "../../../../../app/providers/ModalProvider/types.ts";
-import Button from "../../../../../shared/components/atoms/button.tsx";
-import ModalLayout from "../../../../../shared/components/layouts/modal";
-import TagItem from "../../../../../shared/components/molecules/TagItem.tsx";
+import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
+import Button from "@/shared/components/atoms/button";
+import ModalLayout from "@/shared/components/layouts/modal";
+import TagItem from "@/shared/components/molecules/TagItem";
 import {
   Card,
   CardAction,
   CardContent,
   CardDescription,
   CardHeader,
-} from "../../../../../shared/components/organisms/card.tsx";
-import { cn } from "../../../../../shared/lib/utils";
-import type { BasicComponentProps } from "../../../../../shared/types";
-import FolderTag from "../BookmarkCard/FolderTag.tsx";
+} from "@/shared/components/organisms/card";
+import { cn } from "@/shared/lib/utils";
+import type { BasicComponentProps } from "@/shared/types";
+
+import FolderTag from "../BookmarkCard/FolderTag";
 
 export default function BookmarkDetail({ reject }: DefaultModalChildrenProps) {
   return (

@@ -1,17 +1,15 @@
 import { Folder, Link, X } from "lucide-react";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 
-import type { DefaultModalChildrenProps } from "../../../app/providers/ModalProvider/types.ts";
-import Button from "../../../shared/components/atoms/button.tsx";
-import ModalLayout from "../../../shared/components/layouts/modal";
-import ControlledInput from "../../../shared/components/molecules/ControlledInput.tsx";
-import ControlledTextArea from "../../../shared/components/molecules/ControlledTextArea.tsx";
-import LabeledElement from "../../../shared/components/molecules/LabeledElement.tsx";
-import {
-  Card,
-  CardHeader,
-} from "../../../shared/components/organisms/card.tsx";
-import { cn } from "../../../shared/lib/utils";
+import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
+import Button from "@/shared/components/atoms/button";
+import ModalLayout from "@/shared/components/layouts/modal";
+import ControlledInput from "@/shared/components/molecules/ControlledInput";
+import ControlledTextArea from "@/shared/components/molecules/ControlledTextArea";
+import LabeledElement from "@/shared/components/molecules/LabeledElement";
+import { Card, CardHeader } from "@/shared/components/organisms/card";
+import { cn } from "@/shared/lib/utils";
+
 import AddTags from "./components/AddTags";
 import InputWithPaste from "./components/InputWithPaste";
 import SelectFolder from "./components/SelectFolder";

@@ -1,4 +1,4 @@
-import type { BasicComponentProps } from "../../../../../shared/types";
+import type { BasicComponentProps } from "@/shared/types";
 
 export default function FolderTag({ children }: BasicComponentProps) {
   if (!children) return null;

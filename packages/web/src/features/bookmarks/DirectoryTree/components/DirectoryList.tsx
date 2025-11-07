@@ -2,9 +2,10 @@ import type { DataType, Folder as FolderType } from "@linkvault/shared";
 import { ChevronRight, File, Folder } from "lucide-react";
 import { type ComponentProps, useMemo, useState } from "react";
 
-import Button from "../../../../shared/components/atoms/button.tsx";
-import { cn } from "../../../../shared/lib/utils";
-import useDirectoriesData from "../hooks/useDirectoriesData.ts";
+import Button from "@/shared/components/atoms/button";
+import { cn } from "@/shared/lib/utils";
+
+import useDirectoriesData from "../hooks/useDirectoriesData";
 
 interface DirectoryListProps {
   directoryList: FolderType[];

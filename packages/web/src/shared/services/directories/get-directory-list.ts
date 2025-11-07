@@ -1,6 +1,6 @@
 import SERVICE_ENDPOINTS from "@linkvault/shared/services/endpoints";
 
-import instance from "../../lib/http/axios.ts";
+import instance from "@/shared/lib/http/axios";
 
 const getDirectoryList = async (parentId: string | null = null) => {
   const response = await instance.get(

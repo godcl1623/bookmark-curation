@@ -1,4 +1,4 @@
-import type { Bookmark } from "../types/bookmark.ts";
+import type { Bookmark } from "@/shared//types/bookmark";
 
 export const DUMMY_FOLDERS = [
   "No Folder",

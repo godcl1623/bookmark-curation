@@ -6,8 +6,8 @@ import {
   Settings,
 } from "lucide-react";
 
-import Button from "../../../shared/components/atoms/button.tsx";
-import type { BasicComponentProps } from "../../../shared/types";
+import Button from "@/shared/components/atoms/button";
+import type { BasicComponentProps } from "@/shared/types";
 
 export default function Header() {
   return (

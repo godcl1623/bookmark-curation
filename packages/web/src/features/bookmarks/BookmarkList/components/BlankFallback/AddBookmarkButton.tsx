@@ -1,6 +1,6 @@
-import { useModal } from "../../../../../app/providers/ModalProvider/context.ts";
-import Button from "../../../../../shared/components/atoms/button.tsx";
-import AddBookmark from "../../../AddBookmark";
+import { useModal } from "@/app/providers/ModalProvider/context";
+import AddBookmark from "@/features/bookmarks/AddBookmark";
+import Button from "@/shared/components/atoms/button";
 
 export default function AddBookmarkButton() {
   const { openModal } = useModal();

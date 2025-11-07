@@ -2,9 +2,9 @@ import { ClipboardPlus } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import Button from "../../../../../shared/components/atoms/button.tsx";
-import ControlledInput from "../../../../../shared/components/molecules/ControlledInput.tsx";
-import { COMMON_STYLES } from "../../consts";
+import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
+import Button from "@/shared/components/atoms/button";
+import ControlledInput from "@/shared/components/molecules/ControlledInput";
 
 export default function InputWithPaste() {
   const [clipboard, pasteValue] = useClipboard();

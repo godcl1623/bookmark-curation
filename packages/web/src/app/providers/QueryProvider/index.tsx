@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState } from "react";
 
-import type { BasicComponentProps } from "../../../shared/types";
+import type { BasicComponentProps } from "@/shared/types";
 
 export default function QueryProvider({ children }: BasicComponentProps) {
   const [queryClient] = useState(
