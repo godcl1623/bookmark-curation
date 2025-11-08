@@ -5,6 +5,7 @@ import {
   Search,
   Settings,
 } from "lucide-react";
+import { NavLink } from "react-router";
 
 import Button from "@/shared/components/atoms/button";
 import type { BasicComponentProps } from "@/shared/types";
@@ -12,12 +13,7 @@ import type { BasicComponentProps } from "@/shared/types";
 export default function Header() {
   return (
     <header className={"flex-center-between px-10 py-3 shadow"}>
-      <div className={STYLES.container}>
-        <div className={"rounded-md bg-blue-600 p-1.5 text-white"}>
-          <Bookmark />
-        </div>
-        <h1>LinkVault</h1>
-      </div>
+      <Logo />
       <div className={STYLES.container}>
         <OptionButton>
           <Search className={STYLES.iconMd} />
@@ -47,6 +43,17 @@ const STYLES = {
   iconMd: "size-5",
   iconSm: "size-4",
 };
+
+function Logo() {
+  return (
+    <NavLink className={STYLES.container} to={"/"}>
+      <div className={"rounded-md bg-blue-600 p-1.5 text-white"}>
+        <Bookmark />
+      </div>
+      <h1>LinkVault</h1>
+    </NavLink>
+  );
+}
 
 interface OptionButtonProps extends BasicComponentProps {
   isActive?: boolean;

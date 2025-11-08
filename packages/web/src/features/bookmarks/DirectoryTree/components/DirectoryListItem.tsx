@@ -25,20 +25,19 @@ export default function DirectoryListItem({
   const isError = loadedDirectory?.isError ?? false;
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
 
+  const handleClick = () => {
+    if (type === "folder") {
+      toggleOpen(data_id);
+    }
+  };
+
   return (
     <>
       <DirectoryButton
         isOpen={isOpen}
         dataType={type}
         parentId={`${parentId ? `${parentId}/` : ""}${parent_id}`}
-        onClick={
-          type === "folder"
-            ? () => {
-                console.log("triggerd");
-                toggleOpen(data_id);
-              }
-            : () => null
-        }
+        onClick={handleClick}
       >
         {title}
       </DirectoryButton>
