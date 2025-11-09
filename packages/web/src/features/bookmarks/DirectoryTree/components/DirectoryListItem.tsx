@@ -7,6 +7,7 @@ import useGlobalStore from "@/stores/global";
 
 interface DirectoryListItemProps extends FolderType {
   parentId?: string | null;
+  parentName?: string | null;
 }
 
 export default function DirectoryListItem({
@@ -15,6 +16,7 @@ export default function DirectoryListItem({
   data_id,
   title,
   parentId,
+  parentName,
 }: DirectoryListItemProps) {
   const isOpen = useGlobalStore((state) => state.openIds.has(data_id));
   const toggleOpen = useGlobalStore((state) => state.toggleOpen);
@@ -38,6 +40,7 @@ export default function DirectoryListItem({
         dataType={type}
         parentId={`${parentId ? `${parentId}/` : ""}${parent_id}`}
         onClick={handleClick}
+        url={parentName == null ? `/${title}` : `/${parentName}/${title}`}
       >
         {title}
       </DirectoryButton>
@@ -45,6 +48,7 @@ export default function DirectoryListItem({
         <DirectoryList
           directoryList={[...(folders ?? []), ...(bookmarks ?? [])]}
           parentId={`${parentId ? `${parentId}/` : ""}${parent_id}`}
+          parentName={`${parentName ? `${parentName}/` : ""}${title}`}
         />
       )}
     </>
