@@ -26,6 +26,9 @@ const SERVICE_ENDPOINTS = {
     CONTENTS: {
       path: "/directory/contents",
     },
+    BY_PATH: {
+      path: "/directory/by-path",
+    },
   },
   TAGS: {
     path: "/tags",

@@ -566,6 +566,226 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, (req, res) => {
   */
 });
 
+// Get directory contents by path (e.g., /Development/Frontend)
+app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, (req, res) => {
+  const pathParam = req.query.path;
+  const userId = 1; // TODO: Get from auth session
+
+  // Validate path
+  if (!pathParam || typeof pathParam !== "string") {
+    return res.status(400).json({
+      ok: false,
+      error: "Path parameter is required",
+    });
+  }
+
+  if (!pathParam.startsWith("/")) {
+    return res.status(400).json({
+      ok: false,
+      error: "Path must start with /",
+    });
+  }
+
+  // Parse path segments
+  const segments = pathParam.split("/").filter(Boolean);
+
+  // Handle root path
+  if (segments.length === 0) {
+    const rootFolders = mockFolders.filter((f) => f.parent_id === null);
+    const rootBookmarks = mockBookmarks.filter((b) => b.parent_id === null);
+
+    return res.json({
+      ok: true,
+      data: {
+        folder: null,
+        folders: rootFolders,
+        bookmarks: rootBookmarks,
+        path: "/",
+        breadcrumbs: [],
+      },
+    });
+  }
+
+  // Sequential search through path segments
+  let currentParentId: string | null = null;
+  const breadcrumbs: typeof mockFolders = [];
+
+  for (let i = 0; i < segments.length; i++) {
+    const title = segments[i];
+
+    // Find folder with matching title and parent_id
+    const folder = mockFolders.find(
+      (f) => f.user_id === userId && f.parent_id === currentParentId && f.title === title
+    );
+
+    if (!folder) {
+      const currentPath = "/" + segments.slice(0, i + 1).join("/");
+      return res.status(404).json({
+        ok: false,
+        error: `Folder not found: ${title}`,
+        path: currentPath,
+        breadcrumbs: breadcrumbs,
+      });
+    }
+
+    breadcrumbs.push(folder);
+    currentParentId = folder.data_id;
+  }
+
+  // Get contents of the final folder
+  const finalFolder = breadcrumbs[breadcrumbs.length - 1];
+  const childFolders = mockFolders
+    .filter((folder) => folder.parent_id === finalFolder.data_id)
+    .map((folder) => {
+      const user = findUser(folder.user_id);
+      const bookmarkCount = getCount(mockBookmarks, "parent_id", folder.data_id);
+      const subfolderCount = getCount(mockFolders, "parent_id", folder.data_id);
+
+      return {
+        ...folder,
+        users: user
+          ? {
+              id: user.id,
+              display_name: user.display_name,
+            }
+          : null,
+        _count: {
+          bookmarks: bookmarkCount,
+          subfolders: subfolderCount,
+        },
+      };
+    });
+
+  const childBookmarks = mockBookmarks
+    .filter((bookmark) => bookmark.parent_id === finalFolder.data_id)
+    .map((bookmark) => {
+      const user = findUser(bookmark.user_id);
+      const folder = findFolder(bookmark.parent_id);
+      const bookmarkTagRelations = findBookmarksRelatedTags(bookmark.id);
+      const tags = findTags(bookmarkTagRelations);
+      const media = findMedia(bookmark.id);
+
+      return {
+        ...bookmark,
+        users: user
+          ? {
+              id: user.id,
+              display_name: user.display_name,
+              avatar_url: user.avatar_url,
+            }
+          : null,
+        folders: folder
+          ? {
+              id: folder.id,
+              title: folder.title,
+              color: folder.color,
+            }
+          : null,
+        bookmark_tags: tags.map((tag) => ({ tags: tag })),
+        media,
+      };
+    });
+
+  res.json({
+    ok: true,
+    data: {
+      folder: finalFolder,
+      folders: childFolders,
+      bookmarks: childBookmarks,
+      path: pathParam,
+      breadcrumbs: breadcrumbs,
+    },
+  });
+
+  /* DB version (for later):
+  try {
+    const pathParam = req.query.path;
+    const userId = req.user?.id || 1; // From auth session
+
+    if (!pathParam || typeof pathParam !== "string") {
+      return res.status(400).json({ ok: false, error: "Path parameter is required" });
+    }
+
+    if (!pathParam.startsWith("/")) {
+      return res.status(400).json({ ok: false, error: "Path must start with /" });
+    }
+
+    const segments = pathParam.split("/").filter(Boolean);
+
+    // Handle root
+    if (segments.length === 0) {
+      const [folders, bookmarks] = await Promise.all([
+        prisma.folders.findMany({ where: { user_id: userId, parent_id: null } }),
+        prisma.bookmarks.findMany({ where: { user_id: userId, folder_id: null } })
+      ]);
+
+      return res.json({
+        ok: true,
+        data: { folder: null, folders, bookmarks, path: "/", breadcrumbs: [] }
+      });
+    }
+
+    // Sequential search
+    let currentParentId = null;
+    const breadcrumbs = [];
+
+    for (const title of segments) {
+      const folder = await prisma.folders.findFirst({
+        where: { user_id: userId, parent_id: currentParentId, title }
+      });
+
+      if (!folder) {
+        return res.status(404).json({
+          ok: false,
+          error: `Folder not found: ${title}`,
+          breadcrumbs
+        });
+      }
+
+      breadcrumbs.push(folder);
+      currentParentId = folder.id;
+    }
+
+    // Get contents of final folder
+    const finalFolder = breadcrumbs[breadcrumbs.length - 1];
+    const [folders, bookmarks] = await Promise.all([
+      prisma.folders.findMany({
+        where: { parent_id: finalFolder.id },
+        include: {
+          users: { select: { id: true, display_name: true } },
+          _count: { select: { bookmarks: true, other_folders: true } }
+        }
+      }),
+      prisma.bookmarks.findMany({
+        where: { folder_id: finalFolder.id },
+        include: {
+          users: { select: { id: true, display_name: true, avatar_url: true } },
+          folders: { select: { id: true, title: true, color: true } },
+          bookmark_tags: { include: { tags: true } },
+          media: true
+        }
+      })
+    ]);
+
+    res.json({
+      ok: true,
+      data: {
+        folder: finalFolder,
+        folders,
+        bookmarks,
+        path: pathParam,
+        breadcrumbs
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+  */
+});
+
 const PORT = process.env.PORT ?? 3001;
 
 // Test DB connection before starting server
