@@ -6,7 +6,7 @@ import useDirectoriesData from "./hooks/useDirectoriesData";
 
 export default function DirectoryTree() {
   // const loadedDirectories = useDirectoriesData();
-  const loadedDirectory = useDirectoriesData();
+  const loadedDirectory = useDirectoriesData(null, true);
   // const loadedDirectory = useMemo(
   //   () => loadedDirectories?.[0],
   //   [loadedDirectories]

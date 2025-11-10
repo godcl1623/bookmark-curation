@@ -119,7 +119,7 @@ app.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, (_req, res) => {
       folders: folder
         ? {
             id: folder.id,
-            name: folder.title,
+            title: folder.title,
             color: folder.color,
           }
         : null,
@@ -144,7 +144,7 @@ app.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, (_req, res) => {
         folders: {
           select: {
             id: true,
-            name: true,
+            title: true,
             color: true,
           },
         },
@@ -272,7 +272,7 @@ app.get(SERVICE_ENDPOINTS.FOLDERS.path, (_req, res) => {
       folders: parentFolder
         ? {
             id: parentFolder.id,
-            name: parentFolder.title,
+            title: parentFolder.title,
             color: parentFolder.color,
           }
         : null,
@@ -298,7 +298,7 @@ app.get(SERVICE_ENDPOINTS.FOLDERS.path, (_req, res) => {
         folders: {
           select: {
             id: true,
-            name: true,
+            title: true,
             color: true,
           },
         },
@@ -468,7 +468,7 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, (req, res) => {
         folders: folder
           ? {
               id: folder.id,
-              name: folder.title,
+              title: folder.title,
               color: folder.color,
             }
           : null,
@@ -532,7 +532,7 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, (req, res) => {
           folders: {
             select: {
               id: true,
-              name: true,
+              title: true,
               color: true,
             },
           },

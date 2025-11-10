@@ -6,7 +6,7 @@ import type { BasicComponentProps } from "@/shared/types";
 
 export default function InitPrefetcher({ children }: BasicComponentProps) {
   useQuery({
-    queryKey: DIRECTORY_QUERY_KEY.CONTENTS(null),
+    queryKey: DIRECTORY_QUERY_KEY.CONTENTS(null, true),
     queryFn: () => getDirectoryList(),
   });
 

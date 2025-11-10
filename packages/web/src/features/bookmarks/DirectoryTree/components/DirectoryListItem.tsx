@@ -20,7 +20,7 @@ export default function DirectoryListItem({
 }: DirectoryListItemProps) {
   const isOpen = useGlobalStore((state) => state.openIds.has(data_id));
   const toggleOpen = useGlobalStore((state) => state.toggleOpen);
-  const loadedDirectory = useDirectoriesData(data_id);
+  const loadedDirectory = useDirectoriesData(data_id, isOpen);
 
   if (!loadedDirectory) return null;
   const isLoading = loadedDirectory?.isLoading ?? false;
