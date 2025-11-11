@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import getDirectoryList from "@/shared/services/directories/get-directory-list";
+import getDirectoryContents from "@/shared/services/directories/get-directory-contents";
 import DIRECTORY_QUERY_KEY from "@/shared/services/directories/queryKey";
 
 const useDirectoriesData = (
@@ -10,7 +10,7 @@ const useDirectoriesData = (
 ) => {
   const result = useQuery({
     queryKey: DIRECTORY_QUERY_KEY.CONTENTS(parentId),
-    queryFn: () => (shouldLoad ? getDirectoryList(parentId) : null),
+    queryFn: () => (shouldLoad ? getDirectoryContents(parentId) : null),
     enabled: shouldLoad,
   });
 

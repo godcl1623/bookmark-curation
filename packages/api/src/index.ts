@@ -689,11 +689,9 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, (req, res) => {
   res.json({
     ok: true,
     data: {
-      folder: finalFolder,
+      parent_id: finalFolder.data_id,
       folders: childFolders,
       bookmarks: childBookmarks,
-      path: pathParam,
-      breadcrumbs: breadcrumbs,
     },
   });
 
