@@ -54,7 +54,7 @@ async function main() {
   const folder1 = await prisma.folders.create({
     data: {
       user_id: user1.id,
-      name: 'Development',
+      title: 'Development',
       color: '#3b82f6',
       position: 0,
     },
@@ -63,7 +63,7 @@ async function main() {
   const folder2 = await prisma.folders.create({
     data: {
       user_id: user1.id,
-      name: 'Design',
+      title: 'Design',
       color: '#ec4899',
       position: 1,
     },
@@ -72,7 +72,7 @@ async function main() {
   const subfolder1 = await prisma.folders.create({
     data: {
       user_id: user1.id,
-      name: 'Frontend',
+      title: 'Frontend',
       color: '#10b981',
       parent_id: folder1.id,
       position: 0,
@@ -82,7 +82,7 @@ async function main() {
   const folder3 = await prisma.folders.create({
     data: {
       user_id: user2.id,
-      name: 'Resources',
+      title: 'Resources',
       color: '#f59e0b',
       position: 0,
     },
