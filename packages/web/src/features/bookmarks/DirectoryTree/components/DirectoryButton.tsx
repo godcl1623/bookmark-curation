@@ -1,7 +1,7 @@
 import type { DataType } from "@linkvault/shared";
 import { ChevronRight, File, Folder } from "lucide-react";
 import { type ComponentProps, type MouseEvent, useMemo } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 import Button from "@/shared/components/atoms/button";
 import { cn } from "@/shared/lib/utils";
@@ -9,7 +9,6 @@ import { cn } from "@/shared/lib/utils";
 interface DirectoryButtonProps {
   isOpen?: boolean;
   dataType?: DataType;
-  parentId?: string | null;
   url?: string;
 }
 
@@ -17,24 +16,23 @@ export default function DirectoryButton({
   url,
   isOpen = false,
   dataType = "bookmark",
-  parentId = null,
   children,
   onClick,
 }: DirectoryButtonProps & ComponentProps<"button">) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const icon = useMemo(
     () => (dataType === "bookmark" ? <File /> : <Folder />),
     [dataType]
   );
-  const hierarchy =
-    parentId == null || parentId === "null" ? 0 : parentId.split("/").length;
+  const hierarchy = url == null ? 0 : url.split("/").length - 1;
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     if (dataType === "folder") {
       if (!isOpen && onClick) {
         onClick(event);
       }
-      if (url) navigate(url);
+      if (url && url !== pathname) navigate(url);
     }
   };
 

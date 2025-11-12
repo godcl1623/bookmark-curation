@@ -5,7 +5,7 @@ import DirectoryList from "./components/DirectoryList";
 import useDirectoriesData from "./hooks/useDirectoriesData";
 
 export default function DirectoryTree() {
-  const loadedDirectory = useDirectoriesData(null, true);
+  const loadedDirectory = useDirectoriesData("/", true);
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
 
   return (
@@ -18,6 +18,7 @@ export default function DirectoryTree() {
       <DefaultFilterButton>Favorites</DefaultFilterButton>
       <nav>
         <DirectoryList
+          currentDir={"/"}
           directoryList={[...(folders ?? []), ...(bookmarks ?? [])]}
         />
       </nav>

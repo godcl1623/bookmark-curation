@@ -6,21 +6,19 @@ import useDirectoriesData from "@/features/bookmarks/DirectoryTree/hooks/useDire
 import useGlobalStore from "@/stores/global";
 
 interface DirectoryListItemProps extends FolderType {
-  parentId?: string | null;
-  parentName?: string | null;
+  currentDir?: string;
 }
 
 export default function DirectoryListItem({
   type,
-  parent_id,
   data_id,
   title,
-  parentId,
-  parentName,
+  currentDir = "/",
 }: DirectoryListItemProps) {
+  const targetUrl = currentDir === "/" ? `/${title}` : `${currentDir}/${title}`;
   const isOpen = useGlobalStore((state) => state.openIds.has(data_id));
   const toggleOpen = useGlobalStore((state) => state.toggleOpen);
-  const loadedDirectory = useDirectoriesData(data_id, isOpen);
+  const loadedDirectory = useDirectoriesData(targetUrl, isOpen);
 
   if (!loadedDirectory) return null;
   const isLoading = loadedDirectory?.isLoading ?? false;
@@ -38,17 +36,15 @@ export default function DirectoryListItem({
       <DirectoryButton
         isOpen={isOpen}
         dataType={type}
-        parentId={`${parentId ? `${parentId}/` : ""}${parent_id}`}
         onClick={handleClick}
-        url={parentName == null ? `/${title}` : `/${parentName}/${title}`}
+        url={targetUrl}
       >
         {title}
       </DirectoryButton>
       {isOpen && !isLoading && !isError && (
         <DirectoryList
           directoryList={[...(folders ?? []), ...(bookmarks ?? [])]}
-          parentId={`${parentId ? `${parentId}/` : ""}${parent_id}`}
-          parentName={`${parentName ? `${parentName}/` : ""}${title}`}
+          currentDir={targetUrl}
         />
       )}
     </>

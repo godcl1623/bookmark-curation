@@ -40,5 +40,5 @@ export const findParentFolder = (folderParentId: string | null) =>
 export const getCount = <T>(
   targets: Array<T>,
   targetProperty: keyof T,
-  folderId: number,
+  folderId: string | number,
 ) => targets.filter((target) => target[targetProperty] === folderId).length;

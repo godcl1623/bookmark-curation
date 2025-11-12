@@ -258,8 +258,8 @@ app.get(SERVICE_ENDPOINTS.FOLDERS.path, (_req, res) => {
   const enrichedFolders = mockFolders.map((folder) => {
     const user = findUser(folder.user_id);
     const parentFolder = findParentFolder(folder.parent_id);
-    const bookmarkCount = getCount(mockBookmarks, "parent_id", folder.id);
-    const subfolderCount = getCount(mockFolders, "parent_id", folder.id);
+    const bookmarkCount = getCount(mockBookmarks, "parent_id", folder.data_id);
+    const subfolderCount = getCount(mockFolders, "parent_id", folder.data_id);
 
     return {
       ...folder,
@@ -615,7 +615,10 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, (req, res) => {
 
     // Find folder with matching title and parent_id
     const folder = mockFolders.find(
-      (f) => f.user_id === userId && f.parent_id === currentParentId && f.title === title
+      (f) =>
+        f.user_id === userId &&
+        f.parent_id === currentParentId &&
+        f.title === title,
     );
 
     if (!folder) {
@@ -638,7 +641,11 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, (req, res) => {
     .filter((folder) => folder.parent_id === finalFolder.data_id)
     .map((folder) => {
       const user = findUser(folder.user_id);
-      const bookmarkCount = getCount(mockBookmarks, "parent_id", folder.data_id);
+      const bookmarkCount = getCount(
+        mockBookmarks,
+        "parent_id",
+        folder.data_id,
+      );
       const subfolderCount = getCount(mockFolders, "parent_id", folder.data_id);
 
       return {

@@ -4,25 +4,19 @@ import DirectoryListItem from "@/features/bookmarks/DirectoryTree/components/Dir
 
 interface DirectoryListProps {
   directoryList: FolderType[];
-  parentId?: string | null;
-  parentName?: string | null;
+  currentDir?: string;
 }
 
 export default function DirectoryList({
   directoryList,
-  parentId,
-  parentName = null,
+  currentDir = "/",
 }: DirectoryListProps) {
   return (
     <ul className={"flex flex-col gap-2"}>
       {directoryList?.map((folder) => {
         return (
           <li key={folder.data_id}>
-            <DirectoryListItem
-              parentId={parentId}
-              parentName={parentName}
-              {...folder}
-            />
+            <DirectoryListItem currentDir={currentDir} {...folder} />
           </li>
         );
       })}

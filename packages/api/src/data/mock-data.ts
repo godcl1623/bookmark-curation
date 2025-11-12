@@ -82,7 +82,7 @@ export const mockFolders: Folder[] = [
   {
     id: 4,
     data_id: "i1V2USuTd82Y",
-    user_id: 2,
+    user_id: 1,
     title: "Resources",
     color: "#f59e0b",
     parent_id: null,
