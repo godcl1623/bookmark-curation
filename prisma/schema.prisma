@@ -35,8 +35,10 @@ model bookmark_tags {
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model bookmarks {
   id               Int                      @id @default(autoincrement())
+  data_id          String                   @unique @db.VarChar(50)
   user_id          Int
   folder_id        Int?
+  parent_id        String?                  @db.VarChar(50)
   title            String?                  @db.VarChar(500)
   description      String?
   url              String
@@ -53,21 +55,20 @@ model bookmarks {
   created_at       DateTime?                @default(now()) @db.Timestamptz(6)
   updated_at       DateTime?                @default(now()) @db.Timestamptz(6)
   deleted_at       DateTime?                @db.Timestamptz(6)
-  tsv              Unsupported("tsvector")? @default(dbgenerated("to_tsvector('simple'::regconfig, (((((COALESCE(title, ''::character varying))::text || ' '::text) || COALESCE(description, ''::text)) || ' '::text) || COALESCE(url, ''::text)))"))
+  type             String?                  @default("bookmark") @db.VarChar(50)
   bookmark_history bookmark_history[]
   bookmark_tags    bookmark_tags[]
   folders          folders?                 @relation(fields: [folder_id], references: [id], onUpdate: NoAction)
   users            users                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   media            media[]
 
-  @@index([tsv], map: "idx_bookmarks_tsv", type: Gin)
-  @@index([url(ops: raw("gin_trgm_ops"))], map: "idx_bookmarks_url_trgm", type: Gin)
   @@index([user_id, folder_id], map: "idx_bookmarks_user_folder")
   @@index([user_id, title], map: "idx_bookmarks_user_title")
 }
 
 model folders {
   id            Int         @id @default(autoincrement())
+  data_id       String      @unique @db.VarChar(50)
   user_id       Int
   title         String      @db.VarChar(200)
   color         String?     @db.VarChar(50)
@@ -76,10 +77,11 @@ model folders {
   created_at    DateTime?   @default(now()) @db.Timestamptz(6)
   updated_at    DateTime?   @default(now()) @db.Timestamptz(6)
   deleted_at    DateTime?   @db.Timestamptz(6)
+  type          String?     @default("folder") @db.VarChar(50)
   bookmarks     bookmarks[]
-  folders       folders?    @relation("foldersTofolders", fields: [parent_id], references: [id], onUpdate: NoAction)
-  other_folders folders[]   @relation("foldersTofolders")
   users         users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  parent        folders?    @relation("FolderHierarchy", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  children      folders[]   @relation("FolderHierarchy")
 
   @@unique([user_id, parent_id, title], map: "folders_user_parent_title_unique")
 }

@@ -27,17 +27,20 @@ async function main() {
   console.log('Creating users...');
   const user1 = await prisma.users.create({
     data: {
+      uuid: '550e8400-e29b-41d4-a716-446655440001',
       email: 'test1@example.com',
       email_verified: true,
       display_name: 'Test User 1',
       avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=test1',
       locale: 'ko',
       is_active: true,
+      last_login_at: new Date('2024-01-15T10:30:00Z'),
     },
   });
 
   const user2 = await prisma.users.create({
     data: {
+      uuid: '550e8400-e29b-41d4-a716-446655440002',
       email: 'test2@example.com',
       email_verified: true,
       display_name: 'Test User 2',
@@ -53,38 +56,49 @@ async function main() {
   console.log('Creating folders...');
   const folder1 = await prisma.folders.create({
     data: {
+      data_id: 'F9iD9XnIwusA',
       user_id: user1.id,
       title: 'Development',
       color: '#3b82f6',
+      parent_id: null,
       position: 0,
+      type: 'folder',
     },
   });
 
   const folder2 = await prisma.folders.create({
     data: {
+      data_id: 'uI9Y9Jwz74z5',
       user_id: user1.id,
       title: 'Design',
       color: '#ec4899',
+      parent_id: null,
       position: 1,
+      type: 'folder',
     },
   });
 
   const subfolder1 = await prisma.folders.create({
     data: {
+      data_id: 'YWYhIU4-83uJ',
       user_id: user1.id,
       title: 'Frontend',
       color: '#10b981',
       parent_id: folder1.id,
       position: 0,
+      type: 'folder',
     },
   });
 
   const folder3 = await prisma.folders.create({
     data: {
+      data_id: 'i1V2USuTd82Y',
       user_id: user2.id,
       title: 'Resources',
       color: '#f59e0b',
+      parent_id: null,
       position: 0,
+      type: 'folder',
     },
   });
 
@@ -143,8 +157,10 @@ async function main() {
   console.log('Creating bookmarks...');
   const bookmark1 = await prisma.bookmarks.create({
     data: {
+      data_id: '6mSMtcQcd6nP',
       user_id: user1.id,
       folder_id: subfolder1.id,
+      parent_id: 'YWYhIU4-83uJ',
       title: 'React Documentation',
       description: 'Official React documentation - Learn React',
       url: 'https://react.dev/',
@@ -161,13 +177,18 @@ async function main() {
       position: 0,
       view_count: 42,
       click_count: 15,
+      type: 'bookmark',
+      created_at: new Date('2024-01-03T00:00:00Z'),
+      updated_at: new Date('2024-01-03T00:00:00Z'),
     },
   });
 
   const bookmark2 = await prisma.bookmarks.create({
     data: {
+      data_id: 'EzYKonbIPVzK',
       user_id: user1.id,
       folder_id: subfolder1.id,
+      parent_id: 'YWYhIU4-83uJ',
       title: 'TypeScript Handbook',
       description: 'The TypeScript Handbook is a comprehensive guide to TypeScript',
       url: 'https://www.typescriptlang.org/docs/handbook/intro.html',
@@ -179,13 +200,18 @@ async function main() {
       position: 1,
       view_count: 28,
       click_count: 10,
+      type: 'bookmark',
+      created_at: new Date('2024-01-03T00:00:00Z'),
+      updated_at: new Date('2024-01-03T00:00:00Z'),
     },
   });
 
   const bookmark3 = await prisma.bookmarks.create({
     data: {
+      data_id: 'UwUPD9ue-rbX',
       user_id: user1.id,
       folder_id: folder2.id,
+      parent_id: 'uI9Y9Jwz74z5',
       title: 'Figma',
       description: 'The collaborative interface design tool',
       url: 'https://www.figma.com/',
@@ -197,13 +223,18 @@ async function main() {
       position: 0,
       view_count: 15,
       click_count: 8,
+      type: 'bookmark',
+      created_at: new Date('2024-01-04T00:00:00Z'),
+      updated_at: new Date('2024-01-04T00:00:00Z'),
     },
   });
 
   const bookmark4 = await prisma.bookmarks.create({
     data: {
+      data_id: 'xpT0yNxO2NSx',
       user_id: user1.id,
       folder_id: folder1.id,
+      parent_id: 'F9iD9XnIwusA',
       title: 'MDN Web Docs',
       description: 'Resources for developers, by developers',
       url: 'https://developer.mozilla.org/',
@@ -215,13 +246,18 @@ async function main() {
       position: 0,
       view_count: 67,
       click_count: 23,
+      type: 'bookmark',
+      created_at: new Date('2024-01-04T00:00:00Z'),
+      updated_at: new Date('2024-01-04T00:00:00Z'),
     },
   });
 
   const bookmark5 = await prisma.bookmarks.create({
     data: {
+      data_id: 'paynCrdrgF5h',
       user_id: user2.id,
       folder_id: folder3.id,
+      parent_id: 'i1V2USuTd82Y',
       title: 'GitHub',
       description: 'Where the world builds software',
       url: 'https://github.com/',
@@ -233,12 +269,17 @@ async function main() {
       position: 0,
       view_count: 89,
       click_count: 34,
+      type: 'bookmark',
+      created_at: new Date('2024-01-05T00:00:00Z'),
+      updated_at: new Date('2024-01-05T00:00:00Z'),
     },
   });
 
   const bookmark6 = await prisma.bookmarks.create({
     data: {
+      data_id: 'vgDrwz8F5ELk',
       user_id: user1.id,
+      parent_id: null,
       title: 'Stack Overflow',
       description: 'Where developers learn, share, & build careers',
       url: 'https://stackoverflow.com/',
@@ -250,6 +291,9 @@ async function main() {
       position: 0,
       view_count: 103,
       click_count: 45,
+      type: 'bookmark',
+      created_at: new Date('2024-01-05T00:00:00Z'),
+      updated_at: new Date('2024-01-05T00:00:00Z'),
     },
   });
 
@@ -281,6 +325,7 @@ async function main() {
         url: 'https://react.dev/images/og-home.png',
         width: 1200,
         height: 630,
+        created_at: new Date('2024-01-03T00:00:00Z'),
       },
       {
         bookmark_id: bookmark3.id,
@@ -288,6 +333,7 @@ async function main() {
         url: 'https://www.figma.com/og-image.png',
         width: 1200,
         height: 630,
+        created_at: new Date('2024-01-04T00:00:00Z'),
       },
     ],
   });
@@ -303,30 +349,35 @@ async function main() {
         user_id: user1.id,
         action: 'created',
         payload: { source: 'manual' },
+        created_at: new Date('2024-01-03T00:00:00Z'),
       },
       {
         bookmark_id: bookmark1.id,
         user_id: user1.id,
         action: 'updated',
         payload: { field: 'title', old: 'React Docs', new: 'React Documentation' },
+        created_at: new Date('2024-01-03T01:00:00Z'),
       },
       {
         bookmark_id: bookmark1.id,
         user_id: user1.id,
         action: 'viewed',
-        payload: { timestamp: new Date().toISOString() },
+        payload: { timestamp: '2024-01-10T10:30:00Z' },
+        created_at: new Date('2024-01-10T10:30:00Z'),
       },
       {
         bookmark_id: bookmark2.id,
         user_id: user1.id,
         action: 'created',
         payload: { source: 'import' },
+        created_at: new Date('2024-01-03T00:00:00Z'),
       },
       {
         bookmark_id: bookmark6.id,
         user_id: user1.id,
         action: 'archived',
         payload: { reason: 'not_used' },
+        created_at: new Date('2024-01-12T00:00:00Z'),
       },
     ],
   });

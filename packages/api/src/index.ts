@@ -76,7 +76,7 @@ app.get(SERVICE_ENDPOINTS.USERS.path, async (_req, res) => {
   } catch (error) {
     res.status(500).json({
       ok: false,
-      error: error instanceof Error ? error.message : "Unknown error"
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
@@ -107,14 +107,14 @@ app.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (_req, res) => {
         media: true,
       },
       orderBy: {
-        created_at: 'desc',
+        created_at: "desc",
       },
     });
     res.json({ ok: true, data: bookmarks });
   } catch (error) {
     res.status(500).json({
       ok: false,
-      error: error instanceof Error ? error.message : "Unknown error"
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
@@ -145,7 +145,7 @@ app.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, async (req, res) => {
         media: true,
         bookmark_history: {
           orderBy: {
-            created_at: 'desc',
+            created_at: "desc",
           },
           take: 10,
         },
@@ -160,7 +160,7 @@ app.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, async (req, res) => {
   } catch (error) {
     res.status(500).json({
       ok: false,
-      error: error instanceof Error ? error.message : "Unknown error"
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
@@ -175,7 +175,7 @@ app.get(SERVICE_ENDPOINTS.FOLDERS.path, async (_req, res) => {
             display_name: true,
           },
         },
-        folders: {
+        parent: {
           select: {
             id: true,
             title: true,
@@ -185,19 +185,19 @@ app.get(SERVICE_ENDPOINTS.FOLDERS.path, async (_req, res) => {
         _count: {
           select: {
             bookmarks: true,
-            other_folders: true,
+            children: true,
           },
         },
       },
       orderBy: {
-        position: 'asc',
+        position: "asc",
       },
     });
     res.json({ ok: true, data: folders });
   } catch (error) {
     res.status(500).json({
       ok: false,
-      error: error instanceof Error ? error.message : "Unknown error"
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
@@ -219,26 +219,28 @@ app.get(SERVICE_ENDPOINTS.TAGS.path, async (_req, res) => {
         },
       },
       orderBy: {
-        name: 'asc',
+        name: "asc",
       },
     });
     res.json({ ok: true, data: tags });
   } catch (error) {
     res.status(500).json({
       ok: false,
-      error: error instanceof Error ? error.message : "Unknown error"
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
 
 app.get(SERVICE_ENDPOINTS.STATS.path, async (_req, res) => {
   try {
-    const [userCount, bookmarkCount, folderCount, tagCount] = await Promise.all([
-      prisma.users.count(),
-      prisma.bookmarks.count(),
-      prisma.folders.count(),
-      prisma.tags.count(),
-    ]);
+    const [userCount, bookmarkCount, folderCount, tagCount] = await Promise.all(
+      [
+        prisma.users.count(),
+        prisma.bookmarks.count(),
+        prisma.folders.count(),
+        prisma.tags.count(),
+      ],
+    );
 
     res.json({
       ok: true,
@@ -252,7 +254,7 @@ app.get(SERVICE_ENDPOINTS.STATS.path, async (_req, res) => {
   } catch (error) {
     res.status(500).json({
       ok: false,
-      error: error instanceof Error ? error.message: "Unknown error"
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
@@ -266,7 +268,11 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
         ? null
         : parseInt(parentIdParam as string);
 
-    if (parentIdParam !== undefined && parentIdParam !== "null" && isNaN(parentId as number)) {
+    if (
+      parentIdParam !== undefined &&
+      parentIdParam !== "null" &&
+      isNaN(parentId as number)
+    ) {
       return res.status(400).json({ ok: false, error: "Invalid parent_id" });
     }
 
@@ -283,12 +289,12 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
           _count: {
             select: {
               bookmarks: true,
-              other_folders: true,
+              children: true,
             },
           },
         },
         orderBy: {
-          position: 'asc',
+          position: "asc",
         },
       }),
       prisma.bookmarks.findMany({
@@ -316,7 +322,7 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
           media: true,
         },
         orderBy: {
-          position: 'asc',
+          position: "asc",
         },
       }),
     ]);
@@ -332,7 +338,7 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
   } catch (error) {
     res.status(500).json({
       ok: false,
-      error: error instanceof Error ? error.message : "Unknown error"
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
@@ -341,14 +347,18 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
 app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
   try {
     const pathParam = req.query.path;
-    const userId = 5; // TODO: Get from auth session (using first user from seed)
+    const userId = 1; // TODO: Get from auth session (using first user from seed)
 
     if (!pathParam || typeof pathParam !== "string") {
-      return res.status(400).json({ ok: false, error: "Path parameter is required" });
+      return res
+        .status(400)
+        .json({ ok: false, error: "Path parameter is required" });
     }
 
     if (!pathParam.startsWith("/")) {
-      return res.status(400).json({ ok: false, error: "Path must start with /" });
+      return res
+        .status(400)
+        .json({ ok: false, error: "Path must start with /" });
     }
 
     const segments = pathParam.split("/").filter(Boolean);
@@ -360,23 +370,25 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
           where: { user_id: userId, parent_id: null },
           include: {
             users: { select: { id: true, display_name: true } },
-            _count: { select: { bookmarks: true, other_folders: true } }
-          }
+            _count: { select: { bookmarks: true, children: true } },
+          },
         }),
         prisma.bookmarks.findMany({
           where: { user_id: userId, folder_id: null },
           include: {
-            users: { select: { id: true, display_name: true, avatar_url: true } },
+            users: {
+              select: { id: true, display_name: true, avatar_url: true },
+            },
             folders: { select: { id: true, title: true, color: true } },
             bookmark_tags: { include: { tags: true } },
-            media: true
-          }
-        })
+            media: true,
+          },
+        }),
       ]);
 
       return res.json({
         ok: true,
-        data: { folder: null, folders, bookmarks, path: "/", breadcrumbs: [] }
+        data: { folder: null, folders, bookmarks, path: "/", breadcrumbs: [] },
       });
     }
 
@@ -386,14 +398,14 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
 
     for (const title of segments) {
       const folder = await prisma.folders.findFirst({
-        where: { user_id: userId, parent_id: currentParentId, title }
+        where: { user_id: userId, parent_id: currentParentId, title },
       });
 
       if (!folder) {
         return res.status(404).json({
           ok: false,
           error: `Folder not found: ${title}`,
-          breadcrumbs
+          breadcrumbs,
         });
       }
 
@@ -408,8 +420,8 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
         where: { parent_id: finalFolder.id },
         include: {
           users: { select: { id: true, display_name: true } },
-          _count: { select: { bookmarks: true, other_folders: true } }
-        }
+          _count: { select: { bookmarks: true, children: true } },
+        },
       }),
       prisma.bookmarks.findMany({
         where: { folder_id: finalFolder.id },
@@ -417,9 +429,9 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
           users: { select: { id: true, display_name: true, avatar_url: true } },
           folders: { select: { id: true, title: true, color: true } },
           bookmark_tags: { include: { tags: true } },
-          media: true
-        }
-      })
+          media: true,
+        },
+      }),
     ]);
 
     res.json({
@@ -429,13 +441,13 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
         folders,
         bookmarks,
         path: pathParam,
-        breadcrumbs
-      }
+        breadcrumbs,
+      },
     });
   } catch (error) {
     res.status(500).json({
       ok: false,
-      error: error instanceof Error ? error.message : "Unknown error"
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
