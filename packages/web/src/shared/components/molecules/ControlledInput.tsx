@@ -1,18 +1,18 @@
 import { type ComponentProps } from "react";
 
-import useInput from "../../hooks/useInput.ts";
+import useInput from "@/shared/hooks/useInput";
 
 interface ControlledInputProps {
-    passedValue?: string;
-    updateValue?: (value: string) => void;
+  passedValue?: string;
+  updateValue?: (value: string) => void;
 }
 
 export default function ControlledInput({
-    passedValue,
-    updateValue,
-    ...props
+  passedValue,
+  updateValue,
+  ...props
 }: ControlledInputProps & Omit<ComponentProps<"input">, "value" | "onChange">) {
-    const { inputValue, handleChange } = useInput(passedValue);
+  const { inputValue, handleChange } = useInput(passedValue);
 
-    return <input value={inputValue} onChange={handleChange} {...props} />;
+  return <input value={inputValue} onChange={handleChange} {...props} />;
 }
