@@ -5,12 +5,17 @@ import {
   Search,
   Settings,
 } from "lucide-react";
+import { useEffect } from "react";
 import { NavLink } from "react-router";
 
+import { useModal } from "@/app/providers/ModalProvider/context";
+import Options from "@/features/bookmarks/Header/components/Options";
 import Button from "@/shared/components/atoms/button";
 import type { BasicComponentProps } from "@/shared/types";
 
 export default function Header() {
+  useTemporalModal();
+
   return (
     <header className={"flex-center-between px-10 py-3 shadow"}>
       <Logo />
@@ -42,6 +47,14 @@ const STYLES = {
   container: "flex-center gap-2",
   iconMd: "size-5",
   iconSm: "size-4",
+};
+
+const useTemporalModal = () => {
+  const { openModal } = useModal();
+
+  useEffect(() => {
+    openModal(Options, {});
+  }, [openModal]);
 };
 
 function Logo() {
