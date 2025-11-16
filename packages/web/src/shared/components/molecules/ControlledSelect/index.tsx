@@ -1,9 +1,10 @@
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
 import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button";
+import Option from "@/shared/components/molecules/ControlledSelect/Option";
 import { cn } from "@/shared/lib/utils";
 
 interface ControlledSelectProps {
@@ -12,17 +13,19 @@ interface ControlledSelectProps {
 
 export default function ControlledSelect({ values }: ControlledSelectProps) {
   const { toggleDropdown, selectedValue } = useSelect(values);
+  const { buttonRect, buttonRef } = useButtonRect();
 
   return (
     <div className={"relative flex flex-1"}>
       <Button
         variant={"ghost"}
+        ref={buttonRef}
         className={cn(
           COMMON_STYLES.input,
           "flex-center",
           selectedValue === "" ? "justify-end" : "justify-between"
         )}
-        onClick={toggleDropdown}
+        onClick={toggleDropdown(buttonRect)}
       >
         {selectedValue}
         <ChevronDown />
@@ -30,10 +33,6 @@ export default function ControlledSelect({ values }: ControlledSelectProps) {
     </div>
   );
 }
-
-const STYLES = {
-  buttonHeight: "h-8",
-};
 
 const useSelect = (values: string[]) => {
   const { openModal, findModal, closeModal } = useModal();
@@ -49,11 +48,18 @@ const useSelect = (values: string[]) => {
     closeOptionModal();
   };
 
-  const toggleDropdown = async () => {
+  const toggleDropdown = (buttonRect?: DOMRect | null) => async () => {
     try {
       const detail = findModal("Option");
       if (!detail) {
-        openModal(Option, { values, setValue });
+        openModal(Option, {
+          values,
+          setValue,
+          closeModal: closeOptionModal,
+          buttonTop: buttonRect?.top,
+          buttonLeft: buttonRect?.left,
+          buttonWidth: buttonRect?.width,
+        });
       } else {
         closeOptionModal();
       }
@@ -65,29 +71,15 @@ const useSelect = (values: string[]) => {
   return { toggleDropdown, selectedValue, setValue };
 };
 
-interface OptionProps {
-  values: string[];
-  setValue: (index: number) => () => void;
-}
+const useButtonRect = () => {
+  const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-function Option({ values, setValue }: OptionProps) {
-  return (
-    <ul
-      className={
-        "absolute top-0 left-5 z-[999] flex max-h-[208px] w-full flex-col gap-2 overflow-y-auto rounded-lg bg-neutral-50 p-2 text-neutral-500 shadow-xl"
-      }
-    >
-      {values.map((value, index) => (
-        <li key={`option_${index}_${value}`}>
-          <Button
-            variant={"outline"}
-            className={cn("w-full", STYLES.buttonHeight)}
-            onClick={setValue(index)}
-          >
-            {value}
-          </Button>
-        </li>
-      ))}
-    </ul>
-  );
-}
+  useEffect(() => {
+    if (buttonRef.current) {
+      setButtonRect(buttonRef.current.getBoundingClientRect());
+    }
+  }, []);
+
+  return { buttonRect, buttonRef };
+};
