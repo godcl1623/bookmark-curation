@@ -1,17 +1,24 @@
-import type { Attributes, FunctionComponent, RefObject } from "react";
+import type { ComponentType, RefObject } from "react";
 
-export interface ModalDetail {
+export type DefaultPropsType = Record<string, unknown>;
+
+export interface ModalDetail<P = any, R = unknown> {
   id: string;
-  component: FunctionComponent<HTMLElement>;
-  props?: Attributes & Record<string, unknown>;
-  resolve: (param?: unknown) => void;
-  reject: (param?: unknown) => void;
+  name: string;
+  component: ComponentType<P>;
+  props?: P;
+  resolve: (value?: R) => void;
+  reject: (reason?: any) => void;
   reset?: () => void;
+  promise?: Promise<R>;
+  settled?: boolean;
 }
 
 export interface ModalStore {
   modals: RefObject<ModalDetail[]>;
-  setModalList: (modalList: ModalDetail[]) => void;
+  setModalList: (
+    modalList: ModalDetail[] | ((prev: ModalDetail[]) => ModalDetail[])
+  ) => void;
 }
 
 export interface DefaultModalChildrenProps {

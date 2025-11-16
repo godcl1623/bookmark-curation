@@ -53,7 +53,7 @@ const useTemporalModal = () => {
   const { openModal } = useModal();
 
   useEffect(() => {
-    openModal(Options, {});
+    openModal(Options);
   }, [openModal]);
 };
 

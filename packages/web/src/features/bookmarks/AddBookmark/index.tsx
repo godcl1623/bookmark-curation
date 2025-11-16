@@ -5,14 +5,15 @@ import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/ty
 import Button from "@/shared/components/atoms/button";
 import ModalLayout from "@/shared/components/layouts/modal";
 import ControlledInput from "@/shared/components/molecules/ControlledInput";
+import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import ControlledTextArea from "@/shared/components/molecules/ControlledTextArea";
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import { Card, CardHeader } from "@/shared/components/organisms/card";
+import { DUMMY_FOLDERS } from "@/shared/consts";
 import { cn } from "@/shared/lib/utils";
 
 import AddTags from "./components/AddTags";
 import InputWithPaste from "./components/InputWithPaste";
-import SelectFolder from "./components/SelectFolder";
 import { COMMON_STYLES } from "./consts";
 
 export default function AddBookmark({
@@ -66,7 +67,8 @@ export default function AddBookmark({
           <AddTags />
           <LabeledElement label={"Folder (Optional)"} asLabel={false}>
             <Folder className={COMMON_STYLES.ornament} />
-            <SelectFolder />
+            {/*<SelectFolder />*/}
+            <ControlledSelect values={DUMMY_FOLDERS} />
           </LabeledElement>
           <div className={"mt-3 grid grid-cols-2 gap-2"}>
             <FormControl variant={"outline"} onClick={reject}>

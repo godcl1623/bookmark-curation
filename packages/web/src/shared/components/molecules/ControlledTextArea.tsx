@@ -5,7 +5,6 @@ interface ControlledTextAreaProps {
 }
 
 export default function ControlledTextArea({
-  updateValue,
   ...props
 }: ControlledTextAreaProps &
   Omit<ComponentProps<"textarea">, "value" | "onChange">) {

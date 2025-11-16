@@ -4,12 +4,10 @@ import useInput from "@/shared/hooks/useInput";
 
 interface ControlledInputProps {
   passedValue?: string;
-  updateValue?: (value: string) => void;
 }
 
 export default function ControlledInput({
   passedValue,
-  updateValue,
   ...props
 }: ControlledInputProps & Omit<ComponentProps<"input">, "value" | "onChange">) {
   const { inputValue, handleChange } = useInput(passedValue);

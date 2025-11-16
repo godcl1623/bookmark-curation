@@ -1,7 +1,8 @@
 import { Folder, Hash } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
+import AddFolder from "@/features/bookmarks/Header/components/AddFolder";
 import Button from "@/shared/components/atoms/button";
 import ModalLayout from "@/shared/components/layouts/modal";
 import ModalTemplate from "@/shared/components/layouts/modal/ModalTemplate";
@@ -10,6 +11,11 @@ import type { BasicComponentProps } from "@/shared/types";
 
 export default function Options({ reject }: DefaultModalChildrenProps) {
   const [activeTab, changeTab] = useTab();
+
+  const tabView = useMemo(() => {
+    if (activeTab === "folders") return <AddFolder />;
+    if (activeTab === "tags") return <div>Tags</div>;
+  }, [activeTab]);
 
   return (
     <ModalLayout reject={reject}>
@@ -32,6 +38,7 @@ export default function Options({ reject }: DefaultModalChildrenProps) {
             );
           })}
         </ul>
+        {tabView}
       </ModalTemplate>
     </ModalLayout>
   );
