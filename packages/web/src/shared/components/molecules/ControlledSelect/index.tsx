@@ -9,22 +9,29 @@ import { cn } from "@/shared/lib/utils";
 
 interface ControlledSelectProps {
   values: string[];
+  name?: string;
 }
 
-export default function ControlledSelect({ values }: ControlledSelectProps) {
+export default function ControlledSelect({
+  values,
+  name,
+}: ControlledSelectProps) {
   const { toggleDropdown, selectedValue } = useSelect(values);
   const { buttonRect, buttonRef } = useButtonRect();
 
   return (
     <div className={"relative flex flex-1"}>
       <Button
+        type={"button"}
         variant={"ghost"}
+        name={name}
         ref={buttonRef}
         className={cn(
           COMMON_STYLES.input,
           "flex-center",
           selectedValue === "" ? "justify-end" : "justify-between"
         )}
+        value={selectedValue}
         onClick={toggleDropdown(buttonRect)}
       >
         {selectedValue}
