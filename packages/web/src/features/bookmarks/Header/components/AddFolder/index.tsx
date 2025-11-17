@@ -1,11 +1,11 @@
 import type { Folder as FolderType } from "@linkvault/shared";
 import { useQuery } from "@tanstack/react-query";
-import { Folder, Pencil, Plus, Trash2 } from "lucide-react";
+import { Folder, Pencil, Trash2 } from "lucide-react";
 import type { FormEvent } from "react";
 import toast from "react-hot-toast";
 
+import DataAddForm from "@/features/bookmarks/Header/components/common/DataAddForm";
 import Button from "@/shared/components/atoms/button";
-import ControlledInput from "@/shared/components/molecules/ControlledInput";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
 import getFoldersList from "@/shared/services/folders/get-folders-list";
@@ -17,19 +17,10 @@ export default function AddFolder() {
 
   return (
     <article className={"h-[calc(100%-50px)] overflow-y-auto p-5"}>
-      <section className={"rounded-lg bg-neutral-50 p-4"}>
-        <header className={"flex-center mb-2 gap-2"}>
-          <Plus className={"size-5 text-blue-500"} />
-          <h2 className={"text-base"}>Add New Folder</h2>
-        </header>
-        <form className={"flex-center gap-2"} onSubmit={handleSubmit}>
-          <ControlledInput
-            placeholder={"Folder Name"}
-            name={FORM_ELEMENTS.INPUT}
-            className={
-              "flex-2 rounded-lg border border-neutral-200 bg-white px-4 py-2"
-            }
-          />
+      <DataAddForm
+        title={"Add New Folder"}
+        inputOptions={{ placeholder: "Folder Name", name: FORM_ELEMENTS.INPUT }}
+        addOns={() => (
           <div
             className={
               "flex-[0.5] rounded-lg border border-neutral-200 bg-white p-1"
@@ -40,17 +31,9 @@ export default function AddFolder() {
               name={FORM_ELEMENTS.SELECT}
             />
           </div>
-          <Button
-            type={"submit"}
-            variant={"blank"}
-            size={"lg"}
-            className={"flex-[0.3] bg-blue-500 text-white"}
-          >
-            <Plus />
-            Add
-          </Button>
-        </form>
-      </section>
+        )}
+        onSubmit={handleSubmit}
+      />
       {/* FIXME: 로딩, 에러 화면 구성 */}
       {isLoading && <p>Loading...</p>}
       {isError && <p>Error loading folders.</p>}

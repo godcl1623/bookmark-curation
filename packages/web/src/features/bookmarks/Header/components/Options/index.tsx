@@ -3,6 +3,7 @@ import { type ReactNode, useMemo, useState } from "react";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
 import AddFolder from "@/features/bookmarks/Header/components/AddFolder";
+import AddTags from "@/features/bookmarks/Header/components/AddTags";
 import Button from "@/shared/components/atoms/button";
 import ModalLayout from "@/shared/components/layouts/modal";
 import ModalTemplate from "@/shared/components/layouts/modal/ModalTemplate";
@@ -14,7 +15,7 @@ export default function Options({ reject }: DefaultModalChildrenProps) {
 
   const tabView = useMemo(() => {
     if (activeTab === "folders") return <AddFolder />;
-    if (activeTab === "tags") return <div>Tags</div>;
+    if (activeTab === "tags") return <AddTags />;
   }, [activeTab]);
 
   return (
