@@ -1,4 +1,6 @@
-import { Plus } from "lucide-react";
+import type { Folder as FolderType } from "@linkvault/shared";
+import { useQuery } from "@tanstack/react-query";
+import { Folder, Pencil, Plus, Trash2 } from "lucide-react";
 import type { FormEvent } from "react";
 import toast from "react-hot-toast";
 
@@ -6,10 +8,15 @@ import Button from "@/shared/components/atoms/button";
 import ControlledInput from "@/shared/components/molecules/ControlledInput";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
+import getFoldersList from "@/shared/services/folders/get-folders-list";
+import FOLDERS_QUERY_KEY from "@/shared/services/folders/queryKey";
+import type { BasicComponentProps } from "@/shared/types";
 
 export default function AddFolder() {
+  const { data: folders, isLoading, isError } = useFolderList();
+
   return (
-    <article className={"p-5"}>
+    <article className={"h-[calc(100%-50px)] overflow-y-auto p-5"}>
       <section className={"rounded-lg bg-neutral-50 p-4"}>
         <header className={"flex-center mb-2 gap-2"}>
           <Plus className={"size-5 text-blue-500"} />
@@ -44,7 +51,18 @@ export default function AddFolder() {
           </Button>
         </form>
       </section>
-      <ul></ul>
+      {/* FIXME: 로딩, 에러 화면 구성 */}
+      {isLoading && <p>Loading...</p>}
+      {isError && <p>Error loading folders.</p>}
+      {!isLoading && !isError && folders && folders.length > 0 && (
+        <ul className={"mt-5 flex flex-col gap-2"}>
+          {folders.map((folder) => (
+            <li key={`option-${folder.id}`}>
+              <FolderListItem {...folder} />
+            </li>
+          ))}
+        </ul>
+      )}
     </article>
   );
 }
@@ -82,3 +100,56 @@ const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
       return;
   }
 };
+
+const useFolderList = () => {
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useQuery<{ ok: boolean; data: FolderType[] }>({
+    queryKey: FOLDERS_QUERY_KEY.TOTAL_LISTS,
+    queryFn: getFoldersList,
+  });
+
+  return { data: response?.data, isLoading, isError };
+};
+
+function FolderListItem({ title, color }: FolderType) {
+  return (
+    <section
+      className={"flex-center gap-4 rounded-lg border border-neutral-200 p-4"}
+    >
+      <div
+        className={"rounded-lg p-2 text-white"}
+        style={{ backgroundColor: color }}
+      >
+        <Folder />
+      </div>
+      <div className={"flex-1 flex-col"}>
+        <h2>{title}</h2>
+        <p className={"text-sm text-neutral-500"}>북마크 3개</p>
+      </div>
+      <div className={"flex-center gap-2"}>
+        <FunctionButton color={"black"}>
+          <Pencil />
+        </FunctionButton>
+        <FunctionButton>
+          <Trash2 />
+        </FunctionButton>
+      </div>
+    </section>
+  );
+}
+
+function FunctionButton({
+  children,
+  color,
+}: BasicComponentProps & { color?: "black" | "red" }) {
+  const buttonColor = color === "black" ? "text-black" : "text-red-500";
+
+  return (
+    <Button variant={"ghost"} size={"icon-sm"} className={buttonColor}>
+      {children}
+    </Button>
+  );
+}

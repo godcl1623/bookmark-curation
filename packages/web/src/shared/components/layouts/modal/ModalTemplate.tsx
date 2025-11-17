@@ -41,9 +41,7 @@ export default function ModalTemplate({
           <X className={"size-6"} />
         </Button>
       </CardHeader>
-      <CardContent className={"h-full overflow-y-auto p-0"}>
-        {children}
-      </CardContent>
+      <CardContent className={"overflow-y-hidden p-0"}>{children}</CardContent>
       {actionComponent && actionComponent()}
     </Card>
   );
