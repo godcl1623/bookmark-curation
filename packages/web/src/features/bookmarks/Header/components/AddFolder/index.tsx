@@ -1,21 +1,29 @@
 import type { Folder as FolderType } from "@linkvault/shared";
-import { Folder, Pencil, Trash2 } from "lucide-react";
+import { nanoid } from "nanoid";
 import type { FormEvent } from "react";
 import toast from "react-hot-toast";
 
+import FolderListItem from "@/features/bookmarks/Header/components/AddFolder/FolderListItem";
 import DataAddForm from "@/features/bookmarks/Header/components/common/DataAddForm";
-import Button from "@/shared/components/atoms/button";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
 import useFolderList from "@/shared/hooks/useFolderList";
+import createNewFolder from "@/shared/services/folders/create-new-folder";
 import type { BasicComponentProps } from "@/shared/types";
 
 export default function AddFolder() {
-  const { data: folders, isLoading, isError } = useFolderList();
+  const {
+    data: folders,
+    isLoading,
+    isError,
+    isRefetching,
+    refetch,
+  } = useFolderList();
 
   return (
     <article className={"h-[calc(100%-50px)] overflow-y-auto p-5"}>
       <DataAddForm
+        key={`form_${isRefetching}`}
         title={"Add New Folder"}
         inputOptions={{ placeholder: "Folder Name", name: FORM_ELEMENTS.INPUT }}
         addOns={() => (
@@ -26,7 +34,7 @@ export default function AddFolder() {
                   extractFoldersProperty(folders ?? [], "title"),
                   extractFoldersProperty(folders ?? [], "data_id")
                 )}
-                name={FORM_ELEMENTS.SELECT.COLOR}
+                name={FORM_ELEMENTS.SELECT.PARENT}
               />
             </AddonWrapper>
             <AddonWrapper>
@@ -35,12 +43,12 @@ export default function AddFolder() {
                   text,
                   data_id: value,
                 }))}
-                name={FORM_ELEMENTS.SELECT.PARENT}
+                name={FORM_ELEMENTS.SELECT.COLOR}
               />
             </AddonWrapper>
           </>
         )}
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(refetch)}
       />
       {/* FIXME: 로딩, 에러 화면 구성 */}
       {isLoading && <p>Loading...</p>}
@@ -49,7 +57,7 @@ export default function AddFolder() {
         <ul className={"mt-5 flex flex-col gap-2"}>
           {folders.map((folder) => (
             <li key={`option-${folder.id}`}>
-              <FolderListItem {...folder} />
+              <FolderListItem {...folder} refetch={refetch} />
             </li>
           ))}
         </ul>
@@ -66,42 +74,68 @@ const FORM_ELEMENTS = {
   },
 };
 
-const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-  event.preventDefault();
+const handleSubmit =
+  (callback?: () => void) => async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-  const extractTarget = (name: string) =>
-    event.currentTarget.elements.namedItem(name);
+    const extractTarget = (name: string) =>
+      event.currentTarget.elements.namedItem(name);
 
-  const input = extractTarget(FORM_ELEMENTS.INPUT);
-  const select = extractTarget(FORM_ELEMENTS.SELECT.COLOR);
-  const parent = extractTarget(FORM_ELEMENTS.SELECT.PARENT);
+    const input = extractTarget(FORM_ELEMENTS.INPUT);
+    const color = extractTarget(FORM_ELEMENTS.SELECT.COLOR);
+    const parent = extractTarget(FORM_ELEMENTS.SELECT.PARENT);
 
-  switch (true) {
-    case input instanceof HTMLInputElement &&
-      select instanceof HTMLButtonElement &&
-      parent instanceof HTMLButtonElement:
+    if (
+      input instanceof HTMLInputElement &&
+      color instanceof HTMLButtonElement &&
+      parent instanceof HTMLButtonElement
+    ) {
       if (input.value === "") {
         toast.error("폴더 이름은 필수입니다.");
         return;
       }
 
-      console.log(input.value);
-      console.log(select.value);
-      console.log(parent.value);
+      const parentValue = parent.value === "" ? null : parent.value;
+      const data_id = nanoid();
+
+      const postBody = {
+        title:
+          input.value == null || input.value === "" ? "Untitled" : input.value,
+        color:
+          color.value == null || color.value === ""
+            ? FOLDER_COLORS.DEFAULT
+            : color.value,
+        parent_id: parentValue,
+        data_id,
+      };
+
+      try {
+        const result = await createNewFolder(postBody);
+        if (result.ok) {
+          toast.success(`${postBody.title} 폴더가 추가되었습니다.`);
+          callback?.();
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          toast.error(`폴더 추가에 실패했습니다(${error.name})`);
+        }
+        console.error(error);
+      }
 
       return;
+    }
 
-    case input instanceof RadioNodeList &&
-      select instanceof RadioNodeList &&
-      parent instanceof RadioNodeList:
+    if (
+      input instanceof RadioNodeList &&
+      color instanceof RadioNodeList &&
+      parent instanceof RadioNodeList
+    ) {
       toast.error("잘못된 요소가 로드되었습니다.");
       return;
+    }
 
-    default:
-      toast.error("폼 요소가 로드되지 않았습니다.");
-      return;
-  }
-};
+    toast.error("폼 요소가 로드되지 않았습니다.");
+  };
 
 const extractFoldersProperty = (
   folders: FolderType[],
@@ -137,47 +171,5 @@ function AddonWrapper({ children }: BasicComponentProps) {
     >
       {children}
     </div>
-  );
-}
-
-function FolderListItem({ title, color, _count }: FolderType) {
-  return (
-    <section
-      className={"flex-center gap-4 rounded-lg border border-neutral-200 p-4"}
-    >
-      <div
-        className={"rounded-lg p-2 text-white"}
-        style={{ backgroundColor: color }}
-      >
-        <Folder />
-      </div>
-      <div className={"flex-1 flex-col"}>
-        <h2>{title}</h2>
-        <p className={"text-sm text-neutral-500"}>
-          북마크 {_count.bookmarks}개
-        </p>
-      </div>
-      <div className={"flex-center gap-2"}>
-        <FunctionButton color={"black"}>
-          <Pencil />
-        </FunctionButton>
-        <FunctionButton>
-          <Trash2 />
-        </FunctionButton>
-      </div>
-    </section>
-  );
-}
-
-function FunctionButton({
-  children,
-  color,
-}: BasicComponentProps & { color?: "black" | "red" }) {
-  const buttonColor = color === "black" ? "text-black" : "text-red-500";
-
-  return (
-    <Button variant={"ghost"} size={"icon-sm"} className={buttonColor}>
-      {children}
-    </Button>
   );
 }

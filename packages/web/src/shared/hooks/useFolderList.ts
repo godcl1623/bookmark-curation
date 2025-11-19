@@ -9,12 +9,14 @@ const useFolderList = () => {
     data: response,
     isLoading,
     isError,
+    isRefetching,
+    refetch,
   } = useQuery<{ ok: boolean; data: FolderType[] }>({
     queryKey: FOLDERS_QUERY_KEY.TOTAL_LISTS,
     queryFn: getFoldersList,
   });
 
-  return { data: response?.data, isLoading, isError };
+  return { data: response?.data, isLoading, isError, isRefetching, refetch };
 };
 
 export default useFolderList;

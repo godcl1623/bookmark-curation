@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import type { FormEvent, ReactNode } from "react";
+import { type FormEvent, type ReactNode } from "react";
 
 import Button from "@/shared/components/atoms/button";
 import ControlledInput from "@/shared/components/molecules/ControlledInput";
