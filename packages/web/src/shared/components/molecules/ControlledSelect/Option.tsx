@@ -4,7 +4,7 @@ import Button from "@/shared/components/atoms/button";
 import { cn } from "@/shared/lib/utils";
 
 interface OptionProps {
-  values: string[];
+  values: { text: string; data_id?: string | null }[];
   setValue: (index: number) => () => void;
   closeModal?: () => void;
   buttonTop?: number;
@@ -26,7 +26,7 @@ export default function Option({
     <ul
       ref={containerRef}
       className={
-        "absolute flex max-h-[208px] flex-col gap-2 overflow-y-auto rounded-lg bg-neutral-50 p-2 text-neutral-500 shadow-xl"
+        "absolute flex max-h-[208px] min-w-max flex-col gap-2 overflow-y-auto rounded-lg bg-neutral-50 p-2 text-neutral-500 shadow-xl"
       }
       style={{ top: buttonTop, left: buttonLeft, width: buttonWidth }}
     >
@@ -36,8 +36,9 @@ export default function Option({
             variant={"outline"}
             className={cn("w-full", STYLES.buttonHeight)}
             onClick={setValue(index)}
+            value={value.data_id ?? value.text}
           >
-            {value}
+            {value.text}
           </Button>
         </li>
       ))}

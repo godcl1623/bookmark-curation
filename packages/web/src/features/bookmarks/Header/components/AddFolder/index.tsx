@@ -1,5 +1,4 @@
 import type { Folder as FolderType } from "@linkvault/shared";
-import { useQuery } from "@tanstack/react-query";
 import { Folder, Pencil, Trash2 } from "lucide-react";
 import type { FormEvent } from "react";
 import toast from "react-hot-toast";
@@ -8,8 +7,7 @@ import DataAddForm from "@/features/bookmarks/Header/components/common/DataAddFo
 import Button from "@/shared/components/atoms/button";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
-import getFoldersList from "@/shared/services/folders/get-folders-list";
-import FOLDERS_QUERY_KEY from "@/shared/services/folders/queryKey";
+import useFolderList from "@/shared/hooks/useFolderList";
 import type { BasicComponentProps } from "@/shared/types";
 
 export default function AddFolder() {
@@ -21,16 +19,26 @@ export default function AddFolder() {
         title={"Add New Folder"}
         inputOptions={{ placeholder: "Folder Name", name: FORM_ELEMENTS.INPUT }}
         addOns={() => (
-          <div
-            className={
-              "flex-[0.5] rounded-lg border border-neutral-200 bg-white p-1"
-            }
-          >
-            <ControlledSelect
-              values={Object.keys(FOLDER_COLORS)}
-              name={FORM_ELEMENTS.SELECT}
-            />
-          </div>
+          <>
+            <AddonWrapper>
+              <ControlledSelect
+                values={generateFolderOptions(
+                  extractFoldersProperty(folders ?? [], "title"),
+                  extractFoldersProperty(folders ?? [], "data_id")
+                )}
+                name={FORM_ELEMENTS.SELECT.COLOR}
+              />
+            </AddonWrapper>
+            <AddonWrapper>
+              <ControlledSelect
+                values={Object.entries(FOLDER_COLORS).map(([text, value]) => ({
+                  text,
+                  data_id: value,
+                }))}
+                name={FORM_ELEMENTS.SELECT.PARENT}
+              />
+            </AddonWrapper>
+          </>
         )}
         onSubmit={handleSubmit}
       />
@@ -52,18 +60,26 @@ export default function AddFolder() {
 
 const FORM_ELEMENTS = {
   INPUT: "folderName",
-  SELECT: "folderColor",
+  SELECT: {
+    COLOR: "folderColor",
+    PARENT: "folderParent",
+  },
 };
 
 const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
   event.preventDefault();
 
-  const input = event.currentTarget.elements.namedItem(FORM_ELEMENTS.INPUT);
-  const select = event.currentTarget.elements.namedItem(FORM_ELEMENTS.SELECT);
+  const extractTarget = (name: string) =>
+    event.currentTarget.elements.namedItem(name);
+
+  const input = extractTarget(FORM_ELEMENTS.INPUT);
+  const select = extractTarget(FORM_ELEMENTS.SELECT.COLOR);
+  const parent = extractTarget(FORM_ELEMENTS.SELECT.PARENT);
 
   switch (true) {
     case input instanceof HTMLInputElement &&
-      select instanceof HTMLButtonElement:
+      select instanceof HTMLButtonElement &&
+      parent instanceof HTMLButtonElement:
       if (input.value === "") {
         toast.error("폴더 이름은 필수입니다.");
         return;
@@ -71,10 +87,13 @@ const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
 
       console.log(input.value);
       console.log(select.value);
+      console.log(parent.value);
 
       return;
 
-    case input instanceof RadioNodeList && select instanceof RadioNodeList:
+    case input instanceof RadioNodeList &&
+      select instanceof RadioNodeList &&
+      parent instanceof RadioNodeList:
       toast.error("잘못된 요소가 로드되었습니다.");
       return;
 
@@ -84,20 +103,44 @@ const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
   }
 };
 
-const useFolderList = () => {
-  const {
-    data: response,
-    isLoading,
-    isError,
-  } = useQuery<{ ok: boolean; data: FolderType[] }>({
-    queryKey: FOLDERS_QUERY_KEY.TOTAL_LISTS,
-    queryFn: getFoldersList,
+const extractFoldersProperty = (
+  folders: FolderType[],
+  extractKey: keyof FolderType
+) => {
+  return folders.map((folder) => {
+    const value = folder[extractKey];
+    if (typeof value === "string") return value;
+    else if (typeof value === "number") return String(value);
+    else return "";
   });
-
-  return { data: response?.data, isLoading, isError };
 };
 
-function FolderListItem({ title, color }: FolderType) {
+const generateFolderOptions = (
+  titles: string[],
+  data_ids: string[]
+): { text: string; data_id: string | null }[] => {
+  const defaultValue: { text: string; data_id: string | null }[] = [
+    { text: "없음", data_id: null },
+  ];
+  return defaultValue.concat(
+    titles.map((title, index) => ({
+      text: title,
+      data_id: data_ids[index],
+    }))
+  );
+};
+
+function AddonWrapper({ children }: BasicComponentProps) {
+  return (
+    <div
+      className={"flex-[0.5] rounded-lg border border-neutral-200 bg-white p-1"}
+    >
+      {children}
+    </div>
+  );
+}
+
+function FolderListItem({ title, color, _count }: FolderType) {
   return (
     <section
       className={"flex-center gap-4 rounded-lg border border-neutral-200 p-4"}
@@ -110,7 +153,9 @@ function FolderListItem({ title, color }: FolderType) {
       </div>
       <div className={"flex-1 flex-col"}>
         <h2>{title}</h2>
-        <p className={"text-sm text-neutral-500"}>북마크 3개</p>
+        <p className={"text-sm text-neutral-500"}>
+          북마크 {_count.bookmarks}개
+        </p>
       </div>
       <div className={"flex-center gap-2"}>
         <FunctionButton color={"black"}>

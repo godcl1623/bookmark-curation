@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
 import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
@@ -8,7 +8,7 @@ import Option from "@/shared/components/molecules/ControlledSelect/Option";
 import { cn } from "@/shared/lib/utils";
 
 interface ControlledSelectProps {
-  values: string[];
+  values: { text: string; data_id?: string | null }[];
   name?: string;
 }
 
@@ -29,31 +29,50 @@ export default function ControlledSelect({
         className={cn(
           COMMON_STYLES.input,
           "flex-center",
-          selectedValue === "" ? "justify-end" : "justify-between"
+          selectedValue == null || selectedValue.text === ""
+            ? "justify-end"
+            : "justify-between"
         )}
-        value={selectedValue}
+        value={
+          selectedValue.data_id === null
+            ? ""
+            : (selectedValue.data_id ?? selectedValue.text)
+        }
         onClick={toggleDropdown(buttonRect)}
       >
-        {selectedValue}
+        {selectedValue.text}
         <ChevronDown />
       </Button>
     </div>
   );
 }
 
-const useSelect = (values: string[]) => {
+const useSelect = (values: { text: string; data_id?: string | null }[]) => {
   const { openModal, findModal, closeModal } = useModal();
-  const [selectedValue, setSelectedValue] = useState(values[0]);
+  const [selectedValue, setSelectedValue] = useState<{
+    text: string;
+    data_id: string | null;
+  }>({
+    text: values[0].text,
+    data_id: values[0].data_id ?? null,
+  });
 
-  const closeOptionModal = () => {
+  const closeOptionModal = useCallback(() => {
     const modal = findModal("Option");
     if (modal) closeModal(modal.id);
-  };
+  }, [closeModal, findModal]);
 
-  const setValue = (index: number) => () => {
-    setSelectedValue(values[index]);
-    closeOptionModal();
-  };
+  const setValue = useCallback(
+    (index: number) => () => {
+      setSelectedValue((prev) => ({
+        ...prev,
+        text: values[index].text,
+        data_id: values[index].data_id ?? null,
+      }));
+      closeOptionModal();
+    },
+    [values, closeOptionModal]
+  );
 
   const toggleDropdown = (buttonRect?: DOMRect | null) => async () => {
     try {
@@ -74,6 +93,12 @@ const useSelect = (values: string[]) => {
       console.error("### Error in toggleDropdown: ", error);
     }
   };
+
+  useEffect(() => {
+    if (values) {
+      setValue(0);
+    }
+  }, [values, setValue]);
 
   return { toggleDropdown, selectedValue, setValue };
 };

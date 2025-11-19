@@ -7,10 +7,12 @@ import AddTags from "@/features/bookmarks/Header/components/AddTags";
 import Button from "@/shared/components/atoms/button";
 import ModalLayout from "@/shared/components/layouts/modal";
 import ModalTemplate from "@/shared/components/layouts/modal/ModalTemplate";
+import useFolderList from "@/shared/hooks/useFolderList";
 import { cn } from "@/shared/lib/utils";
 import type { BasicComponentProps } from "@/shared/types";
 
 export default function Options({ reject }: DefaultModalChildrenProps) {
+  const { data: folders } = useFolderList();
   const [activeTab, changeTab] = useTab();
 
   const tabView = useMemo(() => {
@@ -34,6 +36,7 @@ export default function Options({ reject }: DefaultModalChildrenProps) {
                 {display({
                   isActive: activeTab === value,
                   changeTab: changeTab(value),
+                  count: value === "folders" ? (folders?.length ?? 0) : 0,
                 })}
               </li>
             );
@@ -54,7 +57,7 @@ const TABS_DATA = [
   {
     value: "folders",
     display: (props: TabButtonProps) => (
-      <TabButton icon={() => <Folder />} {...props} count={3}>
+      <TabButton icon={() => <Folder />} {...props}>
         Folders
       </TabButton>
     ),
@@ -62,7 +65,7 @@ const TABS_DATA = [
   {
     value: "tags",
     display: (props: TabButtonProps) => (
-      <TabButton icon={() => <Hash />} {...props} count={999}>
+      <TabButton icon={() => <Hash />} {...props}>
         Tags
       </TabButton>
     ),
@@ -109,16 +112,14 @@ function TabButton({
     >
       {icon && icon()}
       {children}
-      {count && (
-        <span
-          className={cn(
-            "flex-center-center size-6 rounded-full bg-neutral-200 p-1.5 font-bold text-neutral-700",
-            countText.length < 3 ? "text-xs" : "text-[10px]"
-          )}
-        >
-          {countText}
-        </span>
-      )}
+      <span
+        className={cn(
+          "flex-center-center size-6 rounded-full bg-neutral-200 p-1.5 font-bold text-neutral-700",
+          countText.length < 3 ? "text-xs" : "text-[10px]"
+        )}
+      >
+        {countText}
+      </span>
     </Button>
   );
 }
