@@ -1,6 +1,6 @@
 import type { Folder as FolderType } from "@linkvault/shared";
 import { type AxiosResponse, isAxiosError } from "axios";
-import { useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 import FolderMetaInfo from "@/features/bookmarks/Header/components/AddFolder/FolderListItem/FolderMetaInfo";
@@ -10,10 +10,13 @@ import {
   extractFoldersProperty,
   generateFolderOptions,
 } from "@/features/bookmarks/Header/utils";
+import Button from "@/shared/components/atoms/button";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
 import useFolderList from "@/shared/hooks/useFolderList";
+import { cn } from "@/shared/lib/utils";
 import deleteFolder from "@/shared/services/folders/delete-folder";
+import updateFolder from "@/shared/services/folders/update-folder";
 
 export default function FolderListItem({
   title,
@@ -59,25 +62,43 @@ export default function FolderListItem({
                 <ControlledSelect
                   values={folderList}
                   name={FORM_ELEMENTS.SELECT.PARENT}
-                  initialIndex={findIndex(folderList, props.parent_id) ?? 0}
+                  initialIndex={findIndex(
+                    folderList.map((folder) => folder.text),
+                    props.parent?.title
+                  )}
                 />
               </AddonWrapper>
               <AddonWrapper>
                 <ControlledSelect
                   values={colorList}
-                  initialIndex={
-                    findIndex(
-                      colorList.map((color) => color.data_id),
-                      color
-                    ) ?? 0
-                  }
+                  initialIndex={findIndex(
+                    colorList.map((color) => color.data_id),
+                    color
+                  )}
                   name={FORM_ELEMENTS.SELECT.COLOR}
                 />
               </AddonWrapper>
             </>
           )}
-          actions={() => null}
-          onSubmit={() => null}
+          actions={() => (
+            <div className={"flex-center gap-2"}>
+              {ACTION_BUTTONS.map((button) => (
+                <Button
+                  key={`${data_id}_edit`}
+                  type={button.type as "submit" | "reset" | "button"}
+                  variant={"blank"}
+                  size={"default"}
+                  className={cn("flex-[0.3] text-white", button.color)}
+                >
+                  {button.label}
+                </Button>
+              ))}
+            </div>
+          )}
+          onSubmit={handleSubmit(data_id, () => {
+            changeEditMode();
+            refetch?.();
+          })}
           onReset={changeEditMode}
         />
       ) : (
@@ -103,6 +124,19 @@ const FORM_ELEMENTS = {
   },
 };
 
+const ACTION_BUTTONS = [
+  {
+    label: "Edit",
+    type: "submit",
+    color: "bg-green-500",
+  },
+  {
+    label: "Cancel",
+    type: "reset",
+    color: "bg-red-500",
+  },
+];
+
 const handleDelete = (data_id: string, callback?: () => void) => async () => {
   try {
     const result = (await deleteFolder(data_id)) as AxiosResponse;
@@ -120,8 +154,72 @@ const handleDelete = (data_id: string, callback?: () => void) => async () => {
   }
 };
 
+const handleSubmit =
+  (targetId: string, callback?: () => void) =>
+  async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const extractTarget = (name: string) =>
+      event.currentTarget.elements.namedItem(name);
+
+    const input = extractTarget(FORM_ELEMENTS.INPUT);
+    const color = extractTarget(FORM_ELEMENTS.SELECT.COLOR);
+    const parent = extractTarget(FORM_ELEMENTS.SELECT.PARENT);
+
+    if (
+      input instanceof HTMLInputElement &&
+      color instanceof HTMLButtonElement &&
+      parent instanceof HTMLButtonElement
+    ) {
+      if (input.value === "") {
+        toast.error("폴더 이름은 필수입니다.");
+        return;
+      }
+
+      const parentValue = parent.value === "" ? null : parent.value;
+
+      const putBody = {
+        title:
+          input.value == null || input.value === "" ? "Untitled" : input.value,
+        color:
+          color.value == null || color.value === ""
+            ? FOLDER_COLORS.DEFAULT
+            : color.value,
+        parent_id: parentValue,
+        data_id: targetId,
+      };
+
+      try {
+        const result = await updateFolder(targetId, putBody);
+        if (result.ok) {
+          toast.success(`${putBody.title} 폴더가 수정되었습니다.`);
+          callback?.();
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          toast.error(`폴더 수정에 실패했습니다(${error.name})`);
+        }
+        console.error(error);
+      }
+
+      return;
+    }
+
+    if (
+      input instanceof RadioNodeList &&
+      color instanceof RadioNodeList &&
+      parent instanceof RadioNodeList
+    ) {
+      toast.error("잘못된 요소가 로드되었습니다.");
+      return;
+    }
+
+    toast.error("폼 요소가 로드되지 않았습니다.");
+  };
+
 const findIndex = (array: unknown[], value: unknown) => {
-  return array.findIndex((item) => item === value);
+  const index = array.findIndex((item) => item === value);
+  return index === -1 ? 0 : index;
 };
 
 const useEdit = () => {

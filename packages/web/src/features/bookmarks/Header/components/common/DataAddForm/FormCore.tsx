@@ -6,11 +6,13 @@ export default function FormCore({
   addOns,
   actions,
   onSubmit,
+  onReset,
 }: FormCoreProps) {
   return (
     <form
-      className={"flex-center gap-2"}
+      className={"flex-center flex-1 gap-2"}
       onSubmit={onSubmit ? onSubmit : () => null}
+      onReset={onReset ? onReset : () => null}
     >
       <ControlledInput
         placeholder={inputOptions?.placeholder}
