@@ -1,15 +1,18 @@
-import type { Folder as FolderType } from "@linkvault/shared";
 import { nanoid } from "nanoid";
 import type { FormEvent } from "react";
 import toast from "react-hot-toast";
 
 import FolderListItem from "@/features/bookmarks/Header/components/AddFolder/FolderListItem";
 import DataAddForm from "@/features/bookmarks/Header/components/common/DataAddForm";
+import AddonWrapper from "@/features/bookmarks/Header/components/common/DataAddForm/AddonWrapper";
+import {
+  extractFoldersProperty,
+  generateFolderOptions,
+} from "@/features/bookmarks/Header/utils";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
 import useFolderList from "@/shared/hooks/useFolderList";
 import createNewFolder from "@/shared/services/folders/create-new-folder";
-import type { BasicComponentProps } from "@/shared/types";
 
 export default function AddFolder() {
   const {
@@ -136,40 +139,3 @@ const handleSubmit =
 
     toast.error("폼 요소가 로드되지 않았습니다.");
   };
-
-const extractFoldersProperty = (
-  folders: FolderType[],
-  extractKey: keyof FolderType
-) => {
-  return folders.map((folder) => {
-    const value = folder[extractKey];
-    if (typeof value === "string") return value;
-    else if (typeof value === "number") return String(value);
-    else return "";
-  });
-};
-
-const generateFolderOptions = (
-  titles: string[],
-  data_ids: string[]
-): { text: string; data_id: string | null }[] => {
-  const defaultValue: { text: string; data_id: string | null }[] = [
-    { text: "없음", data_id: null },
-  ];
-  return defaultValue.concat(
-    titles.map((title, index) => ({
-      text: title,
-      data_id: data_ids[index],
-    }))
-  );
-};
-
-function AddonWrapper({ children }: BasicComponentProps) {
-  return (
-    <div
-      className={"flex-[0.5] rounded-lg border border-neutral-200 bg-white p-1"}
-    >
-      {children}
-    </div>
-  );
-}

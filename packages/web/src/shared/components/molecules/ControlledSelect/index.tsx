@@ -7,16 +7,23 @@ import Button from "@/shared/components/atoms/button";
 import Option from "@/shared/components/molecules/ControlledSelect/Option";
 import { cn } from "@/shared/lib/utils";
 
+interface ValueType {
+  text: string;
+  data_id?: string | null;
+}
+
 interface ControlledSelectProps {
-  values: { text: string; data_id?: string | null }[];
+  values: ValueType[];
+  initialIndex?: number;
   name?: string;
 }
 
 export default function ControlledSelect({
   values,
+  initialIndex = 0,
   name,
 }: ControlledSelectProps) {
-  const { toggleDropdown, selectedValue } = useSelect(values);
+  const { toggleDropdown, selectedValue } = useSelect(values, initialIndex);
   const { buttonRect, buttonRef } = useButtonRect();
 
   return (
@@ -47,14 +54,14 @@ export default function ControlledSelect({
   );
 }
 
-const useSelect = (values: { text: string; data_id?: string | null }[]) => {
+const useSelect = (values: ValueType[], initialIndex: number) => {
   const { openModal, findModal, closeModal } = useModal();
   const [selectedValue, setSelectedValue] = useState<{
     text: string;
     data_id: string | null;
   }>({
-    text: values[0].text,
-    data_id: values[0].data_id ?? null,
+    text: values[initialIndex]?.text,
+    data_id: values[initialIndex]?.data_id ?? null,
   });
 
   const closeOptionModal = useCallback(() => {
@@ -96,9 +103,9 @@ const useSelect = (values: { text: string; data_id?: string | null }[]) => {
 
   useEffect(() => {
     if (values) {
-      setValue(0);
+      setValue(initialIndex);
     }
-  }, [values, setValue]);
+  }, [values, setValue, initialIndex]);
 
   return { toggleDropdown, selectedValue, setValue };
 };
