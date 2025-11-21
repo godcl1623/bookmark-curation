@@ -5,7 +5,6 @@ import {
   Search,
   Settings,
 } from "lucide-react";
-import { useEffect } from "react";
 import { NavLink } from "react-router";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
@@ -14,7 +13,7 @@ import Button from "@/shared/components/atoms/button";
 import type { BasicComponentProps } from "@/shared/types";
 
 export default function Header() {
-  useTemporalModal();
+  const { handleClick } = useSetting();
 
   return (
     <header className={"flex-center-between px-10 py-3 shadow"}>
@@ -23,7 +22,7 @@ export default function Header() {
         <OptionButton>
           <Search className={STYLES.iconMd} />
         </OptionButton>
-        <OptionButton>
+        <OptionButton onClick={handleClick}>
           <Settings className={STYLES.iconMd} />
         </OptionButton>
         <ul className={"flex-center gap-1 rounded-md bg-neutral-200 p-1"}>
@@ -49,12 +48,14 @@ const STYLES = {
   iconSm: "size-4",
 };
 
-const useTemporalModal = () => {
+const useSetting = () => {
   const { openModal } = useModal();
 
-  useEffect(() => {
+  const handleClick = () => {
     openModal(Options);
-  }, [openModal]);
+  };
+
+  return { handleClick };
 };
 
 function Logo() {
@@ -70,14 +71,19 @@ function Logo() {
 
 interface OptionButtonProps extends BasicComponentProps {
   isActive?: boolean;
+  onClick?: () => void;
 }
 
-function OptionButton({ children, isActive = false }: OptionButtonProps) {
+function OptionButton({
+  children,
+  isActive = false,
+  onClick = () => null,
+}: OptionButtonProps) {
   const activeVariant = isActive ? "outline" : "ghost";
   const activeColor = isActive ? "text-blue-600" : "";
 
   return (
-    <Button size={"icon-sm"} variant={activeVariant}>
+    <Button size={"icon-sm"} variant={activeVariant} onClick={onClick}>
       <span className={activeColor}>{children}</span>
     </Button>
   );

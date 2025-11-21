@@ -84,6 +84,9 @@ app.get(SERVICE_ENDPOINTS.USERS.path, async (_req, res) => {
 app.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (_req, res) => {
   try {
     const bookmarks = await prisma.bookmarks.findMany({
+      where: {
+        deleted_at: null,
+      },
       include: {
         users: {
           select: {
@@ -126,8 +129,8 @@ app.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, async (req, res) => {
       return res.status(400).json({ ok: false, error: "Invalid bookmark ID" });
     }
 
-    const bookmark = await prisma.bookmarks.findUnique({
-      where: { id },
+    const bookmark = await prisma.bookmarks.findFirst({
+      where: { id, deleted_at: null },
       include: {
         users: {
           select: {
@@ -550,7 +553,7 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
 
     const [folders, bookmarks] = await Promise.all([
       prisma.folders.findMany({
-        where: { parent_id: parentId },
+        where: { parent_id: parentId, deleted_at: null },
         include: {
           users: {
             select: {
@@ -570,7 +573,7 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
         },
       }),
       prisma.bookmarks.findMany({
-        where: { folder_id: parentId },
+        where: { folder_id: parentId, deleted_at: null },
         include: {
           users: {
             select: {
@@ -639,14 +642,14 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
     if (segments.length === 0) {
       const [folders, bookmarks] = await Promise.all([
         prisma.folders.findMany({
-          where: { user_id: userId, parent_id: null },
+          where: { user_id: userId, parent_id: null, deleted_at: null },
           include: {
             users: { select: { id: true, display_name: true } },
             _count: { select: { bookmarks: true, children: true } },
           },
         }),
         prisma.bookmarks.findMany({
-          where: { user_id: userId, folder_id: null },
+          where: { user_id: userId, folder_id: null, deleted_at: null },
           include: {
             users: {
               select: { id: true, display_name: true, avatar_url: true },
@@ -670,7 +673,7 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
 
     for (const title of segments) {
       const folder = await prisma.folders.findFirst({
-        where: { user_id: userId, parent_id: currentParentId, title },
+        where: { user_id: userId, parent_id: currentParentId, title, deleted_at: null },
       });
 
       if (!folder) {
@@ -689,14 +692,14 @@ app.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
     const finalFolder = breadcrumbs[breadcrumbs.length - 1];
     const [folders, bookmarks] = await Promise.all([
       prisma.folders.findMany({
-        where: { parent_id: finalFolder.id },
+        where: { parent_id: finalFolder.id, deleted_at: null },
         include: {
           users: { select: { id: true, display_name: true } },
           _count: { select: { bookmarks: true, children: true } },
         },
       }),
       prisma.bookmarks.findMany({
-        where: { folder_id: finalFolder.id },
+        where: { folder_id: finalFolder.id, deleted_at: null },
         include: {
           users: { select: { id: true, display_name: true, avatar_url: true } },
           folders: { select: { id: true, title: true, color: true } },
