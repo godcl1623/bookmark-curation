@@ -8,11 +8,13 @@ import Button from "@/shared/components/atoms/button";
 import ModalLayout from "@/shared/components/layouts/modal";
 import ModalTemplate from "@/shared/components/layouts/modal/ModalTemplate";
 import useFolderList from "@/shared/hooks/useFolderList";
+import useTagsList from "@/shared/hooks/useTagsList";
 import { cn } from "@/shared/lib/utils";
 import type { BasicComponentProps } from "@/shared/types";
 
 export default function Options({ reject }: DefaultModalChildrenProps) {
   const { data: folders } = useFolderList();
+  const { data: tags } = useTagsList();
   const [activeTab, changeTab] = useTab();
 
   const tabView = useMemo(() => {
@@ -36,7 +38,10 @@ export default function Options({ reject }: DefaultModalChildrenProps) {
                 {display({
                   isActive: activeTab === value,
                   changeTab: changeTab(value),
-                  count: value === "folders" ? (folders?.length ?? 0) : 0,
+                  count:
+                    value === "folders"
+                      ? (folders?.length ?? 0)
+                      : (tags?.length ?? 0),
                 })}
               </li>
             );

@@ -32,12 +32,16 @@ export interface Folder {
 }
 
 export interface Tag {
-  id: number;
-  user_id: number;
-  name: string;
-  slug: string;
   color: string;
   created_at: string;
+  deleted_at: string;
+  id: number;
+  name: string;
+  slug: string;
+  updated_at: string;
+  user_id: number;
+  users: { id: number; display_name: string };
+  _count: { bookmark_tags: number };
 }
 
 export interface Bookmark extends Folder {

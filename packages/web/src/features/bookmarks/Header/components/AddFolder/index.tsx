@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import FolderListItem from "@/features/bookmarks/Header/components/AddFolder/FolderListItem";
 import DataAddForm from "@/features/bookmarks/Header/components/common/DataAddForm";
 import AddonWrapper from "@/features/bookmarks/Header/components/common/DataAddForm/AddonWrapper";
+import { FOLDERS_FORM_ELEMENTS } from "@/features/bookmarks/Header/consts";
 import {
   extractFoldersProperty,
   generateFolderOptions,
@@ -28,7 +29,10 @@ export default function AddFolder() {
       <DataAddForm
         key={`form_${isRefetching}`}
         title={"Add New Folder"}
-        inputOptions={{ placeholder: "Folder Name", name: FORM_ELEMENTS.INPUT }}
+        inputOptions={{
+          placeholder: "Folder Name",
+          name: FOLDERS_FORM_ELEMENTS.INPUT,
+        }}
         addOns={() => (
           <>
             <AddonWrapper>
@@ -37,7 +41,7 @@ export default function AddFolder() {
                   extractFoldersProperty(folders ?? [], "title"),
                   extractFoldersProperty(folders ?? [], "data_id")
                 )}
-                name={FORM_ELEMENTS.SELECT.PARENT}
+                name={FOLDERS_FORM_ELEMENTS.SELECT.PARENT}
               />
             </AddonWrapper>
             <AddonWrapper>
@@ -46,7 +50,7 @@ export default function AddFolder() {
                   text,
                   data_id: value,
                 }))}
-                name={FORM_ELEMENTS.SELECT.COLOR}
+                name={FOLDERS_FORM_ELEMENTS.SELECT.COLOR}
               />
             </AddonWrapper>
           </>
@@ -69,14 +73,6 @@ export default function AddFolder() {
   );
 }
 
-const FORM_ELEMENTS = {
-  INPUT: "folderName",
-  SELECT: {
-    COLOR: "folderColor",
-    PARENT: "folderParent",
-  },
-};
-
 const handleSubmit =
   (callback?: () => void) => async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -84,9 +80,9 @@ const handleSubmit =
     const extractTarget = (name: string) =>
       event.currentTarget.elements.namedItem(name);
 
-    const input = extractTarget(FORM_ELEMENTS.INPUT);
-    const color = extractTarget(FORM_ELEMENTS.SELECT.COLOR);
-    const parent = extractTarget(FORM_ELEMENTS.SELECT.PARENT);
+    const input = extractTarget(FOLDERS_FORM_ELEMENTS.INPUT);
+    const color = extractTarget(FOLDERS_FORM_ELEMENTS.SELECT.COLOR);
+    const parent = extractTarget(FOLDERS_FORM_ELEMENTS.SELECT.PARENT);
 
     if (
       input instanceof HTMLInputElement &&

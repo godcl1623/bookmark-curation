@@ -7,7 +7,12 @@ import FolderMetaInfo from "@/features/bookmarks/Header/components/AddFolder/Fol
 import AddonWrapper from "@/features/bookmarks/Header/components/common/DataAddForm/AddonWrapper";
 import FormCore from "@/features/bookmarks/Header/components/common/DataAddForm/FormCore";
 import {
+  ACTION_BUTTONS,
+  FOLDERS_FORM_ELEMENTS,
+} from "@/features/bookmarks/Header/consts";
+import {
   extractFoldersProperty,
+  findIndex,
   generateFolderOptions,
 } from "@/features/bookmarks/Header/utils";
 import Button from "@/shared/components/atoms/button";
@@ -53,7 +58,7 @@ export default function FolderListItem({
         <FormCore
           inputOptions={{
             placeholder: "Folder Name",
-            name: FORM_ELEMENTS.INPUT,
+            name: FOLDERS_FORM_ELEMENTS.INPUT,
             initialValue: title,
           }}
           addOns={() => (
@@ -61,7 +66,7 @@ export default function FolderListItem({
               <AddonWrapper>
                 <ControlledSelect
                   values={folderList}
-                  name={FORM_ELEMENTS.SELECT.PARENT}
+                  name={FOLDERS_FORM_ELEMENTS.SELECT.PARENT}
                   initialIndex={findIndex(
                     folderList.map((folder) => folder.text),
                     props.parent?.title
@@ -75,7 +80,7 @@ export default function FolderListItem({
                     colorList.map((color) => color.data_id),
                     color
                   )}
-                  name={FORM_ELEMENTS.SELECT.COLOR}
+                  name={FOLDERS_FORM_ELEMENTS.SELECT.COLOR}
                 />
               </AddonWrapper>
             </>
@@ -116,27 +121,6 @@ export default function FolderListItem({
   );
 }
 
-const FORM_ELEMENTS = {
-  INPUT: "folderName",
-  SELECT: {
-    COLOR: "folderColor",
-    PARENT: "folderParent",
-  },
-};
-
-const ACTION_BUTTONS = [
-  {
-    label: "Edit",
-    type: "submit",
-    color: "bg-green-500",
-  },
-  {
-    label: "Cancel",
-    type: "reset",
-    color: "bg-red-500",
-  },
-];
-
 const handleDelete = (data_id: string, callback?: () => void) => async () => {
   try {
     const result = (await deleteFolder(data_id)) as AxiosResponse;
@@ -162,9 +146,9 @@ const handleSubmit =
     const extractTarget = (name: string) =>
       event.currentTarget.elements.namedItem(name);
 
-    const input = extractTarget(FORM_ELEMENTS.INPUT);
-    const color = extractTarget(FORM_ELEMENTS.SELECT.COLOR);
-    const parent = extractTarget(FORM_ELEMENTS.SELECT.PARENT);
+    const input = extractTarget(FOLDERS_FORM_ELEMENTS.INPUT);
+    const color = extractTarget(FOLDERS_FORM_ELEMENTS.SELECT.COLOR);
+    const parent = extractTarget(FOLDERS_FORM_ELEMENTS.SELECT.PARENT);
 
     if (
       input instanceof HTMLInputElement &&
@@ -216,11 +200,6 @@ const handleSubmit =
 
     toast.error("폼 요소가 로드되지 않았습니다.");
   };
-
-const findIndex = (array: unknown[], value: unknown) => {
-  const index = array.findIndex((item) => item === value);
-  return index === -1 ? 0 : index;
-};
 
 const useEdit = () => {
   const [isEdit, setIsEdit] = useState(false);
