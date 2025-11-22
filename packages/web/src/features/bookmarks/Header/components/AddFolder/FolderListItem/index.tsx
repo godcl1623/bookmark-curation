@@ -10,11 +10,7 @@ import {
   ACTION_BUTTONS,
   FOLDERS_FORM_ELEMENTS,
 } from "@/features/bookmarks/Header/consts";
-import {
-  extractFoldersProperty,
-  findIndex,
-  generateFolderOptions,
-} from "@/features/bookmarks/Header/utils";
+import { findIndex } from "@/features/bookmarks/Header/utils";
 import Button from "@/shared/components/atoms/button";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
@@ -22,6 +18,7 @@ import useFolderList from "@/shared/hooks/useFolderList";
 import { cn } from "@/shared/lib/utils";
 import deleteFolder from "@/shared/services/folders/delete-folder";
 import updateFolder from "@/shared/services/folders/update-folder";
+import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
 
 export default function FolderListItem({
   title,
