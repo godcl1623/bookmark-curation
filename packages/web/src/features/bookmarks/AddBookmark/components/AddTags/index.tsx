@@ -7,6 +7,8 @@ import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import TagItem from "@/shared/components/molecules/TagItem";
 import useInput from "@/shared/hooks/useInput";
 
+// TODO: 디바운싱 + 검색기능 추가 필요
+
 export default function AddTags() {
   const { tags, addTag, removeTag } = useTags();
   const { inputValue, changeValue, handleChange } = useInput("");

@@ -5,11 +5,21 @@ import prisma from "../lib/prisma";
 const router = Router();
 
 // Get all tags
-router.get(SERVICE_ENDPOINTS.TAGS.path, async (_req, res) => {
+router.get(SERVICE_ENDPOINTS.TAGS.path, async (req, res) => {
   try {
+    const { search } = req.query;
+
     const tags = await prisma.tags.findMany({
       where: {
         deleted_at: null,
+        ...(search && typeof search === "string"
+          ? {
+              OR: [
+                { name: { contains: search, mode: "insensitive" } },
+                { slug: { contains: search, mode: "insensitive" } },
+              ],
+            }
+          : {}),
       },
       include: {
         users: {

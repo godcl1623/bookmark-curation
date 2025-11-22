@@ -81,6 +81,7 @@ export default function AddBookmark({
               className={cn(COMMON_STYLES.input, STYLES.textarea)}
             />
           </LabeledElement>
+          {/* TODO: 디바운싱 + 검색 기능 추가 필요 */}
           <AddTags />
           <LabeledElement label={"Folder (Optional)"} asLabel={false}>
             <Folder className={COMMON_STYLES.ornament} />
