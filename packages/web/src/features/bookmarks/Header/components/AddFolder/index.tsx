@@ -6,14 +6,11 @@ import FolderListItem from "@/features/bookmarks/Header/components/AddFolder/Fol
 import DataAddForm from "@/features/bookmarks/Header/components/common/DataAddForm";
 import AddonWrapper from "@/features/bookmarks/Header/components/common/DataAddForm/AddonWrapper";
 import { FOLDERS_FORM_ELEMENTS } from "@/features/bookmarks/Header/consts";
-import {
-  extractFoldersProperty,
-  generateFolderOptions,
-} from "@/features/bookmarks/Header/utils";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
 import useFolderList from "@/shared/hooks/useFolderList";
 import createNewFolder from "@/shared/services/folders/create-new-folder";
+import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
 
 export default function AddFolder() {
   const {
