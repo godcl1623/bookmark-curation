@@ -18,7 +18,6 @@ export default function AddTags() {
     isRefetching,
     refetch,
   } = useTagsList();
-  console.log(tags);
 
   return (
     <article className={"h-[calc(100%-50px)] overflow-y-auto p-5"}>

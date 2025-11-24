@@ -1,25 +1,27 @@
-import { Tag } from "lucide-react";
-import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { type Tag as TagType } from "@linkvault/shared";
+import { useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { Plus, Tag } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button";
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import TagItem from "@/shared/components/molecules/TagItem";
+import { FOLDER_COLORS } from "@/shared/consts";
 import useClickOutside from "@/shared/hooks/useClickOutside";
 import useInput from "@/shared/hooks/useInput";
 import useTagsList from "@/shared/hooks/useTagsList";
+import createNewTag from "@/shared/services/tags/create-new-tag";
+import TAGS_QUERY_KEY from "@/shared/services/tags/queryKey";
 
 export default function AddTags() {
-  const { tags, addTag, removeTag } = useTags();
+  const { tags, addTag, addNewTag, removeTag } = useTags();
   const { debouncedValue, inputValue, changeValue, handleChange } =
     useDebouncedInput();
   const { wrapperRect, wrapperRef } = useInputWrapperRect();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-
-  const submitTag = () => {
-    addTag(inputValue);
-    changeValue("");
-  };
 
   return (
     <div className={"flex flex-col gap-2"}>
@@ -27,6 +29,9 @@ export default function AddTags() {
         {isSearchVisible && wrapperRect && (
           <SearchList
             searchValue={debouncedValue}
+            addTag={addTag}
+            addNewTag={addNewTag}
+            clearSearchValue={() => changeValue("")}
             closeModal={() => setIsSearchVisible(false)}
             wrapperWidth={wrapperRect.width}
             wrapperHeight={wrapperRect.height}
@@ -40,22 +45,17 @@ export default function AddTags() {
             className={COMMON_STYLES.input}
             onClick={() => setIsSearchVisible(true)}
             onChange={handleChange}
-            onKeyDown={handleKeyDown(submitTag)}
           />
         </LabeledElement>
-        <Button
-          size={"custom"}
-          variant={"blank"}
-          className={"bg-blue-50 px-6 py-[13px] text-lg text-blue-500"}
-          onClick={submitTag}
-        >
-          Add
-        </Button>
       </div>
       <ul className={"flex w-full flex-wrap gap-2"}>
-        {tags.map((tag, index) => (
-          <li key={`tag-${tag}-${index}`}>
-            <TagItem tag={tag} needClose onClick={() => removeTag(tag)} />
+        {tags.map((tag) => (
+          <li key={`tag-added-${tag.id}`}>
+            <TagItem
+              tag={tag.name}
+              needClose
+              onClick={() => removeTag(tag.id)}
+            />
           </li>
         ))}
       </ul>
@@ -63,30 +63,35 @@ export default function AddTags() {
   );
 }
 
-const handleKeyDown =
-  (callback?: (param?: unknown) => unknown) =>
-  (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" && !event.nativeEvent.isComposing) {
-      event.preventDefault();
-      event.stopPropagation();
-      callback?.();
-      return;
-    }
-  };
-
 const useTags = () => {
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<TagType[]>([]);
 
-  const addTag = (tag: string) => {
-    if (tag.trim() === "") return;
+  const addTag = (tag: TagType) => {
     setTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
   };
 
-  const removeTag = (target: string) => {
-    setTags((prev) => prev.filter((tag) => tag !== target));
+  const addNewTag = async (tagName: string) => {
+    const postBody = { name: tagName, color: FOLDER_COLORS.DEFAULT };
+
+    try {
+      const result = await createNewTag(postBody);
+      if (result.ok) {
+        toast.success(`${postBody.name} 태그가 추가되었습니다.`);
+        addTag(result.data);
+      }
+    } catch (error) {
+      if (isAxiosError(error)) {
+        toast.error(`태그 추가에 실패했습니다(${error.status})`);
+      }
+      console.error(error);
+    }
   };
 
-  return { tags, addTag, removeTag };
+  const removeTag = (id: number) => {
+    setTags((prev) => prev.filter((tag) => tag.id !== id));
+  };
+
+  return { tags, addTag, addNewTag, removeTag };
 };
 
 const useDebouncedInput = (defaultValue: string = "") => {
@@ -116,6 +121,9 @@ const useInputWrapperRect = () => {
 
 interface SearchListProps {
   searchValue: string;
+  addTag: (tag: TagType) => void;
+  addNewTag: (tagName: string) => void;
+  clearSearchValue: () => void;
   closeModal: () => void;
   wrapperWidth: number;
   wrapperHeight: number;
@@ -124,11 +132,31 @@ interface SearchListProps {
 function SearchList({
   searchValue,
   closeModal,
+  addTag,
+  addNewTag,
+  clearSearchValue,
   wrapperWidth,
   wrapperHeight,
 }: SearchListProps) {
+  const queryClient = useQueryClient();
   const { data: tags } = useTagsList(searchValue);
   const { containerRef } = useClickOutside(closeModal ?? (() => null));
+
+  const initializeTagList = () => {
+    queryClient.invalidateQueries({ queryKey: TAGS_QUERY_KEY.TOTAL_LISTS("") });
+  };
+
+  const handleClickTag = (tag: TagType) => {
+    addTag(tag);
+    initializeTagList();
+    clearSearchValue();
+  };
+
+  const handleClickNewTag = (tagName: string) => {
+    addNewTag(tagName);
+    initializeTagList();
+    clearSearchValue();
+  };
 
   return (
     <ul
@@ -144,16 +172,31 @@ function SearchList({
     >
       {tags && tags.length > 0 ? (
         tags.map((tag) => (
-          <li
-            key={tag.id}
-            className={"cursor-pointer px-4 py-2 hover:bg-neutral-100"}
-          >
-            {tag.name}
+          <li key={`tag-${tag.id}`}>
+            <Button
+              variant={"ghost"}
+              size={"custom"}
+              className={"w-full justify-start px-4 py-2"}
+              onClick={() => handleClickTag(tag)}
+            >
+              {tag.name}
+            </Button>
           </li>
         ))
       ) : (
-        <li className={"px-4 py-2 text-neutral-400"}>No tags found</li>
+        <li className={"px-4 py-2 text-sm text-neutral-400"}>No tags found</li>
       )}
+      <li>
+        <Button
+          variant={"ghost"}
+          size={"custom"}
+          className={"w-full justify-start px-4 py-2 text-neutral-400"}
+          onClick={() => handleClickNewTag(searchValue)}
+        >
+          <Plus />
+          Add New Tag
+        </Button>
+      </li>
     </ul>
   );
 }
