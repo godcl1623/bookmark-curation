@@ -37,10 +37,6 @@ export default function AddBookmark({
     [folders]
   );
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-  };
-
   return (
     <ModalLayout reject={reject}>
       <Card
@@ -73,12 +69,14 @@ export default function AddBookmark({
             <ControlledInput
               placeholder={"Enter bookmark title"}
               className={COMMON_STYLES.input}
+              name={FORM_ELEMENTS.TITLE}
             />
           </LabeledElement>
           <LabeledElement label={"Note (Optional)"}>
             <ControlledTextArea
               placeholder={"Add your notes here..."}
               className={cn(COMMON_STYLES.input, STYLES.textarea)}
+              name={FORM_ELEMENTS.NOTE}
             />
           </LabeledElement>
           <AddTags />
@@ -87,10 +85,10 @@ export default function AddBookmark({
             <ControlledSelect values={folderList} />
           </LabeledElement>
           <div className={"mt-3 grid grid-cols-2 gap-2"}>
-            <FormControl variant={"outline"} onClick={reject}>
+            <FormControl type={"reset"} variant={"outline"}>
               Cancel
             </FormControl>
-            <FormControl variant={"blank"} disabled={true} onClick={resolve}>
+            <FormControl type={"submit"} variant={"blank"} disabled={false}>
               Save Bookmark
             </FormControl>
           </div>
@@ -104,6 +102,13 @@ const STYLES = {
   textarea: "h-[6rem] resize-none",
 };
 
+const FORM_ELEMENTS = {
+  URL: "URL",
+  TITLE: "Title",
+  NOTE: "Note (Optional)",
+  FOLDER: "Folder (Optional)",
+};
+
 const disableKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
   if (event.key === "Enter") {
     event.preventDefault();
@@ -111,7 +116,18 @@ const disableKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
   }
 };
 
+const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+
+  const formData = new FormData(event.currentTarget);
+  console.log(formData.get("URL"));
+  console.log(formData.get("Title"));
+  console.log(formData.get("Note (Optional)"));
+  console.log(formData.get("Folder (Optional)"));
+};
+
 interface FormControlProps {
+  type?: "submit" | "reset" | "button";
   variant?: "outline" | "blank";
   disabled?: boolean;
   onClick?: (params?: unknown) => unknown;
@@ -119,6 +135,7 @@ interface FormControlProps {
 }
 
 function FormControl({
+  type = "button",
   variant = "blank",
   disabled = false,
   onClick,
@@ -134,6 +151,7 @@ function FormControl({
 
   return (
     <Button
+      type={type}
       size={"custom"}
       variant={variant}
       className={variantStyle}
