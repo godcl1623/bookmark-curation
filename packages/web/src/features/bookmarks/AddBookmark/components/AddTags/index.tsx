@@ -1,27 +1,20 @@
 import { Tag } from "lucide-react";
-import {
-  type KeyboardEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 
-import { useModal } from "@/app/providers/ModalProvider/context";
 import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button";
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import TagItem from "@/shared/components/molecules/TagItem";
 import useClickOutside from "@/shared/hooks/useClickOutside";
 import useInput from "@/shared/hooks/useInput";
-
-// TODO: 디바운싱 + 검색기능 추가 필요
+import useTagsList from "@/shared/hooks/useTagsList";
 
 export default function AddTags() {
   const { tags, addTag, removeTag } = useTags();
-  const { inputValue, changeValue, handleChange } = useInput("");
+  const { debouncedValue, inputValue, changeValue, handleChange } =
+    useDebouncedInput();
   const { wrapperRect, wrapperRef } = useInputWrapperRect();
-  const { toggleSearchList } = useSearchTags();
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   const submitTag = () => {
     addTag(inputValue);
@@ -31,13 +24,21 @@ export default function AddTags() {
   return (
     <div className={"flex flex-col gap-2"}>
       <div className={"relative flex items-end gap-2"}>
+        {isSearchVisible && wrapperRect && (
+          <SearchList
+            searchValue={debouncedValue}
+            closeModal={() => setIsSearchVisible(false)}
+            wrapperWidth={wrapperRect.width}
+            wrapperHeight={wrapperRect.height}
+          />
+        )}
         <LabeledElement label={"Tags"} ref={wrapperRef}>
           <Tag className={COMMON_STYLES.ornament} />
           <input
             value={inputValue}
             placeholder={"Add tags..."}
             className={COMMON_STYLES.input}
-            onClick={() => toggleSearchList(wrapperRect)}
+            onClick={() => setIsSearchVisible(true)}
             onChange={handleChange}
             onKeyDown={handleKeyDown(submitTag)}
           />
@@ -88,74 +89,71 @@ const useTags = () => {
   return { tags, addTag, removeTag };
 };
 
-const useDebouncedInput = () => {};
+const useDebouncedInput = (defaultValue: string = "") => {
+  const { inputValue, changeValue, handleChange } = useInput(defaultValue);
+  const [debouncedValue, setDebouncedValue] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(inputValue), 500);
+    return () => clearTimeout(timer);
+  }, [inputValue]);
+
+  return { debouncedValue, inputValue, changeValue, handleChange };
+};
 
 const useInputWrapperRect = () => {
-  const [wrapperRect, setwrapperRect] = useState<DOMRect | null>(null);
+  const [wrapperRect, setWrapperRect] = useState<DOMRect | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (wrapperRef.current) {
-      setwrapperRect(wrapperRef.current.getBoundingClientRect());
+      setWrapperRect(wrapperRef.current.getBoundingClientRect());
     }
   }, []);
 
   return { wrapperRect, wrapperRef };
 };
 
-const useSearchTags = () => {
-  const { openModal, findModal, closeModal } = useModal();
-
-  const closeOptionModal = useCallback(() => {
-    const modal = findModal("SearchList");
-    if (modal) closeModal(modal.id);
-  }, [closeModal, findModal]);
-
-  const toggleSearchList = (wrapperRect?: DOMRect | null) => {
-    try {
-      const detail = findModal("SearchList");
-      if (!detail) {
-        openModal(SearchList, {
-          closeModal: closeOptionModal,
-          wrapperTop: wrapperRect?.top ?? 0,
-          wrapperLeft: wrapperRect?.left ?? 0,
-          wrapperWidth: wrapperRect?.width ?? 0,
-        });
-      } else {
-        closeOptionModal();
-      }
-    } catch (error) {
-      console.error("### Error in toggleSearchList: ", error);
-    }
-  };
-
-  return { closeOptionModal, toggleSearchList };
-};
-
 interface SearchListProps {
+  searchValue: string;
   closeModal: () => void;
-  wrapperTop: number;
-  wrapperLeft: number;
   wrapperWidth: number;
+  wrapperHeight: number;
 }
 
 function SearchList({
+  searchValue,
   closeModal,
-  wrapperTop,
-  wrapperLeft,
   wrapperWidth,
+  wrapperHeight,
 }: SearchListProps) {
+  const { data: tags } = useTagsList(searchValue);
   const { containerRef } = useClickOutside(closeModal ?? (() => null));
 
   return (
     <ul
       ref={containerRef}
-      className={"absolute h-[120px] border border-neutral-200 bg-white"}
+      className={
+        "absolute z-10 h-[120px] overflow-y-auto border border-neutral-200 bg-white"
+      }
       style={{
-        top: wrapperTop - 120,
-        left: wrapperLeft,
+        bottom: wrapperHeight,
+        left: 0,
         width: wrapperWidth,
       }}
-    ></ul>
+    >
+      {tags && tags.length > 0 ? (
+        tags.map((tag) => (
+          <li
+            key={tag.id}
+            className={"cursor-pointer px-4 py-2 hover:bg-neutral-100"}
+          >
+            {tag.name}
+          </li>
+        ))
+      ) : (
+        <li className={"px-4 py-2 text-neutral-400"}>No tags found</li>
+      )}
+    </ul>
   );
 }

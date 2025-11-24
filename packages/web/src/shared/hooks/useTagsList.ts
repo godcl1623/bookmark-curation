@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import getTagsList from "@/shared/services/tags/get-tags-list";
 import TAGS_QUERY_KEY from "@/shared/services/tags/queryKey";
 
-const useTagsList = () => {
+const useTagsList = (search?: string) => {
   const {
     data: response,
     isLoading,
@@ -12,8 +12,8 @@ const useTagsList = () => {
     isRefetching,
     refetch,
   } = useQuery<{ ok: boolean; data: Tag[] }>({
-    queryKey: TAGS_QUERY_KEY.TOTAL_LISTS,
-    queryFn: getTagsList,
+    queryKey: TAGS_QUERY_KEY.TOTAL_LISTS(search),
+    queryFn: () => getTagsList(search),
   });
 
   return { data: response?.data, isLoading, isError, isRefetching, refetch };
