@@ -4,6 +4,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
   useMemo,
+  useState,
 } from "react";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
@@ -27,6 +28,7 @@ export default function AddBookmark({
   reject,
 }: DefaultModalChildrenProps) {
   const { data: folders } = useFolderList();
+  const { urlErrorMessage, handleSubmit } = useHandleSubmit();
 
   const folderList = useMemo(
     () =>
@@ -57,14 +59,16 @@ export default function AddBookmark({
           </Button>
         </CardHeader>
         <form
-          className={"flex flex-col gap-7 p-6 pt-0"}
+          className={"flex flex-col gap-7 p-6 pt-0 [&>*:nth-child(2)]:-mt-7"}
           onSubmit={handleSubmit}
           onKeyDown={disableKeyDown}
         >
-          <LabeledElement label={"URL"}>
-            <Link className={COMMON_STYLES.ornament} />
-            <InputWithPaste />
-          </LabeledElement>
+          <div>
+            <LabeledElement label={"URL"} errorMessage={urlErrorMessage}>
+              <Link className={COMMON_STYLES.ornament} />
+              <InputWithPaste />
+            </LabeledElement>
+          </div>
           <LabeledElement label={"Title"}>
             <ControlledInput
               placeholder={"Enter bookmark title"}
@@ -116,14 +120,25 @@ const disableKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
   }
 };
 
-const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-  event.preventDefault();
+const useHandleSubmit = () => {
+  const [urlErrorMessage, setUrlErrorMessage] = useState<string>("");
 
-  const formData = new FormData(event.currentTarget);
-  console.log(formData.get("URL"));
-  console.log(formData.get("Title"));
-  console.log(formData.get("Note (Optional)"));
-  console.log(formData.get("Folder (Optional)"));
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const url = formData.get(FORM_ELEMENTS.URL);
+    if (!url) {
+      setUrlErrorMessage("URL은 필수 항목입니다.");
+      return;
+    }
+
+    const title = formData.get(FORM_ELEMENTS.TITLE);
+    const note = formData.get(FORM_ELEMENTS.NOTE);
+    const folder = formData.get(FORM_ELEMENTS.FOLDER);
+  };
+
+  return { urlErrorMessage, handleSubmit };
 };
 
 interface FormControlProps {
