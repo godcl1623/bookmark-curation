@@ -15,26 +15,33 @@ export interface User {
 export type DataType = "folder" | "bookmark";
 
 export interface Folder {
-  id: number;
-  data_id: string;
-  user_id: number;
-  title: string;
   color?: string;
+  created_at: string;
+  data_id: string;
+  deleted_at: string | null;
+  id: number;
+  parent: { id: number; title: string; color: string } | null;
   parent_id: string | null;
   position: number;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+  title: string;
   type: DataType;
+  updated_at: string;
+  user_id: number;
+  users: { id: number; display_name: string };
+  _count: { bookmarks: number; children: number };
 }
 
 export interface Tag {
-  id: number;
-  user_id: number;
-  name: string;
-  slug: string;
   color: string;
   created_at: string;
+  deleted_at: string;
+  id: number;
+  name: string;
+  slug: string;
+  updated_at: string;
+  user_id: number;
+  users: { id: number; display_name: string };
+  _count: { bookmark_tags: number };
 }
 
 export interface Bookmark extends Folder {

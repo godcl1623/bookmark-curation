@@ -29,7 +29,7 @@ export default function BookmarkCard({ isCard = true }: BookmarkCardProps) {
   const isLoading = false;
 
   const handleClickCard = () => {
-    openModal(BookmarkDetail, {});
+    openModal(BookmarkDetail);
   };
 
   return (

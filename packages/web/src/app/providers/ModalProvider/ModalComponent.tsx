@@ -1,7 +1,6 @@
-import { type Attributes, createElement, type FunctionComponent } from "react";
+import { type Attributes, type ComponentType, createElement } from "react";
 import { createPortal } from "react-dom";
 
-import { useModal } from "./context";
 import type { DefaultModalChildrenProps, ModalDetail } from "./types";
 
 interface ModalComponentProps {
@@ -9,14 +8,12 @@ interface ModalComponentProps {
 }
 
 export default function ModalComponent({ modal }: ModalComponentProps) {
-  const { resolveModal, rejectModal } = useModal();
-
   const resolve = (result?: unknown) => {
-    resolveModal(modal, result);
+    modal.resolve(result);
   };
 
   const reject = (reason?: unknown) => {
-    rejectModal(modal, reason);
+    modal.reject(reason);
   };
 
   return (
@@ -28,7 +25,7 @@ export default function ModalComponent({ modal }: ModalComponentProps) {
 }
 
 interface ModalWrapperProps {
-  componentType?: FunctionComponent<any>;
+  componentType?: ComponentType<any>;
   props?: Attributes & DefaultModalChildrenProps;
 }
 

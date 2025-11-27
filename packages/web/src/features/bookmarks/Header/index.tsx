@@ -7,10 +7,14 @@ import {
 } from "lucide-react";
 import { NavLink } from "react-router";
 
+import { useModal } from "@/app/providers/ModalProvider/context";
+import Options from "@/features/bookmarks/Header/components/Options";
 import Button from "@/shared/components/atoms/button";
 import type { BasicComponentProps } from "@/shared/types";
 
 export default function Header() {
+  const { handleClick } = useSetting();
+
   return (
     <header className={"flex-center-between px-10 py-3 shadow"}>
       <Logo />
@@ -18,7 +22,7 @@ export default function Header() {
         <OptionButton>
           <Search className={STYLES.iconMd} />
         </OptionButton>
-        <OptionButton>
+        <OptionButton onClick={handleClick}>
           <Settings className={STYLES.iconMd} />
         </OptionButton>
         <ul className={"flex-center gap-1 rounded-md bg-neutral-200 p-1"}>
@@ -44,6 +48,16 @@ const STYLES = {
   iconSm: "size-4",
 };
 
+const useSetting = () => {
+  const { openModal } = useModal();
+
+  const handleClick = () => {
+    openModal(Options);
+  };
+
+  return { handleClick };
+};
+
 function Logo() {
   return (
     <NavLink className={STYLES.container} to={"/"}>
@@ -57,14 +71,19 @@ function Logo() {
 
 interface OptionButtonProps extends BasicComponentProps {
   isActive?: boolean;
+  onClick?: () => void;
 }
 
-function OptionButton({ children, isActive = false }: OptionButtonProps) {
+function OptionButton({
+  children,
+  isActive = false,
+  onClick = () => null,
+}: OptionButtonProps) {
   const activeVariant = isActive ? "outline" : "ghost";
   const activeColor = isActive ? "text-blue-600" : "";
 
   return (
-    <Button size={"icon-sm"} variant={activeVariant}>
+    <Button size={"icon-sm"} variant={activeVariant} onClick={onClick}>
       <span className={activeColor}>{children}</span>
     </Button>
   );

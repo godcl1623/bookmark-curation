@@ -1,11 +1,7 @@
-import {
-  type Attributes,
-  createContext,
-  type FunctionComponent,
-  useContext,
-} from "react";
+import { nanoid } from "nanoid";
+import { type ComponentType, createContext, useContext } from "react";
 
-import type { ModalDetail, ModalStore } from "./types";
+import type { DefaultPropsType, ModalDetail, ModalStore } from "./types";
 
 export const ModalContext = createContext<ModalStore | undefined>(undefined);
 
@@ -18,45 +14,75 @@ export const useModal = () => {
 
   const { modals, setModalList } = modalStoreContext;
 
-  const checkModal = (component: FunctionComponent<any>) => {
-    return modals.current.some(
-      (modal) => modal.component.displayName === component.displayName
-    );
+  const findModal = (name: string) => {
+    return modals.current.find((modal) => modal.name === name);
   };
 
-  const openModal = (
-    component: FunctionComponent<any>,
-    props?: Attributes & Record<string, unknown>
+  const openModal = <P = DefaultPropsType, R = unknown>(
+    component: ComponentType<P>,
+    props?: P
   ) => {
-    const isDuplicate = checkModal(component);
+    const name = getComponentName(component);
+    const existing = findModal(name);
 
-    if (isDuplicate) return;
+    if (existing) return existing.promise as Promise<R>;
 
-    return new Promise((resolve, reject) => {
-      const modalDetail: ModalDetail = {
-        id: `modal-${Math.max(modals.current.length - 1, 0) + 1}`,
-        component,
-        props,
-        resolve,
-        reject,
-      };
-
-      setModalList([...modals.current, modalDetail]);
+    let res: (value: R) => void;
+    let rej!: (reason?: any) => void;
+    const promise = new Promise<R>((resolve, reject) => {
+      res = resolve;
+      rej = reject;
     });
+
+    const modalDetail: ModalDetail<P> = {
+      id: nanoid(),
+      name,
+      component,
+      props,
+      promise,
+      settled: false,
+      resolve: (value?: unknown) => {
+        if (modalDetail.settled) return;
+        modalDetail.settled = true;
+        res(value as R);
+        setModalList((prev) => {
+          const next = prev.filter((modal) => modal.id !== modalDetail.id);
+          modals.current = next;
+          return next;
+        });
+      },
+      reject: (reason?: any) => {
+        if (modalDetail.settled) return;
+        modalDetail.settled = true;
+        rej(reason);
+        setModalList((prev) => {
+          const next = prev.filter((modal) => modal.id !== modalDetail.id);
+          modals.current = next;
+          return next;
+        });
+      },
+    };
+
+    setModalList((prev) => {
+      const next = [...prev, modalDetail];
+      modals.current = next;
+      return next;
+    });
+
+    return promise;
   };
 
   const closeModal = (id: string) => {
-    setModalList(modals.current.filter((modal) => modal.id !== id));
-  };
-
-  const resolveModal = (modal: ModalDetail, result?: any) => {
-    modal.resolve(result);
-    closeModal(modal.id);
-  };
-
-  const rejectModal = (modal: ModalDetail, reason?: unknown) => {
-    modal.reject(reason ?? { cancelled: true });
-    closeModal(modal.id);
+    setModalList((prev) => {
+      const modal = prev.find((prevModal) => prevModal.id === id);
+      if (modal && !modal.settled) {
+        modal.settled = true;
+        modal.reject?.({ cancelled: true });
+      }
+      const next = prev.filter((prevModal) => prevModal.id !== id);
+      modals.current = next;
+      return next;
+    });
   };
 
   const resetModal = () => {
@@ -66,8 +92,12 @@ export const useModal = () => {
   return {
     modals,
     openModal,
-    resolveModal,
-    rejectModal,
     resetModal,
+    findModal,
+    closeModal,
   };
+};
+
+const getComponentName = <P>(component: ComponentType<P>) => {
+  return component.displayName ?? component.name ?? "AnonymousComponent";
 };

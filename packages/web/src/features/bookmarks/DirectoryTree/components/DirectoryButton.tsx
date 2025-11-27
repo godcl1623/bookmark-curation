@@ -4,6 +4,7 @@ import { type ComponentProps, type MouseEvent, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router";
 
 import Button from "@/shared/components/atoms/button";
+import { FOLDER_COLORS } from "@/shared/consts";
 import { cn } from "@/shared/lib/utils";
 
 interface DirectoryButtonProps {
@@ -18,6 +19,7 @@ export default function DirectoryButton({
   dataType = "bookmark",
   children,
   onClick,
+  color,
 }: DirectoryButtonProps & ComponentProps<"button">) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -43,17 +45,22 @@ export default function DirectoryButton({
         dataType === "folder" ? "justify-between" : "justify-start"
       )}
       style={{
-        paddingLeft: `${Math.max(8, hierarchy * 8 + 8)}px`,
+        paddingLeft: `${Math.max(6, hierarchy * 6 + 6)}px`,
       }}
     >
       <Button
         variant={"link"}
         size={"custom"}
         onClick={handleClick}
-        className={"py-2"}
+        className={"py-1"}
       >
-        <div className={"flex items-center gap-2 px-2"}>
-          {icon}
+        <div className={"line-clamp-1 flex items-center gap-2 px-2"}>
+          <div
+            className={cn("rounded-lg p-2", determineColor(dataType, color))}
+            style={{ backgroundColor: color ?? FOLDER_COLORS.DEFAULT }}
+          >
+            {icon}
+          </div>
           {children}
         </div>
       </Button>
@@ -65,3 +72,8 @@ export default function DirectoryButton({
     </div>
   );
 }
+
+const determineColor = (dataType: DataType, color: string | undefined) => {
+  if (dataType === "folder" && color != null) return "text-white";
+  return "text-neutral-600";
+};

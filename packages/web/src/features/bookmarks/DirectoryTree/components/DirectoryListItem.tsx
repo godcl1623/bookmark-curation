@@ -14,6 +14,7 @@ export default function DirectoryListItem({
   data_id,
   title,
   currentDir = "/",
+  color,
 }: DirectoryListItemProps) {
   const targetUrl = currentDir === "/" ? `/${title}` : `${currentDir}/${title}`;
   const isOpen = useGlobalStore((state) => state.openIds.has(data_id));
@@ -38,6 +39,7 @@ export default function DirectoryListItem({
         dataType={type}
         onClick={handleClick}
         url={targetUrl}
+        color={color}
       >
         {title}
       </DirectoryButton>
