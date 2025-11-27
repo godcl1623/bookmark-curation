@@ -1,0 +1,52 @@
+import type { Folder as FolderType } from "@linkvault/shared";
+
+import DirectoryButton from "@/features/bookmarks/DirectoryTree/components/DirectoryButton";
+import DirectoryList from "@/features/bookmarks/DirectoryTree/components/DirectoryList";
+import useDirectoriesData from "@/features/bookmarks/DirectoryTree/hooks/useDirectoriesData";
+import useGlobalStore from "@/stores/global";
+
+interface DirectoryListItemProps extends FolderType {
+  currentDir?: string;
+}
+
+export default function DirectoryListItem({
+  type,
+  data_id,
+  title,
+  currentDir = "/",
+}: DirectoryListItemProps) {
+  const targetUrl = currentDir === "/" ? `/${title}` : `${currentDir}/${title}`;
+  const isOpen = useGlobalStore((state) => state.openIds.has(data_id));
+  const toggleOpen = useGlobalStore((state) => state.toggleOpen);
+  const loadedDirectory = useDirectoriesData(targetUrl, isOpen);
+
+  if (!loadedDirectory) return null;
+  const isLoading = loadedDirectory?.isLoading ?? false;
+  const isError = loadedDirectory?.isError ?? false;
+  const { folders, bookmarks } = loadedDirectory?.data ?? {};
+
+  const handleClick = () => {
+    if (type === "folder") {
+      toggleOpen(data_id);
+    }
+  };
+
+  return (
+    <>
+      <DirectoryButton
+        isOpen={isOpen}
+        dataType={type}
+        onClick={handleClick}
+        url={targetUrl}
+      >
+        {title}
+      </DirectoryButton>
+      {isOpen && !isLoading && !isError && (
+        <DirectoryList
+          directoryList={[...(folders ?? []), ...(bookmarks ?? [])]}
+          currentDir={targetUrl}
+        />
+      )}
+    </>
+  );
+}

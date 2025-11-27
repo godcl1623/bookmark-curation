@@ -3,14 +3,17 @@ import "./index.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import ModalProvider from "./shared/providers/ModalProvider";
+import AppRoutes from "@/app/Routes";
 
-import App from "./App.tsx";
+import ModalProvider from "./app/providers/ModalProvider";
+import QueryProvider from "./app/providers/QueryProvider";
 
 createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-        <ModalProvider>
-            <App/>
-        </ModalProvider>
-    </StrictMode>,
+  <StrictMode>
+    <QueryProvider>
+      <ModalProvider>
+        <AppRoutes />
+      </ModalProvider>
+    </QueryProvider>
+  </StrictMode>
 );

@@ -12,13 +12,15 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "prisma:seed": "tsx ../../prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.9.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "@linkvault/shared": "*"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
