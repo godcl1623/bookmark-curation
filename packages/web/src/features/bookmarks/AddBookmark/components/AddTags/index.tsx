@@ -1,7 +1,13 @@
 import { type Tag as TagType } from "@linkvault/shared";
 import { isAxiosError } from "axios";
 import { Tag } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  type ComponentProps,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import toast from "react-hot-toast";
 
 import SearchList from "@/features/bookmarks/AddBookmark/components/AddTags/SearchList";
@@ -12,7 +18,11 @@ import { FOLDER_COLORS } from "@/shared/consts";
 import useInput from "@/shared/hooks/useInput";
 import createNewTag from "@/shared/services/tags/create-new-tag";
 
-export default function AddTags() {
+interface AddTagsProps {
+  input?: (props: ComponentProps<"input">) => ReactNode;
+}
+
+export default function AddTags({ input }: AddTagsProps) {
   const { tags, addTag, addNewTag, removeTag } = useTags();
   const { debouncedValue, inputValue, changeValue, handleChange } =
     useDebouncedInput();
@@ -36,18 +46,17 @@ export default function AddTags() {
         )}
         <LabeledElement label={"Tags"} ref={wrapperRef}>
           <Tag className={COMMON_STYLES.ornament} />
-          <input
-            value={inputValue}
-            placeholder={"Add tags..."}
-            className={COMMON_STYLES.input}
-            onClick={() => setIsSearchVisible(true)}
-            onChange={handleChange}
-          />
+          {input &&
+            input({
+              value: inputValue,
+              onClick: () => setIsSearchVisible(true),
+              onChange: handleChange,
+            })}
         </LabeledElement>
       </div>
       <ul className={"flex w-full flex-wrap gap-2"}>
         {tags.map((tag) => (
-          <li key={`tag-added-${tag.id}`}>
+          <li key={`tag-added-${tag.id}`} data-id={tag.id}>
             <TagItem
               tag={tag.name}
               needClose

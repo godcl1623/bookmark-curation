@@ -1,23 +1,34 @@
 import { ClipboardPlus } from "lucide-react";
-import { useState } from "react";
+import { type ChangeEvent, type ReactNode, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button";
-import ControlledInput from "@/shared/components/molecules/ControlledInput";
 
-export default function InputWithPaste() {
+interface InputProps {
+  key: number | string;
+  value: string;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+}
+
+interface InputWithPasteProps {
+  input?: (props: InputProps) => ReactNode;
+}
+
+export default function InputWithPaste({ input }: InputWithPasteProps) {
   const [clipboard, pasteValue] = useClipboard();
+  const [inputValue, handleInputChange] = useHandleInput(clipboard.value);
 
   return (
     <>
-      <ControlledInput
-        key={clipboard.timestamp}
-        placeholder={"https://example.com"}
-        className={COMMON_STYLES.input}
-        passedValue={clipboard.value}
-      />
+      {input &&
+        input({
+          key: clipboard.timestamp,
+          value: inputValue,
+          onChange: handleInputChange,
+        })}
       <Button
+        type={"button"}
         size={"custom"}
         variant={"ghost"}
         className={"p-1.5"}
@@ -28,6 +39,20 @@ export default function InputWithPaste() {
     </>
   );
 }
+
+const useHandleInput = (defaultValue?: string) => {
+  const [inputValue, setInputValue] = useState("");
+
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.currentTarget.value);
+  };
+
+  useEffect(() => {
+    setInputValue(defaultValue ?? "");
+  }, [defaultValue]);
+
+  return [inputValue, handleInputChange] as const;
+};
 
 const useClipboard = () => {
   const [clipboard, setClipboard] = useState({ value: "", timestamp: 0 });

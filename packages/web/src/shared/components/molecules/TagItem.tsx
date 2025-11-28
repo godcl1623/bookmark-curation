@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { type MouseEvent } from "react";
 
 import { cn } from "@/shared/lib/utils";
 
@@ -15,7 +16,8 @@ export default function TagItem({
   needClose = false,
   size = "md",
 }: TagItemProps) {
-  const handleClick = () => {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
     if (onClick != null) onClick();
   };
 
@@ -28,7 +30,7 @@ export default function TagItem({
     >
       #{tag}
       {needClose && (
-        <button onClick={handleClick}>
+        <button type={"button"} onClick={handleClick}>
           <X className={"size-4"} />
         </button>
       )}

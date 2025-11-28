@@ -62,6 +62,7 @@ export default function SearchList({
         tags.map((tag) => (
           <li key={`tag-${tag.id}`}>
             <Button
+              type={"button"}
               variant={"ghost"}
               size={"custom"}
               className={"w-full justify-start px-4 py-2"}
@@ -76,6 +77,7 @@ export default function SearchList({
       )}
       <li>
         <Button
+          type={"button"}
           variant={"ghost"}
           size={"custom"}
           className={"w-full justify-start px-4 py-2 text-neutral-400"}

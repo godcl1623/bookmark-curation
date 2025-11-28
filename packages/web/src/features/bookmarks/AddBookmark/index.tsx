@@ -59,16 +59,25 @@ export default function AddBookmark({
           </Button>
         </CardHeader>
         <form
-          className={"flex flex-col gap-7 p-6 pt-0 [&>*:nth-child(2)]:-mt-7"}
+          className={"flex flex-col gap-7 p-6 pt-0"}
           onSubmit={handleSubmit}
           onKeyDown={disableKeyDown}
         >
-          <div>
-            <LabeledElement label={"URL"} errorMessage={urlErrorMessage}>
-              <Link className={COMMON_STYLES.ornament} />
-              <InputWithPaste />
-            </LabeledElement>
-          </div>
+          <LabeledElement label={"URL"} errorMessage={urlErrorMessage}>
+            <Link className={COMMON_STYLES.ornament} />
+            <InputWithPaste
+              input={({ key, value, onChange }) => (
+                <input
+                  key={key}
+                  placeholder={"https://example.com"}
+                  className={COMMON_STYLES.input}
+                  name={FORM_ELEMENTS.URL}
+                  value={value}
+                  onChange={onChange}
+                />
+              )}
+            />
+          </LabeledElement>
           <LabeledElement label={"Title"}>
             <ControlledInput
               placeholder={"Enter bookmark title"}
@@ -83,10 +92,20 @@ export default function AddBookmark({
               name={FORM_ELEMENTS.NOTE}
             />
           </LabeledElement>
-          <AddTags />
+          <AddTags
+            input={({ value, onClick, onChange }) => (
+              <input
+                value={value}
+                placeholder={"Add tags..."}
+                className={COMMON_STYLES.input}
+                onClick={onClick}
+                onChange={onChange}
+              />
+            )}
+          />
           <LabeledElement label={"Folder (Optional)"} asLabel={false}>
             <Folder className={COMMON_STYLES.ornament} />
-            <ControlledSelect values={folderList} />
+            <ControlledSelect values={folderList} name={FORM_ELEMENTS.FOLDER} />
           </LabeledElement>
           <div className={"mt-3 grid grid-cols-2 gap-2"}>
             <FormControl type={"reset"} variant={"outline"}>
@@ -126,16 +145,39 @@ const useHandleSubmit = () => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const getNamedItem = (name: string) => {
+      const target = event.currentTarget.elements.namedItem(name);
+      if (target instanceof HTMLButtonElement) return target;
+      return null;
+    };
+
     const formData = new FormData(event.currentTarget);
+
     const url = formData.get(FORM_ELEMENTS.URL);
     if (!url) {
       setUrlErrorMessage("URL은 필수 항목입니다.");
       return;
+    } else {
+      setUrlErrorMessage("");
     }
 
     const title = formData.get(FORM_ELEMENTS.TITLE);
+    if (title === "") formData.set(FORM_ELEMENTS.TITLE, "Untitled");
+
     const note = formData.get(FORM_ELEMENTS.NOTE);
-    const folder = formData.get(FORM_ELEMENTS.FOLDER);
+    const folder =
+      formData.get(FORM_ELEMENTS.FOLDER) ??
+      getNamedItem(FORM_ELEMENTS.FOLDER)?.value;
+
+    const tags = Array.from(event.currentTarget.querySelectorAll("li"))
+      .map((li) => li.getAttribute("data-id"))
+      .filter(Boolean);
+
+    console.log("url: ", url);
+    console.log("title: ", title, formData.get(FORM_ELEMENTS.TITLE));
+    console.log("note: ", note);
+    console.log("folder: ", folder);
+    console.log("tags: ", tags);
   };
 
   return { urlErrorMessage, handleSubmit };
