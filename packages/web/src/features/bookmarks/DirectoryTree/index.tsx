@@ -1,8 +1,8 @@
 import Button from "@/shared/components/atoms/button";
 import type { BasicComponentProps } from "@/shared/types";
 
+import useDirectoriesData from "../../../shared/hooks/useDirectoriesData";
 import DirectoryList from "./components/DirectoryList";
-import useDirectoriesData from "./hooks/useDirectoriesData";
 
 export default function DirectoryTree() {
   const loadedDirectory = useDirectoriesData("/", true);

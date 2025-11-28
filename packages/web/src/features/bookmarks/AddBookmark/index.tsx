@@ -1,4 +1,6 @@
+import { isAxiosError } from "axios";
 import { Folder, Link, X } from "lucide-react";
+import { nanoid } from "nanoid";
 import {
   type FormEvent,
   type KeyboardEvent,
@@ -6,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import toast from "react-hot-toast";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
 import Button from "@/shared/components/atoms/button";
@@ -17,17 +20,20 @@ import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import { Card, CardHeader } from "@/shared/components/organisms/card";
 import useFolderList from "@/shared/hooks/useFolderList";
 import { cn } from "@/shared/lib/utils";
+import createNewBookmark from "@/shared/services/bookmarks/create-new-bookmark";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
 
 import AddTags from "./components/AddTags";
 import InputWithPaste from "./components/InputWithPaste";
 import { COMMON_STYLES } from "./consts";
+import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 
 export default function AddBookmark({
   resolve,
   reject,
 }: DefaultModalChildrenProps) {
   const { data: folders } = useFolderList();
+  const { refetch } = useDirectoriesData("/", true);
   const { urlErrorMessage, handleSubmit } = useHandleSubmit();
 
   const folderList = useMemo(
@@ -38,6 +44,11 @@ export default function AddBookmark({
       ),
     [folders]
   );
+
+  const successCallback = () => {
+    refetch();
+    resolve();
+  };
 
   return (
     <ModalLayout reject={reject}>
@@ -60,7 +71,7 @@ export default function AddBookmark({
         </CardHeader>
         <form
           className={"flex flex-col gap-7 p-6 pt-0"}
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(successCallback)}
           onKeyDown={disableKeyDown}
         >
           <LabeledElement label={"URL"} errorMessage={urlErrorMessage}>
@@ -139,46 +150,91 @@ const disableKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
   }
 };
 
+type PostBody = {
+  data_id: string;
+  parent_id: string | null;
+  title: string;
+  description: string;
+  url: string;
+  domain: string;
+  favicon_url: string | null;
+  preview_image: string | null;
+  metadata: Record<string, unknown>;
+  is_favorite: boolean;
+  is_archived: boolean;
+  is_private: boolean;
+  type: "bookmark";
+  tag_ids: number[];
+};
+
 const useHandleSubmit = () => {
   const [urlErrorMessage, setUrlErrorMessage] = useState<string>("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit =
+    (successCallback?: () => void) =>
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
 
-    const getNamedItem = (name: string) => {
-      const target = event.currentTarget.elements.namedItem(name);
-      if (target instanceof HTMLButtonElement) return target;
-      return null;
+      const getNamedItem = (name: string) => {
+        const target = event.currentTarget.elements.namedItem(name);
+        if (
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLButtonElement
+        )
+          return target;
+        return null;
+      };
+
+      const postBody: PostBody = {
+        data_id: nanoid(),
+        parent_id: null,
+        title: "Untitled",
+        description: "",
+        url: "",
+        domain: "",
+        favicon_url: "",
+        preview_image: "",
+        metadata: {},
+        is_favorite: false,
+        is_archived: false,
+        is_private: false,
+        type: "bookmark",
+        tag_ids: [],
+      };
+
+      const url = getNamedItem(FORM_ELEMENTS.URL)?.value;
+      if (!url) {
+        setUrlErrorMessage("URL은 필수 항목입니다.");
+        return;
+      } else {
+        postBody["url"] = url;
+        setUrlErrorMessage("");
+      }
+
+      const title = getNamedItem(FORM_ELEMENTS.TITLE)?.value;
+      if (title !== "") postBody["title"] = (title ?? "Untitled").trim();
+
+      postBody["parent_id"] = getNamedItem(FORM_ELEMENTS.FOLDER)?.value ?? null;
+
+      postBody["tag_ids"] = Array.from(
+        event.currentTarget.querySelectorAll("li")
+      )
+        .map((li) => Number(li.getAttribute("data-id")))
+        .filter((value) => value != null && !isNaN(value));
+
+      try {
+        const result = await createNewBookmark(postBody);
+        if (result.ok) {
+          toast.success(`${postBody.title} 북마크가 추가되었습니다.`);
+          successCallback?.();
+        }
+      } catch (error) {
+        if (isAxiosError(error)) {
+          toast.error(`북마크 추가에 실패했습니다(${error.status})`);
+        }
+        console.error(error);
+      }
     };
-
-    const formData = new FormData(event.currentTarget);
-
-    const url = formData.get(FORM_ELEMENTS.URL);
-    if (!url) {
-      setUrlErrorMessage("URL은 필수 항목입니다.");
-      return;
-    } else {
-      setUrlErrorMessage("");
-    }
-
-    const title = formData.get(FORM_ELEMENTS.TITLE);
-    if (title === "") formData.set(FORM_ELEMENTS.TITLE, "Untitled");
-
-    const note = formData.get(FORM_ELEMENTS.NOTE);
-    const folder =
-      formData.get(FORM_ELEMENTS.FOLDER) ??
-      getNamedItem(FORM_ELEMENTS.FOLDER)?.value;
-
-    const tags = Array.from(event.currentTarget.querySelectorAll("li"))
-      .map((li) => li.getAttribute("data-id"))
-      .filter(Boolean);
-
-    console.log("url: ", url);
-    console.log("title: ", title, formData.get(FORM_ELEMENTS.TITLE));
-    console.log("note: ", note);
-    console.log("folder: ", folder);
-    console.log("tags: ", tags);
-  };
 
   return { urlErrorMessage, handleSubmit };
 };

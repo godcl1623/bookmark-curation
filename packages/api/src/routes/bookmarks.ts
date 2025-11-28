@@ -98,7 +98,6 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
   try {
     const {
       data_id,
-      folder_id,
       parent_id,
       title,
       description,
@@ -153,12 +152,12 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
       }
     }
 
-    // Find folder by data_id if folder_id is provided
+    // Find folder by data_id if parent_id is provided
     let dbFolderId: number | null = null;
-    if (folder_id) {
+    if (parent_id) {
       const folder = await prisma.folders.findFirst({
         where: {
-          data_id: folder_id,
+          data_id: parent_id,
           user_id: userId,
           deleted_at: null,
         },
@@ -198,13 +197,13 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
         data_id,
         user_id: userId,
         folder_id: dbFolderId,
-        parent_id: parent_id || null,
-        title: title || null,
-        description: description || null,
+        parent_id: parent_id !== undefined ? parent_id : null,
+        title: title !== undefined ? title : null,
+        description: description !== undefined ? description : null,
         url,
-        domain: domain || null,
-        favicon_url: favicon_url || null,
-        preview_image: preview_image || null,
+        domain: domain !== undefined ? domain : null,
+        favicon_url: favicon_url !== undefined ? favicon_url : null,
+        preview_image: preview_image !== undefined ? preview_image : null,
         metadata: metadata || {},
         is_favorite: is_favorite ?? false,
         is_archived: is_archived ?? false,
