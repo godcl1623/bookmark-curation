@@ -21,6 +21,7 @@ import { Card, CardHeader } from "@/shared/components/organisms/card";
 import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 import useFolderList from "@/shared/hooks/useFolderList";
 import { cn } from "@/shared/lib/utils";
+import createNewBookmark from "@/shared/services/bookmarks/create-new-bookmark";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
 
 import AddTags from "./components/AddTags";
@@ -33,7 +34,8 @@ export default function AddBookmark({
 }: DefaultModalChildrenProps) {
   const { data: folders } = useFolderList();
   const { refetch } = useDirectoriesData("/", true);
-  const { urlErrorMessage, handleSubmit } = useHandleSubmit();
+  const { urlErrorMessage, titleErrorMessage, noteErrorMessage, handleSubmit } =
+    useHandleSubmit();
 
   const folderList = useMemo(
     () =>
@@ -88,14 +90,17 @@ export default function AddBookmark({
               )}
             />
           </LabeledElement>
-          <LabeledElement label={"Title"}>
+          <LabeledElement label={"Title"} errorMessage={titleErrorMessage}>
             <ControlledInput
               placeholder={"Enter bookmark title"}
               className={COMMON_STYLES.input}
               name={FORM_ELEMENTS.TITLE}
             />
           </LabeledElement>
-          <LabeledElement label={"Note (Optional)"}>
+          <LabeledElement
+            label={"Note (Optional)"}
+            errorMessage={noteErrorMessage}
+          >
             <ControlledTextArea
               placeholder={"Add your notes here..."}
               className={cn(COMMON_STYLES.input, STYLES.textarea)}
@@ -138,8 +143,8 @@ const STYLES = {
 const FORM_ELEMENTS = {
   URL: "URL",
   TITLE: "Title",
-  NOTE: "Note (Optional)",
-  FOLDER: "Folder (Optional)",
+  NOTE: "Note",
+  FOLDER: "Folder",
 };
 
 const disableKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
@@ -167,10 +172,22 @@ type PostBody = {
 };
 
 const useHandleSubmit = () => {
-  const [urlErrorMessage, setUrlErrorMessage] = useState<string>("");
+  const [urlErrorMessage, setUrlErrorMessage] = useState("");
+  const [titleErrorMessage, setTitleErrorMessage] = useState("");
+  const [noteErrorMessage, setNoteErrorMessage] = useState("");
 
   const invalidateUrl = (message: string = "유효한 URL을 입력해주세요.") => {
     setUrlErrorMessage(message);
+    return false;
+  };
+
+  const invalidateTitle = (message: string) => {
+    setTitleErrorMessage(message);
+    return false;
+  };
+
+  const invalidateNote = (message: string) => {
+    setNoteErrorMessage(message);
     return false;
   };
 
@@ -201,6 +218,10 @@ const useHandleSubmit = () => {
       return invalidateUrl();
     }
 
+    if (processedUrl.length > 2000) {
+      return invalidateUrl("URL은 최대 2,000자 까지 입력할 수 있습니다.");
+    }
+
     try {
       const testUrl = isUrlWithScheme
         ? processedUrl
@@ -225,6 +246,21 @@ const useHandleSubmit = () => {
     }
   };
 
+  const validateTitle = (title?: string) => {
+    if (!title || title === "") return "Untitled";
+    if (title.length > 200) {
+      return invalidateTitle("제목은 최대 200자 까지 입력할 수 있습니다.");
+    }
+    return title.trim();
+  };
+
+  const validateNote = (note?: string) => {
+    if ((note?.length ?? 0) > 2000) {
+      return invalidateNote("설명은 최대 2,000자 까지 입력할 수 있습니다.");
+    }
+    return note?.trim();
+  };
+
   const handleSubmit =
     (successCallback?: () => void) =>
     async (event: FormEvent<HTMLFormElement>) => {
@@ -234,7 +270,8 @@ const useHandleSubmit = () => {
         const target = event.currentTarget.elements.namedItem(name);
         if (
           target instanceof HTMLInputElement ||
-          target instanceof HTMLButtonElement
+          target instanceof HTMLButtonElement ||
+          target instanceof HTMLTextAreaElement
         )
           return target;
         return null;
@@ -258,16 +295,21 @@ const useHandleSubmit = () => {
       };
 
       const url = getNamedItem(FORM_ELEMENTS.URL)?.value;
-      const validatedUrl = validateUrl(url);
-      if (!validatedUrl) {
-        return;
-      } else {
-        postBody["url"] = validatedUrl as string;
-        setUrlErrorMessage("");
-      }
-
       const title = getNamedItem(FORM_ELEMENTS.TITLE)?.value;
-      if (title !== "") postBody["title"] = (title ?? "Untitled").trim();
+      const note = getNamedItem(FORM_ELEMENTS.NOTE)?.value;
+
+      const validatedUrl = validateUrl(url);
+      const validatedTitle = validateTitle(title);
+      const validatedNote = validateNote(note);
+
+      if (!validatedUrl || !validatedTitle || !validatedNote) return;
+
+      postBody["url"] = validatedUrl as string;
+      setUrlErrorMessage("");
+      postBody["title"] = validatedTitle as string;
+      setTitleErrorMessage("");
+      postBody["description"] = validatedNote as string;
+      setNoteErrorMessage("");
 
       postBody["parent_id"] =
         getNamedItem(FORM_ELEMENTS.FOLDER)?.value === ""
@@ -294,7 +336,7 @@ const useHandleSubmit = () => {
       }
     };
 
-  return { urlErrorMessage, handleSubmit };
+  return { urlErrorMessage, titleErrorMessage, noteErrorMessage, handleSubmit };
 };
 
 interface FormControlProps {
