@@ -39,9 +39,9 @@ model bookmarks {
   user_id          Int
   folder_id        Int?
   parent_id        String?                  @db.VarChar(50)
-  title            String?                  @db.VarChar(500)
-  description      String?
-  url              String
+  title            String?                  @db.VarChar(200)
+  description      String?                  @db.VarChar(2000)
+  url              String                   @db.VarChar(2000)
   domain           String?                  @db.VarChar(255)
   favicon_url      String?
   preview_image    String?

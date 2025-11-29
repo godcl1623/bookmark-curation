@@ -2,7 +2,7 @@ import type { Folder as FolderType } from "@linkvault/shared";
 
 import DirectoryButton from "@/features/bookmarks/DirectoryTree/components/DirectoryButton";
 import DirectoryList from "@/features/bookmarks/DirectoryTree/components/DirectoryList";
-import useDirectoriesData from "@/features/bookmarks/DirectoryTree/hooks/useDirectoriesData";
+import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 import useGlobalStore from "@/stores/global";
 
 interface DirectoryListItemProps extends FolderType {

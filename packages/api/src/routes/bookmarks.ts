@@ -93,12 +93,110 @@ router.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, async (req, res) => {
   }
 });
 
+// Validation helper functions
+const FORBIDDEN_URL_SCHEMES =
+  /^\s*(?:mailto:|file:|javascript:|postgresql:|jdbc:)/i;
+const URL_STRICT_REGEX =
+  /^https?:\/\/(?:[^\s:@\/]+@)?(?:localhost|[A-Za-z0-9.-]+\.[A-Za-z]{2,})(?::\d{1,5})?(?:[\\/?#][^\s]*)?$/i;
+const URL_LAX_REGEX =
+  /^(?:https?:\/\/)?(?:www\.)?(?:localhost|[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?::\d{1,5})?(?:[\\/?#][^\s]*)?$/i;
+
+function validateUrl(url: string | undefined): {
+  valid: boolean;
+  url?: string;
+  error?: string;
+} {
+  if (!url) {
+    return { valid: false, error: "URL은 필수 항목입니다." };
+  }
+
+  const processedUrl = url.trim().toLowerCase();
+
+  // Check forbidden schemes
+  if (FORBIDDEN_URL_SCHEMES.test(processedUrl)) {
+    return { valid: false, error: "금지된 URL 형식입니다." };
+  }
+
+  // Check URL format
+  let isValidUrl = false;
+  let isUrlWithScheme = false;
+
+  if (URL_LAX_REGEX.test(processedUrl)) isValidUrl = true;
+  if (URL_STRICT_REGEX.test(processedUrl)) isUrlWithScheme = true;
+
+  if (!isValidUrl) {
+    return { valid: false, error: "유효한 URL을 입력해주세요." };
+  }
+
+  // Check length
+  if (processedUrl.length > 2000) {
+    return { valid: false, error: "URL은 최대 2,000자 까지 입력할 수 있습니다." };
+  }
+
+  // Validate with URL constructor
+  try {
+    const testUrl = isUrlWithScheme
+      ? processedUrl
+      : `https://${processedUrl}`;
+    const result = new URL(testUrl);
+
+    if (!/^https?:$/.test(result.protocol) || !result.hostname) {
+      return { valid: false, error: "유효한 URL을 입력해주세요." };
+    }
+
+    if (result.port) {
+      const port = Number(result.port);
+      if (isNaN(port) || port < 0 || port > 65535) {
+        return { valid: false, error: "유효한 URL을 입력해주세요." };
+      }
+    }
+
+    return { valid: true, url: testUrl };
+  } catch (error) {
+    return { valid: false, error: "유효한 URL을 입력해주세요." };
+  }
+}
+
+function validateTitle(title: string | undefined): {
+  valid: boolean;
+  title?: string;
+  error?: string;
+} {
+  if (!title || title === "") {
+    return { valid: true, title: "Untitled" };
+  }
+
+  if (title.length > 200) {
+    return { valid: false, error: "제목은 최대 200자 까지 입력할 수 있습니다." };
+  }
+
+  return { valid: true, title: title.trim() };
+}
+
+function validateDescription(description: string | undefined): {
+  valid: boolean;
+  description?: string;
+  error?: string;
+} {
+  if (!description || description === "") {
+    return { valid: true, description: "" };
+  }
+
+  if (description.length > 2000) {
+    return {
+      valid: false,
+      error: "설명은 최대 2,000자 까지 입력할 수 있습니다.",
+    };
+  }
+
+  return { valid: true, description: description.trim() };
+}
+
 // Create a new bookmark
 router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
   try {
     const {
       data_id,
-      folder_id,
       parent_id,
       title,
       description,
@@ -116,10 +214,37 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
     const userId = 1; // TODO: Get from auth session
 
     // Validate required fields
-    if (!data_id || !url) {
+    if (!data_id) {
       return res.status(400).json({
         ok: false,
-        error: "data_id and url are required",
+        error: "data_id is required",
+      });
+    }
+
+    // Validate URL
+    const urlValidation = validateUrl(url);
+    if (!urlValidation.valid) {
+      return res.status(400).json({
+        ok: false,
+        error: urlValidation.error,
+      });
+    }
+
+    // Validate title
+    const titleValidation = validateTitle(title);
+    if (!titleValidation.valid) {
+      return res.status(400).json({
+        ok: false,
+        error: titleValidation.error,
+      });
+    }
+
+    // Validate description
+    const descriptionValidation = validateDescription(description);
+    if (!descriptionValidation.valid) {
+      return res.status(400).json({
+        ok: false,
+        error: descriptionValidation.error,
       });
     }
 
@@ -153,12 +278,12 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
       }
     }
 
-    // Find folder by data_id if folder_id is provided
+    // Find folder by data_id if parent_id is provided
     let dbFolderId: number | null = null;
-    if (folder_id) {
+    if (parent_id) {
       const folder = await prisma.folders.findFirst({
         where: {
-          data_id: folder_id,
+          data_id: parent_id,
           user_id: userId,
           deleted_at: null,
         },
@@ -198,13 +323,13 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
         data_id,
         user_id: userId,
         folder_id: dbFolderId,
-        parent_id: parent_id || null,
-        title: title || null,
-        description: description || null,
-        url,
-        domain: domain || null,
-        favicon_url: favicon_url || null,
-        preview_image: preview_image || null,
+        parent_id: parent_id !== undefined ? parent_id : null,
+        title: titleValidation.title,
+        description: descriptionValidation.description,
+        url: urlValidation.url!,
+        domain: domain !== undefined ? domain : null,
+        favicon_url: favicon_url !== undefined ? favicon_url : null,
+        preview_image: preview_image !== undefined ? preview_image : null,
         metadata: metadata || {},
         is_favorite: is_favorite ?? false,
         is_archived: is_archived ?? false,
@@ -318,6 +443,39 @@ router.put(
         tag_ids,
       } = req.body;
 
+      // Validate URL if provided
+      if (url !== undefined) {
+        const urlValidation = validateUrl(url);
+        if (!urlValidation.valid) {
+          return res.status(400).json({
+            ok: false,
+            error: urlValidation.error,
+          });
+        }
+      }
+
+      // Validate title if provided
+      if (title !== undefined) {
+        const titleValidation = validateTitle(title);
+        if (!titleValidation.valid) {
+          return res.status(400).json({
+            ok: false,
+            error: titleValidation.error,
+          });
+        }
+      }
+
+      // Validate description if provided
+      if (description !== undefined) {
+        const descriptionValidation = validateDescription(description);
+        if (!descriptionValidation.valid) {
+          return res.status(400).json({
+            ok: false,
+            error: descriptionValidation.error,
+          });
+        }
+      }
+
       // Validate tag_ids if provided
       if (tag_ids !== undefined && !Array.isArray(tag_ids)) {
         return res.status(400).json({
@@ -353,9 +511,19 @@ router.put(
         updated_at: new Date(),
       };
 
-      if (title !== undefined) updateData.title = title;
-      if (description !== undefined) updateData.description = description;
-      if (url !== undefined) updateData.url = url;
+      // Apply validated values
+      if (title !== undefined) {
+        const titleValidation = validateTitle(title);
+        updateData.title = titleValidation.title;
+      }
+      if (description !== undefined) {
+        const descriptionValidation = validateDescription(description);
+        updateData.description = descriptionValidation.description;
+      }
+      if (url !== undefined) {
+        const urlValidation = validateUrl(url);
+        updateData.url = urlValidation.url;
+      }
       if (domain !== undefined) updateData.domain = domain;
       if (favicon_url !== undefined) updateData.favicon_url = favicon_url;
       if (preview_image !== undefined) updateData.preview_image = preview_image;

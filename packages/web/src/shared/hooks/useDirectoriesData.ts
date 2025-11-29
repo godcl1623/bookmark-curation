@@ -16,6 +16,7 @@ const useDirectoriesData = (dirName: string, shouldLoad: boolean = false) => {
       data: result?.data?.data,
       isLoading: result?.isLoading,
       isError: result?.isError,
+      refetch: result?.refetch,
     }),
     [result]
   );

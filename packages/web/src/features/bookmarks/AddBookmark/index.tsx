@@ -1,4 +1,6 @@
+import { isAxiosError } from "axios";
 import { Folder, Link, X } from "lucide-react";
+import { nanoid } from "nanoid";
 import {
   type FormEvent,
   type KeyboardEvent,
@@ -6,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import toast from "react-hot-toast";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
 import Button from "@/shared/components/atoms/button";
@@ -15,8 +18,10 @@ import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import ControlledTextArea from "@/shared/components/molecules/ControlledTextArea";
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import { Card, CardHeader } from "@/shared/components/organisms/card";
+import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 import useFolderList from "@/shared/hooks/useFolderList";
 import { cn } from "@/shared/lib/utils";
+import createNewBookmark from "@/shared/services/bookmarks/create-new-bookmark";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
 
 import AddTags from "./components/AddTags";
@@ -28,7 +33,9 @@ export default function AddBookmark({
   reject,
 }: DefaultModalChildrenProps) {
   const { data: folders } = useFolderList();
-  const { urlErrorMessage, handleSubmit } = useHandleSubmit();
+  const { refetch } = useDirectoriesData("/", true);
+  const { urlErrorMessage, titleErrorMessage, noteErrorMessage, handleSubmit } =
+    useHandleSubmit();
 
   const folderList = useMemo(
     () =>
@@ -38,6 +45,11 @@ export default function AddBookmark({
       ),
     [folders]
   );
+
+  const successCallback = () => {
+    refetch();
+    resolve();
+  };
 
   return (
     <ModalLayout reject={reject}>
@@ -59,34 +71,56 @@ export default function AddBookmark({
           </Button>
         </CardHeader>
         <form
-          className={"flex flex-col gap-7 p-6 pt-0 [&>*:nth-child(2)]:-mt-7"}
-          onSubmit={handleSubmit}
+          className={"flex flex-col gap-7 p-6 pt-0"}
+          onSubmit={handleSubmit(successCallback)}
           onKeyDown={disableKeyDown}
         >
-          <div>
-            <LabeledElement label={"URL"} errorMessage={urlErrorMessage}>
-              <Link className={COMMON_STYLES.ornament} />
-              <InputWithPaste />
-            </LabeledElement>
-          </div>
-          <LabeledElement label={"Title"}>
+          <LabeledElement label={"URL"} errorMessage={urlErrorMessage}>
+            <Link className={COMMON_STYLES.ornament} />
+            <InputWithPaste
+              input={({ key, value, onChange }) => (
+                <input
+                  key={key}
+                  placeholder={"https://example.com"}
+                  className={COMMON_STYLES.input}
+                  name={FORM_ELEMENTS.URL}
+                  value={value}
+                  onChange={onChange}
+                />
+              )}
+            />
+          </LabeledElement>
+          <LabeledElement label={"Title"} errorMessage={titleErrorMessage}>
             <ControlledInput
               placeholder={"Enter bookmark title"}
               className={COMMON_STYLES.input}
               name={FORM_ELEMENTS.TITLE}
             />
           </LabeledElement>
-          <LabeledElement label={"Note (Optional)"}>
+          <LabeledElement
+            label={"Note (Optional)"}
+            errorMessage={noteErrorMessage}
+          >
             <ControlledTextArea
               placeholder={"Add your notes here..."}
               className={cn(COMMON_STYLES.input, STYLES.textarea)}
               name={FORM_ELEMENTS.NOTE}
             />
           </LabeledElement>
-          <AddTags />
+          <AddTags
+            input={({ value, onClick, onChange }) => (
+              <input
+                value={value}
+                placeholder={"Add tags..."}
+                className={COMMON_STYLES.input}
+                onClick={onClick}
+                onChange={onChange}
+              />
+            )}
+          />
           <LabeledElement label={"Folder (Optional)"} asLabel={false}>
             <Folder className={COMMON_STYLES.ornament} />
-            <ControlledSelect values={folderList} />
+            <ControlledSelect values={folderList} name={FORM_ELEMENTS.FOLDER} />
           </LabeledElement>
           <div className={"mt-3 grid grid-cols-2 gap-2"}>
             <FormControl type={"reset"} variant={"outline"}>
@@ -109,8 +143,8 @@ const STYLES = {
 const FORM_ELEMENTS = {
   URL: "URL",
   TITLE: "Title",
-  NOTE: "Note (Optional)",
-  FOLDER: "Folder (Optional)",
+  NOTE: "Note",
+  FOLDER: "Folder",
 };
 
 const disableKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
@@ -120,25 +154,189 @@ const disableKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
   }
 };
 
+type PostBody = {
+  data_id: string;
+  parent_id: string | null;
+  title: string;
+  description: string;
+  url: string;
+  domain: string;
+  favicon_url: string | null;
+  preview_image: string | null;
+  metadata: Record<string, unknown>;
+  is_favorite: boolean;
+  is_archived: boolean;
+  is_private: boolean;
+  type: "bookmark";
+  tag_ids: number[];
+};
+
 const useHandleSubmit = () => {
-  const [urlErrorMessage, setUrlErrorMessage] = useState<string>("");
+  const [urlErrorMessage, setUrlErrorMessage] = useState("");
+  const [titleErrorMessage, setTitleErrorMessage] = useState("");
+  const [noteErrorMessage, setNoteErrorMessage] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const formData = new FormData(event.currentTarget);
-    const url = formData.get(FORM_ELEMENTS.URL);
-    if (!url) {
-      setUrlErrorMessage("URL은 필수 항목입니다.");
-      return;
-    }
-
-    const title = formData.get(FORM_ELEMENTS.TITLE);
-    const note = formData.get(FORM_ELEMENTS.NOTE);
-    const folder = formData.get(FORM_ELEMENTS.FOLDER);
+  const invalidateUrl = (message: string = "유효한 URL을 입력해주세요.") => {
+    setUrlErrorMessage(message);
+    return false;
   };
 
-  return { urlErrorMessage, handleSubmit };
+  const invalidateTitle = (message: string) => {
+    setTitleErrorMessage(message);
+    return false;
+  };
+
+  const invalidateNote = (message: string) => {
+    setNoteErrorMessage(message);
+    return false;
+  };
+
+  const validateUrl = (url?: string) => {
+    if (!url) {
+      return invalidateUrl("URL은 필수 항목입니다.");
+    }
+
+    const processedUrl = url.trim().toLowerCase();
+    const FORBIDDEN_SCHEMES =
+      /^\s*(?:mailto:|file:|javascript:|postgresql:|jdbc:)/i;
+
+    if (FORBIDDEN_SCHEMES.test(processedUrl)) {
+      return invalidateUrl("금지된 URL 형식입니다.");
+    }
+
+    const strictRegex =
+      /^https?:\/\/(?:[^\s:@\/]+@)?(?:localhost|[A-Za-z0-9.-]+\.[A-Za-z]{2,})(?::\d{1,5})?(?:[\/?#][^\s]*)?$/i;
+    const laxRegex =
+      /^(?:https?:\/\/)?(?:www\.)?(?:localhost|[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?::\d{1,5})?(?:[\/?#][^\s]*)?$/i;
+
+    let isValidUrl = false;
+    let isUrlWithScheme = false;
+
+    if (laxRegex.test(processedUrl)) isValidUrl = true;
+    if (strictRegex.test(processedUrl)) isUrlWithScheme = true;
+    if (!isValidUrl) {
+      return invalidateUrl();
+    }
+
+    if (processedUrl.length > 2000) {
+      return invalidateUrl("URL은 최대 2,000자 까지 입력할 수 있습니다.");
+    }
+
+    try {
+      const testUrl = isUrlWithScheme
+        ? processedUrl
+        : `https://${processedUrl}`;
+      const result = new URL(testUrl);
+
+      if (!/^https?:$/.test(result.protocol) || !result.hostname) {
+        return invalidateUrl();
+      }
+
+      if (result.port) {
+        const port = Number(result.port);
+        if (isNaN(port) || port < 0 || port > 65535) {
+          return invalidateUrl();
+        }
+      }
+
+      return testUrl;
+    } catch (error) {
+      console.error(error);
+      return invalidateUrl();
+    }
+  };
+
+  const validateTitle = (title?: string) => {
+    if (!title || title === "") return "Untitled";
+    if (title.length > 200) {
+      return invalidateTitle("제목은 최대 200자 까지 입력할 수 있습니다.");
+    }
+    return title.trim();
+  };
+
+  const validateNote = (note?: string) => {
+    if ((note?.length ?? 0) > 2000) {
+      return invalidateNote("설명은 최대 2,000자 까지 입력할 수 있습니다.");
+    }
+    return note?.trim();
+  };
+
+  const handleSubmit =
+    (successCallback?: () => void) =>
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      const getNamedItem = (name: string) => {
+        const target = event.currentTarget.elements.namedItem(name);
+        if (
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLButtonElement ||
+          target instanceof HTMLTextAreaElement
+        )
+          return target;
+        return null;
+      };
+
+      const postBody: PostBody = {
+        data_id: nanoid(),
+        parent_id: null,
+        title: "Untitled",
+        description: "",
+        url: "",
+        domain: "",
+        favicon_url: "",
+        preview_image: "",
+        metadata: {},
+        is_favorite: false,
+        is_archived: false,
+        is_private: false,
+        type: "bookmark",
+        tag_ids: [],
+      };
+
+      const url = getNamedItem(FORM_ELEMENTS.URL)?.value;
+      const title = getNamedItem(FORM_ELEMENTS.TITLE)?.value;
+      const note = getNamedItem(FORM_ELEMENTS.NOTE)?.value;
+
+      const validatedUrl = validateUrl(url);
+      const validatedTitle = validateTitle(title);
+      const validatedNote = validateNote(note);
+
+      if (!validatedUrl || !validatedTitle || !validatedNote) return;
+
+      postBody["url"] = validatedUrl as string;
+      setUrlErrorMessage("");
+      postBody["title"] = validatedTitle as string;
+      setTitleErrorMessage("");
+      postBody["description"] = validatedNote as string;
+      setNoteErrorMessage("");
+
+      postBody["parent_id"] =
+        getNamedItem(FORM_ELEMENTS.FOLDER)?.value === ""
+          ? null
+          : (getNamedItem(FORM_ELEMENTS.FOLDER)?.value ?? null);
+
+      postBody["tag_ids"] = Array.from(
+        event.currentTarget.querySelectorAll("li")
+      )
+        .map((li) => Number(li.getAttribute("data-id")))
+        .filter((value) => value != null && !isNaN(value));
+
+      try {
+        const result = await createNewBookmark(postBody);
+        if (result.ok) {
+          toast.success(`${postBody.title} 북마크가 추가되었습니다.`);
+          successCallback?.();
+        }
+      } catch (error) {
+        if (isAxiosError(error)) {
+          toast.error(`북마크 추가에 실패했습니다(${error.status})`);
+        }
+        console.error(error);
+      }
+    };
+
+  return { urlErrorMessage, titleErrorMessage, noteErrorMessage, handleSubmit };
 };
 
 interface FormControlProps {
