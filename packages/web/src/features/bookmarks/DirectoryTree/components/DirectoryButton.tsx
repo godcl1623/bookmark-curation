@@ -52,7 +52,7 @@ export default function DirectoryButton({
         variant={"link"}
         size={"custom"}
         onClick={handleClick}
-        className={"py-1"}
+        className={"max-w-full py-1"}
       >
         <div className={"line-clamp-1 flex items-center gap-2 px-2"}>
           <div
@@ -61,7 +61,7 @@ export default function DirectoryButton({
           >
             {icon}
           </div>
-          {children}
+          <span className={"w-full truncate"}>{children}</span>
         </div>
       </Button>
       {dataType !== "bookmark" && (
