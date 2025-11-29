@@ -18,15 +18,14 @@ import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import ControlledTextArea from "@/shared/components/molecules/ControlledTextArea";
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import { Card, CardHeader } from "@/shared/components/organisms/card";
+import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 import useFolderList from "@/shared/hooks/useFolderList";
 import { cn } from "@/shared/lib/utils";
-import createNewBookmark from "@/shared/services/bookmarks/create-new-bookmark";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
 
 import AddTags from "./components/AddTags";
 import InputWithPaste from "./components/InputWithPaste";
 import { COMMON_STYLES } from "./consts";
-import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 
 export default function AddBookmark({
   resolve,
@@ -170,6 +169,62 @@ type PostBody = {
 const useHandleSubmit = () => {
   const [urlErrorMessage, setUrlErrorMessage] = useState<string>("");
 
+  const invalidateUrl = (message: string = "유효한 URL을 입력해주세요.") => {
+    setUrlErrorMessage(message);
+    return false;
+  };
+
+  const validateUrl = (url?: string) => {
+    if (!url) {
+      return invalidateUrl("URL은 필수 항목입니다.");
+    }
+
+    const processedUrl = url.trim().toLowerCase();
+    const FORBIDDEN_SCHEMES =
+      /^\s*(?:mailto:|file:|javascript:|postgresql:|jdbc:)/i;
+
+    if (FORBIDDEN_SCHEMES.test(processedUrl)) {
+      return invalidateUrl("금지된 URL 형식입니다.");
+    }
+
+    const strictRegex =
+      /^https?:\/\/(?:[^\s:@\/]+@)?(?:localhost|[A-Za-z0-9.-]+\.[A-Za-z]{2,})(?::\d{1,5})?(?:[\/?#][^\s]*)?$/i;
+    const laxRegex =
+      /^(?:https?:\/\/)?(?:www\.)?(?:localhost|[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?::\d{1,5})?(?:[\/?#][^\s]*)?$/i;
+
+    let isValidUrl = false;
+    let isUrlWithScheme = false;
+
+    if (laxRegex.test(processedUrl)) isValidUrl = true;
+    if (strictRegex.test(processedUrl)) isUrlWithScheme = true;
+    if (!isValidUrl) {
+      return invalidateUrl();
+    }
+
+    try {
+      const testUrl = isUrlWithScheme
+        ? processedUrl
+        : `https://${processedUrl}`;
+      const result = new URL(testUrl);
+
+      if (!/^https?:$/.test(result.protocol) || !result.hostname) {
+        return invalidateUrl();
+      }
+
+      if (result.port) {
+        const port = Number(result.port);
+        if (isNaN(port) || port < 0 || port > 65535) {
+          return invalidateUrl();
+        }
+      }
+
+      return testUrl;
+    } catch (error) {
+      console.error(error);
+      return invalidateUrl();
+    }
+  };
+
   const handleSubmit =
     (successCallback?: () => void) =>
     async (event: FormEvent<HTMLFormElement>) => {
@@ -203,18 +258,21 @@ const useHandleSubmit = () => {
       };
 
       const url = getNamedItem(FORM_ELEMENTS.URL)?.value;
-      if (!url) {
-        setUrlErrorMessage("URL은 필수 항목입니다.");
+      const validatedUrl = validateUrl(url);
+      if (!validatedUrl) {
         return;
       } else {
-        postBody["url"] = url;
+        postBody["url"] = validatedUrl as string;
         setUrlErrorMessage("");
       }
 
       const title = getNamedItem(FORM_ELEMENTS.TITLE)?.value;
       if (title !== "") postBody["title"] = (title ?? "Untitled").trim();
 
-      postBody["parent_id"] = getNamedItem(FORM_ELEMENTS.FOLDER)?.value ?? null;
+      postBody["parent_id"] =
+        getNamedItem(FORM_ELEMENTS.FOLDER)?.value === ""
+          ? null
+          : (getNamedItem(FORM_ELEMENTS.FOLDER)?.value ?? null);
 
       postBody["tag_ids"] = Array.from(
         event.currentTarget.querySelectorAll("li")
