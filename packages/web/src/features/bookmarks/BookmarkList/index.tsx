@@ -1,15 +1,16 @@
 import type { Bookmark, Folder as FolderType } from "@linkvault/shared";
 import { EllipsisVertical, Folder, Share2, Star } from "lucide-react";
+import { useLocation, useNavigate } from "react-router";
 
 import Button from "@/shared/components/atoms/button";
 import { FOLDER_COLORS } from "@/shared/consts";
 import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
-import type { BasicComponentProps } from "@/shared/types";
 
 import BlankFallback from "./components/BlankFallback";
 
 export default function BookmarkList() {
-  const loadedDirectory = useDirectoriesData("/", true);
+  const { pathname } = useLocation();
+  const loadedDirectory = useDirectoriesData(pathname ?? "/", true);
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
 
   return (
@@ -21,7 +22,7 @@ export default function BookmarkList() {
           <ul className={"flex-center gap-4"}>
             {folders.map((folder: FolderType) => (
               <li key={`dir_button_${folder.data_id}`}>
-                <FolderButton color={folder.color}>{folder.title}</FolderButton>
+                <FolderButton {...folder} />
               </li>
             ))}
           </ul>
@@ -32,7 +33,7 @@ export default function BookmarkList() {
           <ul className={"flex-center gap-4"}>
             {bookmarks.map((bookmark: Bookmark) => (
               <li key={`bookmark_button_${bookmark.data_id}`}>
-                <BookmarkButton {...bookmark}>{bookmark.title}</BookmarkButton>
+                <BookmarkButton {...bookmark} />
               </li>
             ))}
           </ul>
@@ -42,20 +43,26 @@ export default function BookmarkList() {
   );
 }
 
-function FolderButton({
-  children,
-  color = FOLDER_COLORS.DEFAULT,
-}: BasicComponentProps & { color?: string }) {
+function FolderButton({ title, color = FOLDER_COLORS.DEFAULT }: FolderType) {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const handleClick = () => {
+    if (pathname.includes(title)) return;
+    navigate(pathname !== "/" ? `${pathname}/${title}` : `/${title}`);
+  };
+
   return (
     <Button
       size={"custom"}
       variant={"ghost"}
       className={"rounded-lg border border-blue-300/75 px-4 py-2"}
+      onClick={handleClick}
     >
       <div className={"rounded-lg p-2"} style={{ backgroundColor: color }}>
         <Folder className={"text-white"} />
       </div>
-      {children}
+      {title}
     </Button>
   );
 }
@@ -73,7 +80,7 @@ function BookmarkButton({ title, domain }: Bookmark) {
         <div className={"h-1/2 rounded-t-lg bg-gray-100"} />
         <div className={"flex h-1/2 flex-col rounded-b-lg bg-white p-5"}>
           <div className={"mb-2 flex-1 border-b border-neutral-200 pb-2"}>
-            <h3 className={"mb-5"}>{title}</h3>
+            <h3 className={"mb-5 line-clamp-1"}>{title}</h3>
             <p className={"text-neutral-400"}>{domain}</p>
           </div>
           <div className={"flex-center justify-between text-neutral-400"}>
