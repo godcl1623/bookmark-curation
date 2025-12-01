@@ -1,7 +1,10 @@
 import type { Bookmark, Folder as FolderType } from "@linkvault/shared";
+import { EllipsisVertical, Folder, Share2, Star } from "lucide-react";
 
 import Button from "@/shared/components/atoms/button";
+import { FOLDER_COLORS } from "@/shared/consts";
 import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
+import type { BasicComponentProps } from "@/shared/types";
 
 import BlankFallback from "./components/BlankFallback";
 
@@ -15,40 +18,79 @@ export default function BookmarkList() {
         (folders?.length === 0 && bookmarks?.length === 0 && <BlankFallback />)}
       {folders && (
         <article>
-          <h2>Folders</h2>
-          <ul className={"flex-center gap-2"}>
+          <ul className={"flex-center gap-4"}>
             {folders.map((folder: FolderType) => (
               <li key={`dir_button_${folder.data_id}`}>
-                <Button
-                  size={"custom"}
-                  variant={"ghost"}
-                  className={"rounded-lg border border-blue-300/75 px-4 py-1"}
-                >
-                  {folder.title}
-                </Button>
+                <FolderButton color={folder.color}>{folder.title}</FolderButton>
               </li>
             ))}
           </ul>
         </article>
       )}
       {bookmarks && (
-        <article className={"mt-10"}>
-          <h2>Bookmarks</h2>
-          <ul className={"flex-center gap-2"}>
+        <article className={"mt-6"}>
+          <ul className={"flex-center gap-4"}>
             {bookmarks.map((bookmark: Bookmark) => (
               <li key={`bookmark_button_${bookmark.data_id}`}>
-                <Button
-                  size={"custom"}
-                  variant={"ghost"}
-                  className={"rounded-lg border border-blue-300/75 px-4 py-1"}
-                >
-                  {bookmark.title}
-                </Button>
+                <BookmarkButton {...bookmark}>{bookmark.title}</BookmarkButton>
               </li>
             ))}
           </ul>
         </article>
       )}
     </main>
+  );
+}
+
+function FolderButton({
+  children,
+  color = FOLDER_COLORS.DEFAULT,
+}: BasicComponentProps & { color?: string }) {
+  return (
+    <Button
+      size={"custom"}
+      variant={"ghost"}
+      className={"rounded-lg border border-blue-300/75 px-4 py-2"}
+    >
+      <div className={"rounded-lg p-2"} style={{ backgroundColor: color }}>
+        <Folder className={"text-white"} />
+      </div>
+      {children}
+    </Button>
+  );
+}
+
+function BookmarkButton({ title, domain }: Bookmark) {
+  return (
+    <Button
+      size={"custom"}
+      variant={"ghost"}
+      className={
+        "h-[400px] w-[300px] rounded-lg text-left whitespace-normal shadow-lg"
+      }
+    >
+      <div className={"flex size-full flex-col"}>
+        <div className={"h-1/2 rounded-t-lg bg-gray-100"} />
+        <div className={"flex h-1/2 flex-col rounded-b-lg bg-white p-5"}>
+          <div className={"mb-2 flex-1 border-b border-neutral-200 pb-2"}>
+            <h3 className={"mb-5"}>{title}</h3>
+            <p className={"text-neutral-400"}>{domain}</p>
+          </div>
+          <div className={"flex-center justify-between text-neutral-400"}>
+            <div>
+              <Button variant={"ghost"} size={"icon-sm"}>
+                <Star />
+              </Button>
+              <Button variant={"ghost"} size={"icon-sm"}>
+                <Share2 />
+              </Button>
+            </div>
+            <Button variant={"ghost"} size={"icon-sm"}>
+              <EllipsisVertical />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Button>
   );
 }
