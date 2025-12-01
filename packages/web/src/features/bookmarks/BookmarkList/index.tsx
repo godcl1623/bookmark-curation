@@ -69,9 +69,7 @@ function FolderButton({ title, color = FOLDER_COLORS.DEFAULT }: FolderType) {
 
 function BookmarkButton({ title, domain }: Bookmark) {
   return (
-    <Button
-      size={"custom"}
-      variant={"ghost"}
+    <div
       className={
         "h-[400px] w-[300px] rounded-lg text-left whitespace-normal shadow-lg"
       }
@@ -98,6 +96,6 @@ function BookmarkButton({ title, domain }: Bookmark) {
           </div>
         </div>
       </div>
-    </Button>
+    </div>
   );
 }
