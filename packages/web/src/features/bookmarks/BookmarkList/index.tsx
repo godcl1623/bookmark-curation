@@ -1,6 +1,12 @@
 import type { Bookmark, Folder as FolderType } from "@linkvault/shared";
-import { EllipsisVertical, Folder, Share2, Star } from "lucide-react";
-import { useLocation, useNavigate } from "react-router";
+import {
+  ChevronRight,
+  EllipsisVertical,
+  Folder,
+  Share2,
+  Star,
+} from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router";
 
 import Button from "@/shared/components/atoms/button";
 import { FOLDER_COLORS } from "@/shared/consts";
@@ -15,15 +21,47 @@ export default function BookmarkList() {
   const { pathname } = useLocation();
   const loadedDirectory = useDirectoriesData(pathname ?? "/", true);
 
-  const { folders, bookmarks } = loadedDirectory?.data ?? {};
+  const { folders, bookmarks, breadcrumbs } = loadedDirectory?.data ?? {};
   const isListView = currentView === "list";
 
   return (
-    <main className={"h-[calc(100vh-64px)] w-[85%] bg-blue-50/75 p-5"}>
+    <main className={"h-[calc(100vh-64px)] w-[85%] rounded-2xl bg-blue-50/75"}>
+      <aside className={"w-full rounded-t-2xl border-b bg-neutral-50 p-5"}>
+        <nav className={"px-5"}>
+          <ul className={"flex-center gap-2 font-bold"}>
+            <li className={"flex-center gap-2"}>
+              <NavLink to={"/"} className={"hover:underline"}>
+                홈
+              </NavLink>
+              {pathname !== "/" && <ChevronRight />}
+            </li>
+            {breadcrumbs?.map((breadcrumb, index, selfArray) => (
+              <li
+                key={`breadcrumb_${breadcrumb.data_id}`}
+                className={"flex-center gap-2"}
+              >
+                <NavLink
+                  to={
+                    "/" +
+                    selfArray
+                      .slice(0, index + 1)
+                      .map((item) => item.title)
+                      .join("/")
+                  }
+                  className={`hover:underline`}
+                >
+                  {breadcrumb.title}
+                </NavLink>
+                {index < selfArray.length - 1 && <ChevronRight />}
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
       {(!folders && !bookmarks) ||
         (folders?.length === 0 && bookmarks?.length === 0 && <BlankFallback />)}
-      {folders && (
-        <article>
+      {folders && folders.length > 0 && (
+        <article className={"p-5"}>
           <ul className={"flex-center gap-4"}>
             {folders.map((folder: FolderType) => (
               <li key={`dir_button_${folder.data_id}`}>
@@ -33,8 +71,8 @@ export default function BookmarkList() {
           </ul>
         </article>
       )}
-      {bookmarks && (
-        <article className={"mt-6"}>
+      {bookmarks && bookmarks.length > 0 && (
+        <article className={cn("p-5", folders?.length > 0 && "mt-6")}>
           <ul className={cn("flex-center gap-4", isListView && "flex-col")}>
             {bookmarks.map((bookmark: Bookmark) => (
               <li

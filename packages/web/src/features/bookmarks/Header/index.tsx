@@ -21,7 +21,7 @@ export default function Header() {
   const toggleView = (view: "card" | "list") => () => setCurrentView(view);
 
   return (
-    <header className={"flex-center-between px-10 py-3 shadow"}>
+    <header className={"flex-center-between bg-white px-10 py-3"}>
       <Logo />
       <div className={STYLES.container}>
         <OptionButton>

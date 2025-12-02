@@ -83,3 +83,11 @@ export interface BookmarkHistory {
   payload: Record<string, any>;
   created_at: string;
 }
+
+export interface Directory {
+  bookmarks: Bookmark[];
+  breadcrumbs: Folder[];
+  folder: Folder;
+  folders: Folder[];
+  path: string;
+}
