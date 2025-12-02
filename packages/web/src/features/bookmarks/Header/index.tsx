@@ -11,9 +11,14 @@ import { useModal } from "@/app/providers/ModalProvider/context";
 import Options from "@/features/bookmarks/Header/components/Options";
 import Button from "@/shared/components/atoms/button";
 import type { BasicComponentProps } from "@/shared/types";
+import useGlobalStore from "@/stores/global";
 
 export default function Header() {
+  const currentView = useGlobalStore((state) => state.currentView);
+  const setCurrentView = useGlobalStore((state) => state.setCurrentView);
   const { handleClick } = useSetting();
+
+  const toggleView = (view: "card" | "list") => () => setCurrentView(view);
 
   return (
     <header className={"flex-center-between px-10 py-3 shadow"}>
@@ -27,12 +32,18 @@ export default function Header() {
         </OptionButton>
         <ul className={"flex-center gap-1 rounded-md bg-neutral-200 p-1"}>
           <li className={"flex-center"}>
-            <OptionButton isActive>
+            <OptionButton
+              isActive={currentView === "card"}
+              onClick={toggleView("card")}
+            >
               <LayoutGrid className={STYLES.iconSm} />
             </OptionButton>
           </li>
           <li className={"flex-center"}>
-            <OptionButton>
+            <OptionButton
+              isActive={currentView === "list"}
+              onClick={toggleView("list")}
+            >
               <LayoutList className={STYLES.iconSm} />
             </OptionButton>
           </li>
