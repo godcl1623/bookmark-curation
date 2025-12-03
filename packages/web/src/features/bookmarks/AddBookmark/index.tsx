@@ -302,7 +302,12 @@ const useHandleSubmit = () => {
       const validatedTitle = validateTitle(title);
       const validatedNote = validateNote(note);
 
-      if (!validatedUrl || !validatedTitle || !validatedNote) return;
+      if (
+        validatedUrl === false ||
+        validatedTitle === false ||
+        validatedNote === false
+      )
+        return;
 
       postBody["url"] = validatedUrl as string;
       setUrlErrorMessage("");

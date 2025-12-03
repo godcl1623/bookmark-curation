@@ -56,6 +56,7 @@ export interface Bookmark extends Folder {
   is_private: boolean;
   view_count: number;
   click_count: number;
+  tags: Tag[];
   type: DataType;
 }
 

@@ -37,7 +37,17 @@ router.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (_req, res) => {
         created_at: "desc",
       },
     });
-    res.json({ ok: true, data: bookmarks });
+
+    // Transform bookmark_tags to flat tags array
+    const bookmarksWithTags = bookmarks.map((bookmark) => {
+      const { bookmark_tags, ...rest } = bookmark;
+      return {
+        ...rest,
+        tags: bookmark_tags.map((bt) => bt.tags),
+      };
+    });
+
+    res.json({ ok: true, data: bookmarksWithTags });
   } catch (error) {
     res.status(500).json({
       ok: false,
@@ -84,7 +94,14 @@ router.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, async (req, res) => {
       return res.status(404).json({ ok: false, error: "Bookmark not found" });
     }
 
-    res.json({ ok: true, data: bookmark });
+    // Transform bookmark_tags to flat tags array
+    const { bookmark_tags, ...rest } = bookmark;
+    const bookmarkWithTags = {
+      ...rest,
+      tags: bookmark_tags.map((bt) => bt.tags),
+    };
+
+    res.json({ ok: true, data: bookmarkWithTags });
   } catch (error) {
     res.status(500).json({
       ok: false,
@@ -378,7 +395,18 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
       },
     });
 
-    res.status(201).json({ ok: true, data: createdBookmark });
+    // Transform bookmark_tags to flat tags array
+    const bookmarkWithTags = createdBookmark
+      ? (() => {
+          const { bookmark_tags, ...rest } = createdBookmark;
+          return {
+            ...rest,
+            tags: bookmark_tags.map((bt) => bt.tags),
+          };
+        })()
+      : null;
+
+    res.status(201).json({ ok: true, data: bookmarkWithTags });
   } catch (error) {
     // Handle unique constraint violation
     if (error instanceof Error && error.message.includes("Unique constraint")) {
@@ -617,7 +645,18 @@ router.put(
         },
       });
 
-      res.json({ ok: true, data: updatedBookmark });
+      // Transform bookmark_tags to flat tags array
+      const bookmarkWithTags = updatedBookmark
+        ? (() => {
+            const { bookmark_tags, ...rest } = updatedBookmark;
+            return {
+              ...rest,
+              tags: bookmark_tags.map((bt) => bt.tags),
+            };
+          })()
+        : null;
+
+      res.json({ ok: true, data: bookmarkWithTags });
     } catch (error) {
       // Handle unique constraint violation
       if (

@@ -72,12 +72,21 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
       }),
     ]);
 
+    // Transform bookmark_tags to flat tags array
+    const bookmarksWithTags = bookmarks.map((bookmark) => {
+      const { bookmark_tags, ...rest } = bookmark;
+      return {
+        ...rest,
+        tags: bookmark_tags.map((bt) => bt.tags),
+      };
+    });
+
     res.json({
       ok: true,
       data: {
         parent_id: parentId,
         folders,
-        bookmarks,
+        bookmarks: bookmarksWithTags,
       },
     });
   } catch (error) {
@@ -131,9 +140,18 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
         }),
       ]);
 
+      // Transform bookmark_tags to flat tags array
+      const bookmarksWithTags = bookmarks.map((bookmark) => {
+        const { bookmark_tags, ...rest } = bookmark;
+        return {
+          ...rest,
+          tags: bookmark_tags.map((bt) => bt.tags),
+        };
+      });
+
       return res.json({
         ok: true,
-        data: { folder: null, folders, bookmarks, path: "/", breadcrumbs: [] },
+        data: { folder: null, folders, bookmarks: bookmarksWithTags, path: "/", breadcrumbs: [] },
       });
     }
 
@@ -184,12 +202,21 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
       }),
     ]);
 
+    // Transform bookmark_tags to flat tags array
+    const bookmarksWithTags = bookmarks.map((bookmark) => {
+      const { bookmark_tags, ...rest } = bookmark;
+      return {
+        ...rest,
+        tags: bookmark_tags.map((bt) => bt.tags),
+      };
+    });
+
     res.json({
       ok: true,
       data: {
         folder: finalFolder,
         folders,
-        bookmarks,
+        bookmarks: bookmarksWithTags,
         path: pathParam,
         breadcrumbs,
       },

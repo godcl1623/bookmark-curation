@@ -19,18 +19,20 @@ import FolderTag from "./FolderTag";
 
 interface BookmarkCardProps {
   isCard?: boolean;
+  refetch?: () => void;
 }
 
 interface BookmarkCommonProps extends BasicComponentProps {
   isLoading?: boolean;
 }
 
-// FIXME: 태그 문제 수정 필요
 export default function BookmarkCard({
   isCard = true,
   title,
   domain,
   parent,
+  tags,
+  refetch,
   ...props
 }: Bookmark & BookmarkCardProps) {
   const { openModal } = useModal();
@@ -42,6 +44,8 @@ export default function BookmarkCard({
       title,
       domain,
       parent,
+      tags,
+      refetch,
       ...props,
     } as any);
   };
@@ -70,9 +74,9 @@ export default function BookmarkCard({
         </BookmarkDescription>
         <div className={isCard ? STYLES.metadata.card : STYLES.metadata.list}>
           <BookmarkTags isLoading={isLoading}>
-            {DUMMY_TAG_LIST.map((tag, index) => (
-              <li key={`tag-${index}`}>
-                <TagItem tag={tag} size={"sm"} />
+            {tags.map((tag) => (
+              <li key={`card_tag_${tag.id}`}>
+                <TagItem tag={tag.name} size={"sm"} />
               </li>
             ))}
           </BookmarkTags>
@@ -99,8 +103,6 @@ export default function BookmarkCard({
     </Card>
   );
 }
-
-const DUMMY_TAG_LIST = ["foo", "bar", "doh"];
 
 const STYLES = {
   container: {

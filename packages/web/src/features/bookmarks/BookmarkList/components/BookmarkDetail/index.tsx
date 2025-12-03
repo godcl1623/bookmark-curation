@@ -1,4 +1,5 @@
 import type { Bookmark } from "@linkvault/shared";
+import { type AxiosResponse, isAxiosError } from "axios";
 import {
   Calendar,
   CalendarCog,
@@ -9,6 +10,7 @@ import {
   Star,
   Trash2,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
 import Button from "@/shared/components/atoms/button";
@@ -20,12 +22,14 @@ import {
   CardDescription,
 } from "@/shared/components/organisms/card";
 import { cn } from "@/shared/lib/utils";
+import deleteBookmark from "@/shared/services/bookmarks/delete-bookmark";
 import type { BasicComponentProps } from "@/shared/types";
 
 import FolderTag from "../BookmarkCard/FolderTag";
 
 export default function BookmarkDetail({
   reject,
+  resolve,
   title,
   domain,
   description,
@@ -33,7 +37,15 @@ export default function BookmarkDetail({
   url,
   created_at,
   updated_at,
-}: DefaultModalChildrenProps & Bookmark) {
+  tags,
+  data_id,
+  refetch,
+}: DefaultModalChildrenProps & Bookmark & { refetch?: () => void }) {
+  const deleteCallback = () => {
+    refetch?.();
+    resolve();
+  };
+
   return (
     <ModalLayout reject={reject}>
       <ModalTemplate
@@ -55,7 +67,10 @@ export default function BookmarkDetail({
               <Edit />
               Edit
             </ActionButton>
-            <ActionButton style={"cancel"}>
+            <ActionButton
+              style={"cancel"}
+              onClick={handleDelete(data_id, deleteCallback)}
+            >
               <Trash2 />
               Delete
             </ActionButton>
@@ -102,15 +117,11 @@ export default function BookmarkDetail({
               Tags
             </h3>
             <ul className={"flex-center gap-2"}>
-              <li>
-                <TagItem tag={"foo"} />
-              </li>
-              <li>
-                <TagItem tag={"bar"} />
-              </li>
-              <li>
-                <TagItem tag={"doh"} />
-              </li>
+              {tags.map((tag) => (
+                <li key={`detail_tag_${tag.id}`}>
+                  <TagItem tag={tag.name} />
+                </li>
+              ))}
             </ul>
           </div>
           <div
@@ -147,11 +158,33 @@ export default function BookmarkDetail({
   );
 }
 
+const handleDelete = (data_id: string, callback?: () => void) => async () => {
+  try {
+    const result = (await deleteBookmark(data_id)) as AxiosResponse;
+    if (result.status === 200) {
+      toast.success("북마크를 성공적으로 삭제했습니다.");
+      callback?.();
+    }
+  } catch (error) {
+    if (isAxiosError(error)) {
+      toast.error(`북마크를 삭제하지 못했습니다(${error.status})`);
+    } else if (error instanceof Error) {
+      toast.error(`북마크를 삭제하지 못했습니다(${error.name})`);
+    }
+    console.error(error);
+  }
+};
+
 interface ActionButtonProps extends BasicComponentProps {
   style?: "primary" | "secondary" | "cancel";
+  onClick?: () => void;
 }
 
-function ActionButton({ children, style = "secondary" }: ActionButtonProps) {
+function ActionButton({
+  children,
+  style = "secondary",
+  onClick = () => null,
+}: ActionButtonProps) {
   const styles = {
     primary: "bg-blue-100 text-blue-500",
     secondary: "bg-neutral-200",
@@ -163,6 +196,7 @@ function ActionButton({ children, style = "secondary" }: ActionButtonProps) {
       size={"custom"}
       variant={"blank"}
       className={cn("w-full py-1.5 text-base", styles[style])}
+      onClick={onClick}
     >
       {children}
     </Button>

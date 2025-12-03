@@ -73,7 +73,11 @@ export default function BookmarkList() {
                 key={`bookmark_button_${bookmark.data_id}`}
                 className={isListView ? "w-full" : ""}
               >
-                <BookmarkCard {...bookmark} isCard={currentView === "card"} />
+                <BookmarkCard
+                  {...bookmark}
+                  refetch={loadedDirectory?.refetch}
+                  isCard={currentView === "card"}
+                />
               </li>
             ))}
           </ul>
