@@ -124,7 +124,7 @@ function BookmarkButton({
   return (
     <div
       className={cn(
-        "flex cursor-pointer gap-5 rounded-lg bg-white text-left whitespace-normal shadow-lg transition-all hover:brightness-90 active:brightness-75",
+        "flex cursor-pointer gap-5 rounded-lg bg-white text-left whitespace-normal shadow-lg transition-transform hover:brightness-90 active:brightness-75",
         isListView
           ? "h-[200px] items-center p-5"
           : "h-[400px] w-[300px] flex-col"

@@ -143,7 +143,12 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
 
     for (const title of segments) {
       const folder = await prisma.folders.findFirst({
-        where: { user_id: userId, parent_id: currentParentId, title, deleted_at: null },
+        where: {
+          user_id: userId,
+          parent_id: currentParentId,
+          title,
+          deleted_at: null,
+        },
       });
 
       if (!folder) {
