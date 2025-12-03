@@ -1,3 +1,4 @@
+import type { Bookmark } from "@linkvault/shared";
 import { EllipsisVertical, Share2, Star } from "lucide-react";
 import type { MouseEvent } from "react";
 
@@ -24,12 +25,25 @@ interface BookmarkCommonProps extends BasicComponentProps {
   isLoading?: boolean;
 }
 
-export default function BookmarkCard({ isCard = true }: BookmarkCardProps) {
+// FIXME: 태그 문제 수정 필요
+export default function BookmarkCard({
+  isCard = true,
+  title,
+  domain,
+  parent,
+  ...props
+}: Bookmark & BookmarkCardProps) {
   const { openModal } = useModal();
   const isLoading = false;
 
   const handleClickCard = () => {
-    openModal(BookmarkDetail);
+    // FIXME: 타입 문제 수정
+    openModal(BookmarkDetail, {
+      title,
+      domain,
+      parent,
+      ...props,
+    } as any);
   };
 
   return (
@@ -48,11 +62,11 @@ export default function BookmarkCard({ isCard = true }: BookmarkCardProps) {
       />
       <CardContent className={"h-1/2 px-5 py-3"}>
         <BookmarkHeader isLoading={isLoading}>
-          <BookmarkTitle isLoading={isLoading}>Test Title</BookmarkTitle>
-          <FolderTag>Folder 1</FolderTag>
+          <BookmarkTitle isLoading={isLoading}>{title}</BookmarkTitle>
+          <FolderTag>{parent?.title}</FolderTag>
         </BookmarkHeader>
         <BookmarkDescription isLoading={isLoading}>
-          Test Description
+          {domain}
         </BookmarkDescription>
         <div className={isCard ? STYLES.metadata.card : STYLES.metadata.list}>
           <BookmarkTags isLoading={isLoading}>

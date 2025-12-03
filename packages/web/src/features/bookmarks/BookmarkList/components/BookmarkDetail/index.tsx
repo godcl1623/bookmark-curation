@@ -1,3 +1,4 @@
+import type { Bookmark } from "@linkvault/shared";
 import {
   Calendar,
   CalendarCog,
@@ -23,7 +24,16 @@ import type { BasicComponentProps } from "@/shared/types";
 
 import FolderTag from "../BookmarkCard/FolderTag";
 
-export default function BookmarkDetail({ reject }: DefaultModalChildrenProps) {
+export default function BookmarkDetail({
+  reject,
+  title,
+  domain,
+  description,
+  parent,
+  url,
+  created_at,
+  updated_at,
+}: DefaultModalChildrenProps & Bookmark) {
   return (
     <ModalLayout reject={reject}>
       <ModalTemplate
@@ -55,9 +65,9 @@ export default function BookmarkDetail({ reject }: DefaultModalChildrenProps) {
         <div className={"h-1/2 w-full bg-neutral-100"} />
         <CardDescription className={"flex flex-col gap-5 p-5"}>
           <header className={"flex-center-between"}>
-            <h2 className={"line-clamp-1 text-2xl text-black"}>Test Title</h2>
+            <h2 className={"line-clamp-1 text-2xl text-black"}>{title}</h2>
             <div className={"flex-center gap-2"}>
-              <FolderTag>Folder 1</FolderTag>
+              <FolderTag>{parent?.title}</FolderTag>
               <Button size={"icon-sm"} variant={"ghost"}>
                 <Star className={"size-6"} />
               </Button>
@@ -66,10 +76,10 @@ export default function BookmarkDetail({ reject }: DefaultModalChildrenProps) {
           <div className={"flex-col-center-center gap-2"}>
             <p className={"flex-center w-full gap-2"}>
               <Link className={"size-4"} />
-              <span className={"mb-1"}>google.com</span>
+              <span className={"mb-1"}>{domain}</span>
             </p>
             <a
-              href={"https://www.google.com"}
+              href={url}
               rel={"noreferrer noopener"}
               className={
                 "flex-center-center w-full gap-2 rounded-md bg-blue-500 py-2 text-white hover:brightness-95 active:brightness-90"
@@ -81,7 +91,7 @@ export default function BookmarkDetail({ reject }: DefaultModalChildrenProps) {
           </div>
           <div>
             <h3 className={"text-base"}>Description</h3>
-            <p className={"text-sm"}>Test Description</p>
+            <p className={"text-sm"}>{description}</p>
           </div>
           <div>
             <h3
@@ -114,7 +124,9 @@ export default function BookmarkDetail({ reject }: DefaultModalChildrenProps) {
               </div>
               <div>
                 <h3 className={"text-xs font-semibold"}>Created:</h3>
-                <p className={"text-lg font-bold text-black"}>2025-10-20</p>
+                <p className={"text-lg font-bold text-black"}>
+                  {created_at.split("T")[0]}
+                </p>
               </div>
             </div>
             <div className={"flex-center gap-2"}>
@@ -123,7 +135,9 @@ export default function BookmarkDetail({ reject }: DefaultModalChildrenProps) {
               </div>
               <div>
                 <h3 className={"text-xs font-semibold"}>Modified:</h3>
-                <p className={"text-lg font-bold text-black"}>2025-10-25</p>
+                <p className={"text-lg font-bold text-black"}>
+                  {updated_at.split("T")[0]}
+                </p>
               </div>
             </div>
           </div>
