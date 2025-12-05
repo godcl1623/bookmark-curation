@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: linkvault-postgres
+    environment:
+      POSTGRES_DB: linkvault
+      POSTGRES_USER: linkvault_app
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-your_secure_password}
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U linkvault_app -d linkvault"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - linkvault-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  linkvault-network:
+    driver: bridge
