@@ -56,14 +56,16 @@ npm install
 # .env 파일 생성
 cp .env.example .env
 cp packages/api/.env.example packages/api/.env
+cp packages/web/.env.example packages/web/.env.development
+cp packages/web/.env.example packages/web/.env.production
 
 # 필요시 .env 파일에서 비밀번호 변경
 
 # PostgreSQL 컨테이너 실행
-docker-compose up -d
+docker compose up
 
 # 데이터베이스 상태 확인
-docker-compose ps
+docker compose ps
 ```
 
 Docker Compose가 자동으로 다음을 수행합니다:
@@ -71,6 +73,14 @@ Docker Compose가 자동으로 다음을 수행합니다:
 - `linkvault` 데이터베이스 생성
 - `linkvault_app` 사용자 생성
 - `app` 스키마 생성 및 권한 설정
+
+만약 로컬에서 실행중인 PostgreSQL과 별도로 Docker 컨테이너 실행을 희망하시는 경우, 다음 두 파일에서 DB에 할당할 포트 번호를 지정해주시기 바랍니다.
+- .env
+- packages/api/.env
+
+포트 번호 변경이 필요한 키는 다음 2개입니다:
+- `DATABASE_URL`
+- `DATABASE_PORT`
 
 #### 옵션 B: 로컬 PostgreSQL 사용
 
