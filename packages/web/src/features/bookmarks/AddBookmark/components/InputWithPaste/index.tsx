@@ -13,14 +13,24 @@ interface InputProps {
 
 interface InputWithPasteProps {
   input?: (props: InputProps) => ReactNode;
+  defaultValue?: string;
 }
 
-export default function InputWithPaste({ input }: InputWithPasteProps) {
+export default function InputWithPaste({
+  input,
+  defaultValue,
+}: InputWithPasteProps) {
   const [clipboard, pasteValue] = useClipboard();
-  const [inputValue, handleInputChange] = useHandleInput(clipboard.value);
+  const [inputValue, handleInputChange] = useHandleInput(
+    determineDefaultValue({
+      conditional_value: defaultValue,
+      fallback_value: clipboard.value,
+    }),
+    clipboard.timestamp
+  );
 
   return (
-    <>
+    <div className={"flex-center-between w-full flex-1"}>
       {input &&
         input({
           key: clipboard.timestamp,
@@ -36,11 +46,22 @@ export default function InputWithPaste({ input }: InputWithPasteProps) {
       >
         <ClipboardPlus className={COMMON_STYLES.ornament} />
       </Button>
-    </>
+    </div>
   );
 }
 
-const useHandleInput = (defaultValue?: string) => {
+const determineDefaultValue = ({
+  conditional_value,
+  fallback_value,
+}: {
+  conditional_value?: string;
+  fallback_value: string;
+}) => {
+  if (conditional_value && fallback_value === "") return conditional_value;
+  return fallback_value;
+};
+
+const useHandleInput = (defaultValue?: string, dependency?: unknown) => {
   const [inputValue, setInputValue] = useState("");
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -49,7 +70,7 @@ const useHandleInput = (defaultValue?: string) => {
 
   useEffect(() => {
     setInputValue(defaultValue ?? "");
-  }, [defaultValue]);
+  }, [defaultValue, dependency]);
 
   return [inputValue, handleInputChange] as const;
 };
@@ -63,7 +84,7 @@ const useClipboard = () => {
       setClipboard({ value: clipboardValue, timestamp: Date.now() });
       toast.success("클립보드에서 URL을 불러왔습니다.");
     } catch (error) {
-      toast.error("오류가 발생했습니다.");
+      toast.error("클립보드를 읽어오지 못했습니다.");
       console.error("### Failed to read clipboard: ", error);
     }
   };
