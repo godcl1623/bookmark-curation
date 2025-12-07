@@ -1,6 +1,6 @@
 import type { Tag } from "@linkvault/shared";
 import { type AxiosResponse, isAxiosError } from "axios";
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useMemo } from "react";
 import toast from "react-hot-toast";
 
 import TagMetaInfo from "@/features/bookmarks/Header/components/AddTags/TagListItem/TagMetaInfo";
@@ -14,6 +14,7 @@ import { findIndex } from "@/features/bookmarks/Header/utils";
 import Button from "@/shared/components/atoms/button";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
+import useEdit from "@/shared/hooks/useEdit.ts";
 import { cn } from "@/shared/lib/utils";
 import deleteTag from "@/shared/services/tags/delete-tag";
 import updateTag from "@/shared/services/tags/update-tag";
@@ -76,17 +77,17 @@ export default function TagListItem({
             </div>
           )}
           onSubmit={handleSubmit(String(id), () => {
-            changeEditMode();
+            changeEditMode()();
             refetch?.();
           })}
-          onReset={changeEditMode}
+          onReset={changeEditMode()}
         />
       ) : (
         <TagMetaInfo
           name={name}
           color={color}
           _count={_count}
-          changeEditMode={changeEditMode}
+          changeEditMode={changeEditMode()}
           handleDelete={handleDelete(String(id), refetch)}
           id={id}
           {...props}
@@ -164,13 +165,3 @@ const handleSubmit =
 
     toast.error("폼 요소가 로드되지 않았습니다.");
   };
-
-const useEdit = () => {
-  const [isEdit, setIsEdit] = useState(false);
-
-  const changeEditMode = () => {
-    setIsEdit(!isEdit);
-  };
-
-  return [isEdit, changeEditMode] as const;
-};

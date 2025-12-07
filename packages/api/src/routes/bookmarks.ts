@@ -147,14 +147,15 @@ function validateUrl(url: string | undefined): {
 
   // Check length
   if (processedUrl.length > 2000) {
-    return { valid: false, error: "URL은 최대 2,000자 까지 입력할 수 있습니다." };
+    return {
+      valid: false,
+      error: "URL은 최대 2,000자 까지 입력할 수 있습니다.",
+    };
   }
 
   // Validate with URL constructor
   try {
-    const testUrl = isUrlWithScheme
-      ? processedUrl
-      : `https://${processedUrl}`;
+    const testUrl = isUrlWithScheme ? processedUrl : `https://${processedUrl}`;
     const result = new URL(testUrl);
 
     if (!/^https?:$/.test(result.protocol) || !result.hostname) {
@@ -184,7 +185,10 @@ function validateTitle(title: string | undefined): {
   }
 
   if (title.length > 200) {
-    return { valid: false, error: "제목은 최대 200자 까지 입력할 수 있습니다." };
+    return {
+      valid: false,
+      error: "제목은 최대 200자 까지 입력할 수 있습니다.",
+    };
   }
 
   return { valid: true, title: title.trim() };
@@ -228,7 +232,7 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
       type,
       tag_ids,
     } = req.body;
-    const userId = 1; // TODO: Get from auth session
+    const userId = 3; // TODO: Get from auth session
 
     // Validate required fields
     if (!data_id) {
@@ -429,7 +433,7 @@ router.put(
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = 1; // TODO: Get from auth session
+      const userId = 3; // TODO: Get from auth session
 
       if (!data_id) {
         return res
@@ -674,7 +678,7 @@ router.put(
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
-  }
+  },
 );
 
 // Delete a bookmark (soft delete)
@@ -683,7 +687,7 @@ router.delete(
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = 1; // TODO: Get from auth session
+      const userId = 3; // TODO: Get from auth session
 
       if (!data_id) {
         return res
@@ -722,7 +726,7 @@ router.delete(
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
-  }
+  },
 );
 
 export default router;

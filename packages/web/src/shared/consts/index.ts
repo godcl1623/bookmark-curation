@@ -9,3 +9,10 @@ export const FOLDER_COLORS = {
   GRAY: "#6a7282",
   DEFAULT: "#f5f5f5",
 };
+
+export const BOOKMARK_FORM_ELEMENTS = {
+  URL: "URL",
+  TITLE: "Title",
+  NOTE: "Note",
+  FOLDER: "Folder",
+};

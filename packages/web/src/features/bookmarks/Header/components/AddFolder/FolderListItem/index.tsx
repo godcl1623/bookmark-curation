@@ -1,6 +1,6 @@
 import type { Folder as FolderType } from "@linkvault/shared";
 import { type AxiosResponse, isAxiosError } from "axios";
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useMemo } from "react";
 import toast from "react-hot-toast";
 
 import FolderMetaInfo from "@/features/bookmarks/Header/components/AddFolder/FolderListItem/FolderMetaInfo";
@@ -14,6 +14,7 @@ import { findIndex } from "@/features/bookmarks/Header/utils";
 import Button from "@/shared/components/atoms/button";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
+import useEdit from "@/shared/hooks/useEdit.ts";
 import useFolderList from "@/shared/hooks/useFolderList";
 import { cn } from "@/shared/lib/utils";
 import deleteFolder from "@/shared/services/folders/delete-folder";
@@ -98,17 +99,17 @@ export default function FolderListItem({
             </div>
           )}
           onSubmit={handleSubmit(data_id, () => {
-            changeEditMode();
+            changeEditMode()();
             refetch?.();
           })}
-          onReset={changeEditMode}
+          onReset={changeEditMode()}
         />
       ) : (
         <FolderMetaInfo
           title={title}
           color={color}
           _count={_count}
-          changeEditMode={changeEditMode}
+          changeEditMode={changeEditMode()}
           handleDelete={handleDelete(data_id, refetch)}
           data_id={data_id}
           {...props}
@@ -197,13 +198,3 @@ const handleSubmit =
 
     toast.error("폼 요소가 로드되지 않았습니다.");
   };
-
-const useEdit = () => {
-  const [isEdit, setIsEdit] = useState(false);
-
-  const changeEditMode = () => {
-    setIsEdit(!isEdit);
-  };
-
-  return [isEdit, changeEditMode] as const;
-};

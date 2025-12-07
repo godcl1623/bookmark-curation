@@ -1,5 +1,5 @@
 import type { Tag } from "@linkvault/shared";
-import { useMemo } from "react";
+import { type FormEvent, useMemo } from "react";
 
 import AddTags from "@/features/bookmarks/AddBookmark/components/AddTags";
 import InputWithPaste from "@/features/bookmarks/AddBookmark/components/InputWithPaste";
@@ -9,6 +9,7 @@ import ControlledInput from "@/shared/components/molecules/ControlledInput.tsx";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import ControlledTextArea from "@/shared/components/molecules/ControlledTextArea";
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
+import { BOOKMARK_FORM_ELEMENTS } from "@/shared/consts";
 import useFolderList from "@/shared/hooks/useFolderList";
 import { cn } from "@/shared/lib/utils";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
@@ -21,9 +22,21 @@ interface DetailEditProps {
     tags: Tag[];
     parent_id: string | null;
   };
+  onSubmit?: (event: FormEvent<HTMLFormElement>) => void;
+  errorMessages?: {
+    url?: string;
+    title?: string;
+    note?: string;
+  };
+  formId: string;
 }
 
-export default function DetailEdit({ initial }: DetailEditProps) {
+export default function DetailEdit({
+  initial,
+  onSubmit,
+  errorMessages,
+  formId,
+}: DetailEditProps) {
   const { data: folders } = useFolderList();
   const folderList = useMemo(
     () =>
@@ -35,13 +48,21 @@ export default function DetailEdit({ initial }: DetailEditProps) {
   );
 
   return (
-    <form className={"flex flex-col gap-5"}>
+    <form
+      className={"flex flex-col gap-5"}
+      onSubmit={onSubmit ? onSubmit : () => null}
+      id={formId}
+    >
       <div className={"flex-center-between"}>
-        <LabeledElement label={"Title"} variants={"blank"}>
+        <LabeledElement
+          label={"Title"}
+          variants={"blank"}
+          errorMessage={errorMessages?.title}
+        >
           <ControlledInput
             placeholder={"Enter bookmark title"}
-            className={cn("text-2xl text-black", STYLES.common_input)}
-            name={FORM_ELEMENTS.TITLE}
+            className={cn("text-xl text-black", STYLES.common_input)}
+            name={BOOKMARK_FORM_ELEMENTS.TITLE}
             passedValue={initial.title}
           />
         </LabeledElement>
@@ -55,12 +76,12 @@ export default function DetailEdit({ initial }: DetailEditProps) {
                 folderList.map((folder) => folder.data_id),
                 initial.parent_id
               )}
-              name={FORM_ELEMENTS.FOLDER}
+              name={BOOKMARK_FORM_ELEMENTS.FOLDER}
             />
           </div>
         </LabeledElement>
       </div>
-      <LabeledElement label={"URL"}>
+      <LabeledElement label={"URL"} errorMessage={errorMessages?.url}>
         {/* FIXME: InputWithPaste 위치를 common으로 수정 */}
         <InputWithPaste
           input={({ key, value, onChange }) => (
@@ -69,7 +90,7 @@ export default function DetailEdit({ initial }: DetailEditProps) {
               key={key}
               placeholder={"https://example.com"}
               className={COMMON_STYLES.input}
-              name={FORM_ELEMENTS.URL}
+              name={BOOKMARK_FORM_ELEMENTS.URL}
               value={value}
               onChange={onChange}
             />
@@ -77,12 +98,15 @@ export default function DetailEdit({ initial }: DetailEditProps) {
           defaultValue={initial.url}
         />
       </LabeledElement>
-      <LabeledElement label={"Note (Optional)"}>
+      <LabeledElement
+        label={"Note (Optional)"}
+        errorMessage={errorMessages?.note}
+      >
         <ControlledTextArea
           placeholder={"Add your notes here..."}
           className={cn(COMMON_STYLES.input, STYLES.textarea)}
           defaultValue={initial.description}
-          name={FORM_ELEMENTS.NOTE}
+          name={BOOKMARK_FORM_ELEMENTS.NOTE}
         />
       </LabeledElement>
       <div>
@@ -107,11 +131,4 @@ const STYLES = {
   common_input:
     "rounded-md border border-neutral-300 px-2 py-0.5 text-black focus:border-blue-500 focus:outline-blue-500",
   textarea: "h-[6rem] resize-none",
-};
-
-const FORM_ELEMENTS = {
-  URL: "URL",
-  TITLE: "Title",
-  NOTE: "Note",
-  FOLDER: "Folder",
 };

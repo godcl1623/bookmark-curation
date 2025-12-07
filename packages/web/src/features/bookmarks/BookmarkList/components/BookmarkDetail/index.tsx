@@ -4,6 +4,7 @@ import { Calendar, CalendarCog, Edit, Share2, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
+import BasicDetailView from "@/features/bookmarks/BookmarkList/components/BookmarkDetail/BasicDetailView.tsx";
 import DetailEdit from "@/features/bookmarks/BookmarkList/components/BookmarkDetail/DetailEdit";
 import Button from "@/shared/components/atoms/button";
 import ModalLayout from "@/shared/components/layouts/modal";
@@ -12,8 +13,11 @@ import {
   CardAction,
   CardDescription,
 } from "@/shared/components/organisms/card";
+import useEdit from "@/shared/hooks/useEdit.ts";
+import useHandleSubmit from "@/shared/hooks/useHandleSubmit";
 import { cn } from "@/shared/lib/utils";
 import deleteBookmark from "@/shared/services/bookmarks/delete-bookmark";
+import updateBookmark from "@/shared/services/bookmarks/update-bookmark";
 import type { BasicComponentProps } from "@/shared/types";
 
 export default function BookmarkDetail({
@@ -23,9 +27,23 @@ export default function BookmarkDetail({
   refetch,
   ...props
 }: DefaultModalChildrenProps & Bookmark & { refetch?: () => void }) {
+  const [isEdit, changeEditMode] = useEdit();
+
+  const { urlErrorMessage, titleErrorMessage, noteErrorMessage, handleSubmit } =
+    useHandleSubmit({
+      onSubmit: (data) => updateBookmark(data_id, data),
+      successMessage: "북마크를 성공적으로 수정했습니다.",
+      errorMessage: "북마크 수정에 실패했습니다.",
+    });
+
   const deleteCallback = () => {
     refetch?.();
     resolve();
+  };
+
+  const updateCallback = () => {
+    refetch?.();
+    changeEditMode(false)();
   };
 
   return (
@@ -37,40 +55,47 @@ export default function BookmarkDetail({
         title={"Bookmark Details"}
         actionComponent={() => (
           <CardAction
-            className={
-              "grid w-full grid-cols-3 gap-2 border-t border-neutral-200 p-5"
-            }
+            className={cn(
+              "grid w-full gap-2 border-t border-neutral-200 p-5",
+              isEdit ? "grid-cols-2" : "grid-cols-3"
+            )}
           >
-            <ActionButton style={"primary"}>
-              <Share2 />
-              Share
-            </ActionButton>
-            <ActionButton>
-              <Edit />
-              Edit
-            </ActionButton>
-            <ActionButton
-              style={"cancel"}
-              onClick={handleDelete(data_id, deleteCallback)}
-            >
-              <Trash2 />
-              Delete
-            </ActionButton>
+            {isEdit ? (
+              <EditAcitonSet
+                onCancel={changeEditMode(false)}
+                formId={FORM_ID}
+              />
+            ) : (
+              <DetailActionSet
+                onEdit={changeEditMode(true)}
+                onDelete={handleDelete(data_id, deleteCallback)}
+              />
+            )}
           </CardAction>
         )}
       >
         <div className={"h-1/2 w-full bg-neutral-100"} />
         <CardDescription className={"flex flex-col gap-5 p-5"}>
-          {/*<BasicDetailView data_id={data_id} {...props} />*/}
-          <DetailEdit
-            initial={{
-              title: props.title,
-              url: props.url,
-              description: props.description ?? "",
-              tags: props.tags,
-              parent_id: props.parent_id,
-            }}
-          />
+          {isEdit ? (
+            <DetailEdit
+              formId={FORM_ID}
+              initial={{
+                title: props.title,
+                url: props.url,
+                description: props.description ?? "",
+                tags: props.tags,
+                parent_id: props.parent_id,
+              }}
+              onSubmit={handleSubmit(updateCallback)}
+              errorMessages={{
+                url: urlErrorMessage,
+                title: titleErrorMessage,
+                note: noteErrorMessage,
+              }}
+            />
+          ) : (
+            <BasicDetailView data_id={data_id} {...props} />
+          )}
           <DateInfo
             created_at={props.created_at}
             updated_at={props.updated_at}
@@ -80,6 +105,8 @@ export default function BookmarkDetail({
     </ModalLayout>
   );
 }
+
+const FORM_ID = "bookmark-detail-edit-form";
 
 const handleDelete = (data_id: string, callback?: () => void) => async () => {
   try {
@@ -101,12 +128,16 @@ const handleDelete = (data_id: string, callback?: () => void) => async () => {
 interface ActionButtonProps extends BasicComponentProps {
   style?: "primary" | "secondary" | "cancel";
   onClick?: () => void;
+  form?: string;
+  type?: "submit" | "button";
 }
 
 function ActionButton({
   children,
   style = "secondary",
   onClick = () => null,
+  form,
+  type = "button",
 }: ActionButtonProps) {
   const styles = {
     primary: "bg-blue-100 text-blue-500",
@@ -116,6 +147,8 @@ function ActionButton({
 
   return (
     <Button
+      type={type}
+      {...(form && { form })}
       size={"custom"}
       variant={"blank"}
       className={cn("w-full py-1.5 text-base", styles[style])}
@@ -123,6 +156,46 @@ function ActionButton({
     >
       {children}
     </Button>
+  );
+}
+
+interface DetailActionSetProps {
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function DetailActionSet({ onEdit, onDelete }: DetailActionSetProps) {
+  return (
+    <>
+      <ActionButton style={"primary"}>
+        <Share2 />
+        Share
+      </ActionButton>
+      <ActionButton onClick={onEdit}>
+        <Edit />
+        Edit
+      </ActionButton>
+      <ActionButton style={"cancel"} onClick={onDelete}>
+        <Trash2 />
+        Delete
+      </ActionButton>
+    </>
+  );
+}
+
+interface EditActionSetProps {
+  onCancel: () => void;
+  formId: string;
+}
+
+function EditAcitonSet({ onCancel, formId }: EditActionSetProps) {
+  return (
+    <>
+      <ActionButton onClick={onCancel}>Cancel</ActionButton>
+      <ActionButton style={"primary"} form={formId} type={"submit"}>
+        Submit
+      </ActionButton>
+    </>
   );
 }
 
