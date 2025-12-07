@@ -8,6 +8,7 @@ import { findIndex } from "@/features/bookmarks/Header/utils";
 import ControlledInput from "@/shared/components/molecules/ControlledInput.tsx";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import ControlledTextArea from "@/shared/components/molecules/ControlledTextArea";
+import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import useFolderList from "@/shared/hooks/useFolderList";
 import { cn } from "@/shared/lib/utils";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
@@ -34,28 +35,32 @@ export default function DetailEdit({ initial }: DetailEditProps) {
   );
 
   return (
-    <form>
+    <form className={"flex flex-col gap-5"}>
       <div className={"flex-center-between"}>
-        <ControlledInput
-          placeholder={"Enter bookmark title"}
-          className={cn("text-2xl text-black", STYLES.common_input)}
-          name={FORM_ELEMENTS.TITLE}
-          passedValue={initial.title}
-        />
-        <div
-          className={"flex-center gap-2 rounded-md border border-neutral-300"}
-        >
-          <ControlledSelect
-            values={folderList}
-            initialIndex={findIndex(
-              folderList.map((folder) => folder.data_id),
-              initial.parent_id
-            )}
-            name={FORM_ELEMENTS.FOLDER}
+        <LabeledElement label={"Title"} variants={"blank"}>
+          <ControlledInput
+            placeholder={"Enter bookmark title"}
+            className={cn("text-2xl text-black", STYLES.common_input)}
+            name={FORM_ELEMENTS.TITLE}
+            passedValue={initial.title}
           />
-        </div>
+        </LabeledElement>
+        <LabeledElement label={"Folder (Optional)"} variants={"blank"}>
+          <div
+            className={"flex-center gap-2 rounded-md border border-neutral-300"}
+          >
+            <ControlledSelect
+              values={folderList}
+              initialIndex={findIndex(
+                folderList.map((folder) => folder.data_id),
+                initial.parent_id
+              )}
+              name={FORM_ELEMENTS.FOLDER}
+            />
+          </div>
+        </LabeledElement>
       </div>
-      <div className={cn("my-5", STYLES.common_input)}>
+      <LabeledElement label={"URL"}>
         {/* FIXME: InputWithPaste 위치를 common으로 수정 */}
         <InputWithPaste
           input={({ key, value, onChange }) => (
@@ -71,20 +76,15 @@ export default function DetailEdit({ initial }: DetailEditProps) {
           )}
           defaultValue={initial.url}
         />
-      </div>
-      <div className={"my-5"}>
-        <h3 className={"text-base"}>Description</h3>
+      </LabeledElement>
+      <LabeledElement label={"Note (Optional)"}>
         <ControlledTextArea
           placeholder={"Add your notes here..."}
-          className={cn(
-            COMMON_STYLES.input,
-            STYLES.textarea,
-            STYLES.common_input
-          )}
+          className={cn(COMMON_STYLES.input, STYLES.textarea)}
           defaultValue={initial.description}
           name={FORM_ELEMENTS.NOTE}
         />
-      </div>
+      </LabeledElement>
       <div>
         <AddTags
           input={({ value, onClick, onChange }) => (
@@ -96,6 +96,7 @@ export default function DetailEdit({ initial }: DetailEditProps) {
               onChange={onChange}
             />
           )}
+          initialList={initial.tags}
         />
       </div>
     </form>

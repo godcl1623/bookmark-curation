@@ -20,9 +20,10 @@ import createNewTag from "@/shared/services/tags/create-new-tag";
 
 interface AddTagsProps {
   input?: (props: ComponentProps<"input">) => ReactNode;
+  initialList?: TagType[];
 }
 
-export default function AddTags({ input }: AddTagsProps) {
+export default function AddTags({ input, initialList = [] }: AddTagsProps) {
   const { tags, addTag, addNewTag, removeTag } = useTags();
   const { debouncedValue, inputValue, changeValue, handleChange } =
     useDebouncedInput();
@@ -55,7 +56,7 @@ export default function AddTags({ input }: AddTagsProps) {
         </LabeledElement>
       </div>
       <ul className={"flex w-full flex-wrap gap-2"}>
-        {tags.map((tag) => (
+        {initialList.concat(tags).map((tag) => (
           <li key={`tag-added-${tag.id}`} data-id={tag.id}>
             <TagItem
               tag={tag.name}

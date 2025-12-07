@@ -67,7 +67,7 @@ export default function BookmarkDetail({
               title: props.title,
               url: props.url,
               description: props.description ?? "",
-              tags: [],
+              tags: props.tags,
               parent_id: props.parent_id,
             }}
           />
