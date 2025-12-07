@@ -4,6 +4,7 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: linkvault-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_DB: linkvault
       POSTGRES_USER: linkvault_app
