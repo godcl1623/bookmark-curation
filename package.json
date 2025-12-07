@@ -8,6 +8,7 @@
     "dev": "npm run dev --workspace=@linkvault/web",
     "dev:api": "npm run dev --workspace=@linkvault/api",
     "dev:web": "npm run dev --workspace=@linkvault/web",
+    "kill:force": "fuser -k 3002/tcp 2>/dev/null || true; fuser -k 5173/tcp 2>/dev/null || true; pkill -9 -f 'tsx.*src/index' || true; pkill -9 -f 'vite$' || true; pkill -9 -f 'node.*vite' || true; sleep 1; echo 'Force killed all dev servers'",
     "install:all": "npm install --workspaces",
     "build": "npm run build --workspaces",
     "lint": "npm run lint --workspaces"

@@ -73,6 +73,7 @@ Docker Compose가 자동으로 다음을 수행합니다:
 - `linkvault` 데이터베이스 생성
 - `linkvault_app` 사용자 생성
 - `app` 스키마 생성 및 권한 설정
+- 컨테이너 자동 재시작 설정 (`restart: unless-stopped`)
 
 만약 로컬에서 실행중인 PostgreSQL과 별도로 Docker 컨테이너 실행을 희망하시는 경우, 다음 두 파일에서 DB에 할당할 포트 번호를 지정해주시기 바랍니다.
 - .env
@@ -197,18 +198,45 @@ npx prisma migrate reset
 
 ## 트러블슈팅
 
+### 컴퓨터 재시작 후 데이터가 없는 경우
+
+**증상**: Windows/WSL2 재시작 후 데이터베이스는 존재하지만 테이블이 없음
+
+**원인**: Docker Desktop이 컨테이너를 삭제하여 새로 생성됨
+
+**해결**: 이미 `docker-compose.yml`에 `restart: unless-stopped` 설정이 되어 있으므로, 컨테이너가 자동으로 재시작됩니다.
+
+```bash
+# 컴퓨터 재시작 후
+docker compose up -d  # Docker Desktop이 자동 시작하지 않은 경우만
+
+# 데이터 확인
+docker exec linkvault-postgres psql -U linkvault_app -d linkvault -c "SELECT COUNT(*) FROM app.bookmarks;"
+```
+
+**주의**: `docker compose down -v` 명령어는 볼륨까지 삭제하므로 **절대 사용하지 마세요**. 컨테이너만 정지하려면 `docker compose stop` 또는 `docker compose down`을 사용하세요.
+
 ### Docker 컨테이너 관련
 
 ```bash
 # 컨테이너 로그 확인
-docker-compose logs postgres
+docker compose logs postgres
 
 # 컨테이너 재시작
-docker-compose restart postgres
+docker compose restart postgres
 
-# 모든 것을 초기화하고 다시 시작
-docker-compose down -v
-docker-compose up -d
+# 컨테이너 정지 (데이터 유지)
+docker compose stop
+
+# 컨테이너 정지 및 삭제 (데이터 유지)
+docker compose down
+
+# ⚠️ 주의: 모든 것을 초기화하고 다시 시작 (데이터 삭제!)
+docker compose down -v
+docker compose up -d
+npx prisma generate
+npx prisma migrate deploy
+npm run prisma:seed --workspace=@linkvault/api
 ```
 
 ### Prisma 마이그레이션 오류
