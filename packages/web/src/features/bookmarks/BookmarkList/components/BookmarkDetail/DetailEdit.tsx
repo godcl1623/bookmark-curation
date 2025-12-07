@@ -1,11 +1,16 @@
 import type { Tag } from "@linkvault/shared";
-import { Calendar, CalendarCog, ExternalLink, Link } from "lucide-react";
+import { useMemo } from "react";
 
+import AddTags from "@/features/bookmarks/AddBookmark/components/AddTags";
 import InputWithPaste from "@/features/bookmarks/AddBookmark/components/InputWithPaste";
 import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
-import FolderTag from "@/features/bookmarks/BookmarkList/components/BookmarkCard/FolderTag.tsx";
+import { findIndex } from "@/features/bookmarks/Header/utils";
 import ControlledInput from "@/shared/components/molecules/ControlledInput.tsx";
-import TagItem from "@/shared/components/molecules/TagItem.tsx";
+import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
+import ControlledTextArea from "@/shared/components/molecules/ControlledTextArea";
+import useFolderList from "@/shared/hooks/useFolderList";
+import { cn } from "@/shared/lib/utils";
+import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
 
 interface DetailEditProps {
   initial: {
@@ -18,6 +23,16 @@ interface DetailEditProps {
 }
 
 export default function DetailEdit({ initial }: DetailEditProps) {
+  const { data: folders } = useFolderList();
+  const folderList = useMemo(
+    () =>
+      generateFolderOptions(
+        extractFoldersProperty(folders ?? [], "title"),
+        extractFoldersProperty(folders ?? [], "data_id")
+      ),
+    [folders]
+  );
+
   return (
     <form>
       <div className={"flex-center-between"}>
@@ -27,6 +42,18 @@ export default function DetailEdit({ initial }: DetailEditProps) {
           name={"title"}
           passedValue={initial.title}
         />
+        <div className={"flex-center gap-2"}>
+          <ControlledSelect
+            values={folderList}
+            initialIndex={findIndex(
+              folderList.map((folder) => folder.data_id),
+              initial.parent_id
+            )}
+            name={"folder"}
+          />
+        </div>
+      </div>
+      <div className={"flex-col-center-center gap-2"}>
         {/* FIXME: InputWithPaste 위치를 common으로 수정 */}
         <InputWithPaste
           input={({ key, value, onChange }) => (
@@ -42,29 +69,15 @@ export default function DetailEdit({ initial }: DetailEditProps) {
             />
           )}
         />
-        <div className={"flex-center gap-2"}>
-          <FolderTag>{parent?.title}</FolderTag>
-        </div>
-      </div>
-      <div className={"flex-col-center-center gap-2"}>
-        <p className={"flex-center w-full gap-2"}>
-          <Link className={"size-4"} />
-          <span className={"mb-1"}>{domain}</span>
-        </p>
-        <a
-          href={url}
-          rel={"noreferrer noopener"}
-          className={
-            "flex-center-center w-full gap-2 rounded-md bg-blue-500 py-2 text-white hover:brightness-95 active:brightness-90"
-          }
-        >
-          <ExternalLink className={"size-5"} />
-          Open Link
-        </a>
       </div>
       <div>
         <h3 className={"text-base"}>Description</h3>
-        <p className={"text-sm"}>{description}</p>
+        <ControlledTextArea
+          placeholder={"Add your notes here..."}
+          className={cn(COMMON_STYLES.input, "h-[6rem] resize-none")}
+          defaultValue={initial.description}
+          name={"notes"}
+        />
       </div>
       <div>
         <h3
@@ -74,39 +87,17 @@ export default function DetailEdit({ initial }: DetailEditProps) {
         >
           Tags
         </h3>
-        <ul className={"flex-center gap-2"}>
-          {tags.map((tag) => (
-            <li key={`detail_tag_${tag.id}`}>
-              <TagItem tag={tag.name} />
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div
-        className={"flex-center-between border-t border-neutral-200 px-5 pt-5"}
-      >
-        <div className={"flex-center gap-2"}>
-          <div className={"rounded-lg bg-neutral-100 p-2"}>
-            <Calendar />
-          </div>
-          <div>
-            <h3 className={"text-xs font-semibold"}>Created:</h3>
-            <p className={"text-lg font-bold text-black"}>
-              {created_at.split("T")[0]}
-            </p>
-          </div>
-        </div>
-        <div className={"flex-center gap-2"}>
-          <div className={"rounded-lg bg-neutral-100 p-2"}>
-            <CalendarCog />
-          </div>
-          <div>
-            <h3 className={"text-xs font-semibold"}>Modified:</h3>
-            <p className={"text-lg font-bold text-black"}>
-              {updated_at.split("T")[0]}
-            </p>
-          </div>
-        </div>
+        <AddTags
+          input={({ value, onClick, onChange }) => (
+            <input
+              value={value}
+              placeholder={"Add tags..."}
+              className={COMMON_STYLES.input}
+              onClick={onClick}
+              onChange={onChange}
+            />
+          )}
+        />
       </div>
     </form>
   );

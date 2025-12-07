@@ -1,5 +1,5 @@
 import type { Bookmark } from "@linkvault/shared";
-import { Calendar, CalendarCog, ExternalLink, Link, Star } from "lucide-react";
+import { ExternalLink, Link, Star } from "lucide-react";
 
 import FolderTag from "@/features/bookmarks/BookmarkList/components/BookmarkCard/FolderTag.tsx";
 import Button from "@/shared/components/atoms/button.tsx";
@@ -11,8 +11,6 @@ export default function BasicDetailView({
   description,
   parent,
   url,
-  created_at,
-  updated_at,
   tags,
 }: Bookmark) {
   return (
@@ -61,32 +59,6 @@ export default function BasicDetailView({
             </li>
           ))}
         </ul>
-      </div>
-      <div
-        className={"flex-center-between border-t border-neutral-200 px-5 pt-5"}
-      >
-        <div className={"flex-center gap-2"}>
-          <div className={"rounded-lg bg-neutral-100 p-2"}>
-            <Calendar />
-          </div>
-          <div>
-            <h3 className={"text-xs font-semibold"}>Created:</h3>
-            <p className={"text-lg font-bold text-black"}>
-              {created_at.split("T")[0]}
-            </p>
-          </div>
-        </div>
-        <div className={"flex-center gap-2"}>
-          <div className={"rounded-lg bg-neutral-100 p-2"}>
-            <CalendarCog />
-          </div>
-          <div>
-            <h3 className={"text-xs font-semibold"}>Modified:</h3>
-            <p className={"text-lg font-bold text-black"}>
-              {updated_at.split("T")[0]}
-            </p>
-          </div>
-        </div>
       </div>
     </>
   );

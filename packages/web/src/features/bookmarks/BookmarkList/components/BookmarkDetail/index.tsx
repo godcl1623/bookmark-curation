@@ -1,10 +1,10 @@
 import type { Bookmark } from "@linkvault/shared";
 import { type AxiosResponse, isAxiosError } from "axios";
-import { Edit, Share2, Trash2 } from "lucide-react";
+import { Calendar, CalendarCog, Edit, Share2, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
-import BasicDetailView from "@/features/bookmarks/BookmarkList/components/BookmarkDetail/BasicDetailView.tsx";
+import DetailEdit from "@/features/bookmarks/BookmarkList/components/BookmarkDetail/DetailEdit";
 import Button from "@/shared/components/atoms/button";
 import ModalLayout from "@/shared/components/layouts/modal";
 import ModalTemplate from "@/shared/components/layouts/modal/ModalTemplate";
@@ -61,7 +61,20 @@ export default function BookmarkDetail({
       >
         <div className={"h-1/2 w-full bg-neutral-100"} />
         <CardDescription className={"flex flex-col gap-5 p-5"}>
-          <BasicDetailView data_id={data_id} {...props} />
+          {/*<BasicDetailView data_id={data_id} {...props} />*/}
+          <DetailEdit
+            initial={{
+              title: props.title,
+              url: props.url,
+              description: props.description ?? "",
+              tags: [],
+              parent_id: props.parent_id,
+            }}
+          />
+          <DateInfo
+            created_at={props.created_at}
+            updated_at={props.updated_at}
+          />
         </CardDescription>
       </ModalTemplate>
     </ModalLayout>
@@ -110,5 +123,41 @@ function ActionButton({
     >
       {children}
     </Button>
+  );
+}
+
+interface DateInfoProps {
+  created_at?: string;
+  updated_at?: string;
+}
+
+function DateInfo({ created_at, updated_at }: DateInfoProps) {
+  return (
+    <div
+      className={"flex-center-between border-t border-neutral-200 px-5 pt-5"}
+    >
+      <div className={"flex-center gap-2"}>
+        <div className={"rounded-lg bg-neutral-100 p-2"}>
+          <Calendar />
+        </div>
+        <div>
+          <h3 className={"text-xs font-semibold"}>Created:</h3>
+          <p className={"text-lg font-bold text-black"}>
+            {created_at ? created_at.split("T")[0] : "-"}
+          </p>
+        </div>
+      </div>
+      <div className={"flex-center gap-2"}>
+        <div className={"rounded-lg bg-neutral-100 p-2"}>
+          <CalendarCog />
+        </div>
+        <div>
+          <h3 className={"text-xs font-semibold"}>Modified:</h3>
+          <p className={"text-lg font-bold text-black"}>
+            {updated_at ? updated_at.split("T")[0] : "-"}
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
