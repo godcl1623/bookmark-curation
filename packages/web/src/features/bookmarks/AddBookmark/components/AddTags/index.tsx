@@ -24,7 +24,7 @@ interface AddTagsProps {
 }
 
 export default function AddTags({ input, initialList = [] }: AddTagsProps) {
-  const { tags, addTag, addNewTag, removeTag } = useTags();
+  const { tags, addTag, addNewTag, removeTag } = useTags(initialList);
   const { debouncedValue, inputValue, changeValue, handleChange } =
     useDebouncedInput();
   const { wrapperRect, wrapperRef } = useInputWrapperRect();
@@ -56,7 +56,7 @@ export default function AddTags({ input, initialList = [] }: AddTagsProps) {
         </LabeledElement>
       </div>
       <ul className={"flex w-full flex-wrap gap-2"}>
-        {initialList.concat(tags).map((tag) => (
+        {tags.map((tag) => (
           <li key={`tag-added-${tag.id}`} data-id={tag.id}>
             <TagItem
               tag={tag.name}
@@ -70,7 +70,7 @@ export default function AddTags({ input, initialList = [] }: AddTagsProps) {
   );
 }
 
-const useTags = () => {
+const useTags = (initialList: TagType[] = []) => {
   const [tags, setTags] = useState<TagType[]>([]);
 
   const addTag = (tag: TagType) => {
@@ -97,6 +97,13 @@ const useTags = () => {
   const removeTag = (id: number) => {
     setTags((prev) => prev.filter((tag) => tag.id !== id));
   };
+
+  useEffect(() => {
+    setTags((prev) => [
+      ...initialList,
+      ...prev.filter((tag) => !initialList.includes(tag)),
+    ]);
+  }, [initialList]);
 
   return { tags, addTag, addNewTag, removeTag };
 };

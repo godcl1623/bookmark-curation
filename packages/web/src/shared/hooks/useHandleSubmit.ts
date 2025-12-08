@@ -1,4 +1,4 @@
-import { type AxiosResponse, isAxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { type FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -13,7 +13,7 @@ export type BookmarkFormData = {
 };
 
 interface UseHandleSubmitOptions {
-  onSubmit: (data: BookmarkFormData) => Promise<AxiosResponse>;
+  onSubmit: (data: BookmarkFormData) => Promise<{ ok: boolean; data: unknown }>;
   successMessage?: string;
   errorMessage?: string;
 }
@@ -162,7 +162,7 @@ const useHandleSubmit = ({
 
       try {
         const result = await onSubmit(formData);
-        if (result.status === 200 || result.status === 201) {
+        if (result.ok) {
           toast.success(successMessage);
           successCallback?.();
         }
