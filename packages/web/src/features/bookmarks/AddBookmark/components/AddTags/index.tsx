@@ -20,10 +20,11 @@ import createNewTag from "@/shared/services/tags/create-new-tag";
 
 interface AddTagsProps {
   input?: (props: ComponentProps<"input">) => ReactNode;
+  initialList?: TagType[];
 }
 
-export default function AddTags({ input }: AddTagsProps) {
-  const { tags, addTag, addNewTag, removeTag } = useTags();
+export default function AddTags({ input, initialList = [] }: AddTagsProps) {
+  const { tags, addTag, addNewTag, removeTag } = useTags(initialList);
   const { debouncedValue, inputValue, changeValue, handleChange } =
     useDebouncedInput();
   const { wrapperRect, wrapperRef } = useInputWrapperRect();
@@ -69,7 +70,7 @@ export default function AddTags({ input }: AddTagsProps) {
   );
 }
 
-const useTags = () => {
+const useTags = (initialList: TagType[] = []) => {
   const [tags, setTags] = useState<TagType[]>([]);
 
   const addTag = (tag: TagType) => {
@@ -96,6 +97,13 @@ const useTags = () => {
   const removeTag = (id: number) => {
     setTags((prev) => prev.filter((tag) => tag.id !== id));
   };
+
+  useEffect(() => {
+    setTags((prev) => [
+      ...initialList,
+      ...prev.filter((tag) => !initialList.includes(tag)),
+    ]);
+  }, [initialList]);
 
   return { tags, addTag, addNewTag, removeTag };
 };

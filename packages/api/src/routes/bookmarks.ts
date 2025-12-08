@@ -37,7 +37,17 @@ router.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (_req, res) => {
         created_at: "desc",
       },
     });
-    res.json({ ok: true, data: bookmarks });
+
+    // Transform bookmark_tags to flat tags array
+    const bookmarksWithTags = bookmarks.map((bookmark) => {
+      const { bookmark_tags, ...rest } = bookmark;
+      return {
+        ...rest,
+        tags: bookmark_tags.map((bt) => bt.tags),
+      };
+    });
+
+    res.json({ ok: true, data: bookmarksWithTags });
   } catch (error) {
     res.status(500).json({
       ok: false,
@@ -84,7 +94,14 @@ router.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, async (req, res) => {
       return res.status(404).json({ ok: false, error: "Bookmark not found" });
     }
 
-    res.json({ ok: true, data: bookmark });
+    // Transform bookmark_tags to flat tags array
+    const { bookmark_tags, ...rest } = bookmark;
+    const bookmarkWithTags = {
+      ...rest,
+      tags: bookmark_tags.map((bt) => bt.tags),
+    };
+
+    res.json({ ok: true, data: bookmarkWithTags });
   } catch (error) {
     res.status(500).json({
       ok: false,
@@ -130,14 +147,15 @@ function validateUrl(url: string | undefined): {
 
   // Check length
   if (processedUrl.length > 2000) {
-    return { valid: false, error: "URL은 최대 2,000자 까지 입력할 수 있습니다." };
+    return {
+      valid: false,
+      error: "URL은 최대 2,000자 까지 입력할 수 있습니다.",
+    };
   }
 
   // Validate with URL constructor
   try {
-    const testUrl = isUrlWithScheme
-      ? processedUrl
-      : `https://${processedUrl}`;
+    const testUrl = isUrlWithScheme ? processedUrl : `https://${processedUrl}`;
     const result = new URL(testUrl);
 
     if (!/^https?:$/.test(result.protocol) || !result.hostname) {
@@ -167,7 +185,10 @@ function validateTitle(title: string | undefined): {
   }
 
   if (title.length > 200) {
-    return { valid: false, error: "제목은 최대 200자 까지 입력할 수 있습니다." };
+    return {
+      valid: false,
+      error: "제목은 최대 200자 까지 입력할 수 있습니다.",
+    };
   }
 
   return { valid: true, title: title.trim() };
@@ -211,7 +232,7 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
       type,
       tag_ids,
     } = req.body;
-    const userId = 1; // TODO: Get from auth session
+    const userId = 3; // TODO: Get from auth session
 
     // Validate required fields
     if (!data_id) {
@@ -378,7 +399,18 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
       },
     });
 
-    res.status(201).json({ ok: true, data: createdBookmark });
+    // Transform bookmark_tags to flat tags array
+    const bookmarkWithTags = createdBookmark
+      ? (() => {
+          const { bookmark_tags, ...rest } = createdBookmark;
+          return {
+            ...rest,
+            tags: bookmark_tags.map((bt) => bt.tags),
+          };
+        })()
+      : null;
+
+    res.status(201).json({ ok: true, data: bookmarkWithTags });
   } catch (error) {
     // Handle unique constraint violation
     if (error instanceof Error && error.message.includes("Unique constraint")) {
@@ -395,13 +427,118 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
   }
 });
 
+// Patch bookmark status (for quick state changes like favorite, archive, etc.)
+router.patch(
+  SERVICE_ENDPOINTS.BOOKMARKS.ALL.path + "/:data_id",
+  async (req, res) => {
+    try {
+      const { data_id } = req.params;
+      const userId = 3; // TODO: Get from auth session
+
+      if (!data_id) {
+        return res
+          .status(400)
+          .json({ ok: false, error: "data_id is required" });
+      }
+
+      // Check if bookmark exists and belongs to user
+      const existingBookmark = await prisma.bookmarks.findFirst({
+        where: {
+          data_id,
+          user_id: userId,
+          deleted_at: null,
+        },
+      });
+
+      if (!existingBookmark) {
+        return res.status(404).json({
+          ok: false,
+          error: "Bookmark not found or access denied",
+        });
+      }
+
+      const { is_favorite, is_archived, is_private } = req.body;
+
+      // Build update data object with only provided status fields
+      const updateData: any = {
+        updated_at: new Date(),
+      };
+
+      // Only allow status field updates via PATCH
+      if (is_favorite !== undefined) updateData.is_favorite = is_favorite;
+      if (is_archived !== undefined) updateData.is_archived = is_archived;
+      if (is_private !== undefined) updateData.is_private = is_private;
+
+      // Check if at least one field is provided
+      if (Object.keys(updateData).length === 1) {
+        // Only updated_at is present
+        return res.status(400).json({
+          ok: false,
+          error: "At least one status field (is_favorite, is_archived, is_private) must be provided",
+        });
+      }
+
+      // Update bookmark status fields
+      await prisma.bookmarks.update({
+        where: { id: existingBookmark.id },
+        data: updateData,
+      });
+
+      // Fetch the updated bookmark with all relations
+      const updatedBookmark = await prisma.bookmarks.findUnique({
+        where: { id: existingBookmark.id },
+        include: {
+          users: {
+            select: {
+              id: true,
+              display_name: true,
+              avatar_url: true,
+            },
+          },
+          folders: {
+            select: {
+              id: true,
+              title: true,
+              color: true,
+            },
+          },
+          bookmark_tags: {
+            include: {
+              tags: true,
+            },
+          },
+          media: true,
+        },
+      });
+
+      // Transform bookmark_tags to flat tags array
+      const bookmarkWithTags = updatedBookmark
+        ? (() => {
+            const { bookmark_tags, ...rest } = updatedBookmark;
+            return {
+              ...rest,
+              tags: bookmark_tags.map((bt) => bt.tags),
+            };
+          })()
+        : null;
+
+      res.json({ ok: true, data: bookmarkWithTags });
+    } catch (error) {
+      res.status(500).json({
+        ok: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
 // Update a bookmark
 router.put(
   SERVICE_ENDPOINTS.BOOKMARKS.ALL.path + "/:data_id",
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = 1; // TODO: Get from auth session
+      const userId = 3; // TODO: Get from auth session
 
       if (!data_id) {
         return res
@@ -617,7 +754,18 @@ router.put(
         },
       });
 
-      res.json({ ok: true, data: updatedBookmark });
+      // Transform bookmark_tags to flat tags array
+      const bookmarkWithTags = updatedBookmark
+        ? (() => {
+            const { bookmark_tags, ...rest } = updatedBookmark;
+            return {
+              ...rest,
+              tags: bookmark_tags.map((bt) => bt.tags),
+            };
+          })()
+        : null;
+
+      res.json({ ok: true, data: bookmarkWithTags });
     } catch (error) {
       // Handle unique constraint violation
       if (
@@ -635,7 +783,7 @@ router.put(
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
-  }
+  },
 );
 
 // Delete a bookmark (soft delete)
@@ -644,7 +792,7 @@ router.delete(
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = 1; // TODO: Get from auth session
+      const userId = 3; // TODO: Get from auth session
 
       if (!data_id) {
         return res
@@ -683,7 +831,7 @@ router.delete(
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
-  }
+  },
 );
 
 export default router;

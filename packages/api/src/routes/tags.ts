@@ -51,7 +51,7 @@ router.get(SERVICE_ENDPOINTS.TAGS.path, async (req, res) => {
 router.post(SERVICE_ENDPOINTS.TAGS.path, async (req, res) => {
   try {
     const { name, color } = req.body;
-    const userId = 1; // TODO: Get from auth session
+    const userId = 3; // TODO: Get from auth session
 
     if (!name) {
       return res.status(400).json({
@@ -109,7 +109,7 @@ router.post(SERVICE_ENDPOINTS.TAGS.path, async (req, res) => {
 router.put(SERVICE_ENDPOINTS.TAGS.path + "/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const userId = 1; // TODO: Get from auth session
+    const userId = 3; // TODO: Get from auth session
 
     if (isNaN(id)) {
       return res.status(400).json({ ok: false, error: "Invalid tag ID" });
@@ -184,7 +184,7 @@ router.put(SERVICE_ENDPOINTS.TAGS.path + "/:id", async (req, res) => {
 router.delete(SERVICE_ENDPOINTS.TAGS.path + "/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const userId = 1; // TODO: Get from auth session
+    const userId = 3; // TODO: Get from auth session
 
     if (isNaN(id)) {
       return res.status(400).json({ ok: false, error: "Invalid tag ID" });

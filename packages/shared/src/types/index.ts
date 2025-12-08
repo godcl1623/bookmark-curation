@@ -56,6 +56,7 @@ export interface Bookmark extends Folder {
   is_private: boolean;
   view_count: number;
   click_count: number;
+  tags: Tag[];
   type: DataType;
 }
 
@@ -82,4 +83,12 @@ export interface BookmarkHistory {
   action: string;
   payload: Record<string, any>;
   created_at: string;
+}
+
+export interface Directory {
+  bookmarks: Bookmark[];
+  breadcrumbs: Folder[];
+  folder: Folder;
+  folders: Folder[];
+  path: string;
 }

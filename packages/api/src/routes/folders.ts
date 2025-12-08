@@ -49,7 +49,7 @@ router.get(SERVICE_ENDPOINTS.FOLDERS.path, async (_req, res) => {
 router.post(SERVICE_ENDPOINTS.FOLDERS.path, async (req, res) => {
   try {
     const { data_id, title, color, parent_id } = req.body;
-    const userId = 1; // TODO: Get from auth session
+    const userId = 3; // TODO: Get from auth session
 
     // Validate required fields
     if (!data_id || !title) {
@@ -152,7 +152,7 @@ router.post(SERVICE_ENDPOINTS.FOLDERS.path, async (req, res) => {
 router.put(SERVICE_ENDPOINTS.FOLDERS.path + "/:data_id", async (req, res) => {
   try {
     const { data_id } = req.params;
-    const userId = 1; // TODO: Get from auth session
+    const userId = 3; // TODO: Get from auth session
 
     if (!data_id) {
       return res.status(400).json({ ok: false, error: "data_id is required" });
@@ -256,62 +256,67 @@ router.put(SERVICE_ENDPOINTS.FOLDERS.path + "/:data_id", async (req, res) => {
 });
 
 // Delete a folder (soft delete)
-router.delete(SERVICE_ENDPOINTS.FOLDERS.path + "/:data_id", async (req, res) => {
-  try {
-    const { data_id } = req.params;
-    const userId = 1; // TODO: Get from auth session
+router.delete(
+  SERVICE_ENDPOINTS.FOLDERS.path + "/:data_id",
+  async (req, res) => {
+    try {
+      const { data_id } = req.params;
+      const userId = 3; // TODO: Get from auth session
 
-    if (!data_id) {
-      return res.status(400).json({ ok: false, error: "data_id is required" });
-    }
+      if (!data_id) {
+        return res
+          .status(400)
+          .json({ ok: false, error: "data_id is required" });
+      }
 
-    // Check if folder exists and belongs to user
-    const existingFolder = await prisma.folders.findFirst({
-      where: {
-        data_id,
-        user_id: userId,
-      },
-      include: {
-        _count: {
-          select: {
-            children: true,
-            bookmarks: true,
+      // Check if folder exists and belongs to user
+      const existingFolder = await prisma.folders.findFirst({
+        where: {
+          data_id,
+          user_id: userId,
+        },
+        include: {
+          _count: {
+            select: {
+              children: true,
+              bookmarks: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    if (!existingFolder) {
-      return res.status(404).json({
+      if (!existingFolder) {
+        return res.status(404).json({
+          ok: false,
+          error: "Folder not found or access denied",
+        });
+      }
+
+      // Optional: Prevent deletion if folder has children or bookmarks
+      // Uncomment if you want to enforce this business rule
+      // if (existingFolder._count.children > 0 || existingFolder._count.bookmarks > 0) {
+      //   return res.status(400).json({
+      //     ok: false,
+      //     error: "Cannot delete folder with children or bookmarks",
+      //   });
+      // }
+
+      // Soft delete by setting deleted_at timestamp
+      const folder = await prisma.folders.update({
+        where: { id: existingFolder.id },
+        data: {
+          deleted_at: new Date(),
+        },
+      });
+
+      res.json({ ok: true, data: folder });
+    } catch (error) {
+      res.status(500).json({
         ok: false,
-        error: "Folder not found or access denied",
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
-
-    // Optional: Prevent deletion if folder has children or bookmarks
-    // Uncomment if you want to enforce this business rule
-    // if (existingFolder._count.children > 0 || existingFolder._count.bookmarks > 0) {
-    //   return res.status(400).json({
-    //     ok: false,
-    //     error: "Cannot delete folder with children or bookmarks",
-    //   });
-    // }
-
-    // Soft delete by setting deleted_at timestamp
-    const folder = await prisma.folders.update({
-      where: { id: existingFolder.id },
-      data: {
-        deleted_at: new Date(),
-      },
-    });
-
-    res.json({ ok: true, data: folder });
-  } catch (error) {
-    res.status(500).json({
-      ok: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-});
+  },
+);
 
 export default router;

@@ -8,13 +8,15 @@ export default function ControlledTextArea({
   ...props
 }: ControlledTextAreaProps &
   Omit<ComponentProps<"textarea">, "value" | "onChange">) {
-  const [inputValue, changeValue] = useTextArea();
+  const [inputValue, changeValue] = useTextArea(
+    String(props.defaultValue ?? "")
+  );
 
   return <textarea value={inputValue} onChange={changeValue} {...props} />;
 }
 
-const useTextArea = () => {
-  const [value, setValue] = useState("");
+const useTextArea = (defaultValue?: string) => {
+  const [value, setValue] = useState(defaultValue ?? "");
 
   const changeValue = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setValue(event.currentTarget.value);

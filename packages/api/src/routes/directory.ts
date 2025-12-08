@@ -72,12 +72,21 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
       }),
     ]);
 
+    // Transform bookmark_tags to flat tags array
+    const bookmarksWithTags = bookmarks.map((bookmark) => {
+      const { bookmark_tags, ...rest } = bookmark;
+      return {
+        ...rest,
+        tags: bookmark_tags.map((bt) => bt.tags),
+      };
+    });
+
     res.json({
       ok: true,
       data: {
         parent_id: parentId,
         folders,
-        bookmarks,
+        bookmarks: bookmarksWithTags,
       },
     });
   } catch (error) {
@@ -92,7 +101,7 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
 router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
   try {
     const pathParam = req.query.path;
-    const userId = 1; // TODO: Get from auth session (using first user from seed)
+    const userId = 3; // TODO: Get from auth session (using first user from seed)
 
     if (!pathParam || typeof pathParam !== "string") {
       return res
@@ -131,9 +140,24 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
         }),
       ]);
 
+      // Transform bookmark_tags to flat tags array
+      const bookmarksWithTags = bookmarks.map((bookmark) => {
+        const { bookmark_tags, ...rest } = bookmark;
+        return {
+          ...rest,
+          tags: bookmark_tags.map((bt) => bt.tags),
+        };
+      });
+
       return res.json({
         ok: true,
-        data: { folder: null, folders, bookmarks, path: "/", breadcrumbs: [] },
+        data: {
+          folder: null,
+          folders,
+          bookmarks: bookmarksWithTags,
+          path: "/",
+          breadcrumbs: [],
+        },
       });
     }
 
@@ -143,7 +167,12 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
 
     for (const title of segments) {
       const folder = await prisma.folders.findFirst({
-        where: { user_id: userId, parent_id: currentParentId, title, deleted_at: null },
+        where: {
+          user_id: userId,
+          parent_id: currentParentId,
+          title,
+          deleted_at: null,
+        },
       });
 
       if (!folder) {
@@ -179,12 +208,21 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
       }),
     ]);
 
+    // Transform bookmark_tags to flat tags array
+    const bookmarksWithTags = bookmarks.map((bookmark) => {
+      const { bookmark_tags, ...rest } = bookmark;
+      return {
+        ...rest,
+        tags: bookmark_tags.map((bt) => bt.tags),
+      };
+    });
+
     res.json({
       ok: true,
       data: {
         folder: finalFolder,
         folders,
-        bookmarks,
+        bookmarks: bookmarksWithTags,
         path: pathParam,
         breadcrumbs,
       },

@@ -10,9 +10,7 @@ export default function DirectoryTree() {
 
   return (
     <aside
-      className={
-        "flex w-[15%] flex-col gap-5 overflow-y-auto bg-stone-50/50 p-5"
-      }
+      className={"flex w-[15%] flex-col gap-5 overflow-y-auto bg-white p-5"}
     >
       <DefaultFilterButton>All</DefaultFilterButton>
       <DefaultFilterButton>Favorites</DefaultFilterButton>

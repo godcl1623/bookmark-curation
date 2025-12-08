@@ -1,7 +1,9 @@
+import type { Bookmark } from "@linkvault/shared";
 import { EllipsisVertical, Share2, Star } from "lucide-react";
 import type { MouseEvent } from "react";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
+import handleFavorite from "@/features/bookmarks/BookmarkList/utils";
 import Button from "@/shared/components/atoms/button";
 import TagItem from "@/shared/components/molecules/TagItem";
 import {
@@ -18,18 +20,35 @@ import FolderTag from "./FolderTag";
 
 interface BookmarkCardProps {
   isCard?: boolean;
+  refetch?: () => void;
 }
 
 interface BookmarkCommonProps extends BasicComponentProps {
   isLoading?: boolean;
 }
 
-export default function BookmarkCard({ isCard = true }: BookmarkCardProps) {
+export default function BookmarkCard({
+  isCard = true,
+  title,
+  domain,
+  parent,
+  tags,
+  refetch,
+  ...props
+}: Bookmark & BookmarkCardProps) {
   const { openModal } = useModal();
   const isLoading = false;
 
   const handleClickCard = () => {
-    openModal(BookmarkDetail);
+    // FIXME: 타입 문제 수정
+    openModal(BookmarkDetail, {
+      title,
+      domain,
+      parent,
+      tags,
+      refetch,
+      ...props,
+    } as any);
   };
 
   return (
@@ -48,17 +67,17 @@ export default function BookmarkCard({ isCard = true }: BookmarkCardProps) {
       />
       <CardContent className={"h-1/2 px-5 py-3"}>
         <BookmarkHeader isLoading={isLoading}>
-          <BookmarkTitle isLoading={isLoading}>Test Title</BookmarkTitle>
-          <FolderTag>Folder 1</FolderTag>
+          <BookmarkTitle isLoading={isLoading}>{title}</BookmarkTitle>
+          <FolderTag>{parent?.title}</FolderTag>
         </BookmarkHeader>
         <BookmarkDescription isLoading={isLoading}>
-          Test Description
+          {domain}
         </BookmarkDescription>
         <div className={isCard ? STYLES.metadata.card : STYLES.metadata.list}>
           <BookmarkTags isLoading={isLoading}>
-            {DUMMY_TAG_LIST.map((tag, index) => (
-              <li key={`tag-${index}`}>
-                <TagItem tag={tag} size={"sm"} />
+            {tags.map((tag) => (
+              <li key={`card_tag_${tag.id}`}>
+                <TagItem tag={tag.name} size={"sm"} />
               </li>
             ))}
           </BookmarkTags>
@@ -69,8 +88,19 @@ export default function BookmarkCard({ isCard = true }: BookmarkCardProps) {
             )}
           >
             <div className={"flex gap-2"}>
-              <OptionButton isLoading={isLoading}>
-                <Star />
+              <OptionButton
+                isLoading={isLoading}
+                onClick={handleFavorite(
+                  props.data_id,
+                  props.is_favorite,
+                  refetch
+                )}
+              >
+                <Star
+                  className={
+                    props.is_favorite ? "fill-yellow-400 text-yellow-400" : ""
+                  }
+                />
               </OptionButton>
               <OptionButton isLoading={isLoading}>
                 <Share2 />
@@ -85,8 +115,6 @@ export default function BookmarkCard({ isCard = true }: BookmarkCardProps) {
     </Card>
   );
 }
-
-const DUMMY_TAG_LIST = ["foo", "bar", "doh"];
 
 const STYLES = {
   container: {
@@ -158,10 +186,15 @@ function BookmarkTags({ isLoading = true, children }: BookmarkCommonProps) {
   );
 }
 
-function OptionButton({ isLoading = true, children }: BookmarkCommonProps) {
+function OptionButton({
+  isLoading = true,
+  children,
+  onClick,
+}: BookmarkCommonProps & { onClick?: () => void }) {
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
+    onClick?.();
   };
 
   if (isLoading) return <LoadingComponent size={"sm"} />;
