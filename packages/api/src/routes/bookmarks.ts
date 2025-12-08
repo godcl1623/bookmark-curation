@@ -427,6 +427,111 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
   }
 });
 
+// Patch bookmark status (for quick state changes like favorite, archive, etc.)
+router.patch(
+  SERVICE_ENDPOINTS.BOOKMARKS.ALL.path + "/:data_id",
+  async (req, res) => {
+    try {
+      const { data_id } = req.params;
+      const userId = 3; // TODO: Get from auth session
+
+      if (!data_id) {
+        return res
+          .status(400)
+          .json({ ok: false, error: "data_id is required" });
+      }
+
+      // Check if bookmark exists and belongs to user
+      const existingBookmark = await prisma.bookmarks.findFirst({
+        where: {
+          data_id,
+          user_id: userId,
+          deleted_at: null,
+        },
+      });
+
+      if (!existingBookmark) {
+        return res.status(404).json({
+          ok: false,
+          error: "Bookmark not found or access denied",
+        });
+      }
+
+      const { is_favorite, is_archived, is_private } = req.body;
+
+      // Build update data object with only provided status fields
+      const updateData: any = {
+        updated_at: new Date(),
+      };
+
+      // Only allow status field updates via PATCH
+      if (is_favorite !== undefined) updateData.is_favorite = is_favorite;
+      if (is_archived !== undefined) updateData.is_archived = is_archived;
+      if (is_private !== undefined) updateData.is_private = is_private;
+
+      // Check if at least one field is provided
+      if (Object.keys(updateData).length === 1) {
+        // Only updated_at is present
+        return res.status(400).json({
+          ok: false,
+          error: "At least one status field (is_favorite, is_archived, is_private) must be provided",
+        });
+      }
+
+      // Update bookmark status fields
+      await prisma.bookmarks.update({
+        where: { id: existingBookmark.id },
+        data: updateData,
+      });
+
+      // Fetch the updated bookmark with all relations
+      const updatedBookmark = await prisma.bookmarks.findUnique({
+        where: { id: existingBookmark.id },
+        include: {
+          users: {
+            select: {
+              id: true,
+              display_name: true,
+              avatar_url: true,
+            },
+          },
+          folders: {
+            select: {
+              id: true,
+              title: true,
+              color: true,
+            },
+          },
+          bookmark_tags: {
+            include: {
+              tags: true,
+            },
+          },
+          media: true,
+        },
+      });
+
+      // Transform bookmark_tags to flat tags array
+      const bookmarkWithTags = updatedBookmark
+        ? (() => {
+            const { bookmark_tags, ...rest } = updatedBookmark;
+            return {
+              ...rest,
+              tags: bookmark_tags.map((bt) => bt.tags),
+            };
+          })()
+        : null;
+
+      res.json({ ok: true, data: bookmarkWithTags });
+    } catch (error) {
+      res.status(500).json({
+        ok: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
 // Update a bookmark
 router.put(
   SERVICE_ENDPOINTS.BOOKMARKS.ALL.path + "/:data_id",

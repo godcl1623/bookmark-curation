@@ -94,7 +94,7 @@ export default function BookmarkDetail({
               }}
             />
           ) : (
-            <BasicDetailView data_id={data_id} {...props} />
+            <BasicDetailView data_id={data_id} refetch={refetch} {...props} />
           )}
           <DateInfo
             created_at={props.created_at}

@@ -40,7 +40,7 @@ export default function AddBookmark({
           metadata: {},
           is_favorite: false,
           is_archived: false,
-          is_private: false,
+          is_private: true,
           type: "bookmark",
         });
       },

@@ -3,6 +3,7 @@ import { EllipsisVertical, Share2, Star } from "lucide-react";
 import type { MouseEvent } from "react";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
+import handleFavorite from "@/features/bookmarks/BookmarkList/utils";
 import Button from "@/shared/components/atoms/button";
 import TagItem from "@/shared/components/molecules/TagItem";
 import {
@@ -87,8 +88,19 @@ export default function BookmarkCard({
             )}
           >
             <div className={"flex gap-2"}>
-              <OptionButton isLoading={isLoading}>
-                <Star />
+              <OptionButton
+                isLoading={isLoading}
+                onClick={handleFavorite(
+                  props.data_id,
+                  props.is_favorite,
+                  refetch
+                )}
+              >
+                <Star
+                  className={
+                    props.is_favorite ? "fill-yellow-400 text-yellow-400" : ""
+                  }
+                />
               </OptionButton>
               <OptionButton isLoading={isLoading}>
                 <Share2 />
@@ -174,10 +186,15 @@ function BookmarkTags({ isLoading = true, children }: BookmarkCommonProps) {
   );
 }
 
-function OptionButton({ isLoading = true, children }: BookmarkCommonProps) {
+function OptionButton({
+  isLoading = true,
+  children,
+  onClick,
+}: BookmarkCommonProps & { onClick?: () => void }) {
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
+    onClick?.();
   };
 
   if (isLoading) return <LoadingComponent size={"sm"} />;

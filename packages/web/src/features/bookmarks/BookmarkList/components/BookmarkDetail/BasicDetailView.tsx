@@ -1,9 +1,12 @@
 import type { Bookmark } from "@linkvault/shared";
 import { ExternalLink, Link, Star } from "lucide-react";
+import { useState } from "react";
 
 import FolderTag from "@/features/bookmarks/BookmarkList/components/BookmarkCard/FolderTag.tsx";
+import handleFavorite from "@/features/bookmarks/BookmarkList/utils";
 import Button from "@/shared/components/atoms/button.tsx";
 import TagItem from "@/shared/components/molecules/TagItem.tsx";
+import { cn } from "@/shared/lib/utils";
 
 export default function BasicDetailView({
   title,
@@ -12,15 +15,34 @@ export default function BasicDetailView({
   parent,
   url,
   tags,
-}: Bookmark) {
+  data_id,
+  is_favorite,
+  refetch,
+}: Bookmark & { refetch?: () => void }) {
+  const [isFavorite, changeLocalFavorite] = useLocalFavoriteState(is_favorite);
+
+  const handleClick = () => {
+    changeLocalFavorite();
+    refetch?.();
+  };
+
   return (
     <>
       <header className={"flex-center-between"}>
         <h2 className={"line-clamp-1 text-2xl text-black"}>{title}</h2>
         <div className={"flex-center gap-2"}>
           <FolderTag>{parent?.title}</FolderTag>
-          <Button size={"icon-sm"} variant={"ghost"}>
-            <Star className={"size-6"} />
+          <Button
+            size={"icon-sm"}
+            variant={"ghost"}
+            onClick={handleFavorite(data_id, isFavorite, handleClick)}
+          >
+            <Star
+              className={cn(
+                "size-6",
+                isFavorite ? "fill-yellow-400 text-yellow-400" : ""
+              )}
+            />
           </Button>
         </div>
       </header>
@@ -63,3 +85,11 @@ export default function BasicDetailView({
     </>
   );
 }
+
+const useLocalFavoriteState = (initialState: boolean) => {
+  const [isFavorite, setIsFavorite] = useState(initialState);
+
+  const changeLocalFavorite = () => setIsFavorite(!isFavorite);
+
+  return [isFavorite, changeLocalFavorite] as const;
+};
