@@ -1,16 +1,19 @@
-import { SearchIcon, TrendingUp, XIcon } from "lucide-react";
-import { useMemo } from "react";
+import { Clock, SearchIcon, TrendingUp } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types.ts";
+import RecentItem from "@/features/search/SearchModal/RecentItem.tsx";
+import XButton from "@/features/search/SearchModal/XButton.tsx";
 import Button from "@/shared/components/atoms/button.tsx";
 import TagItem from "@/shared/components/molecules/TagItem.tsx";
 import useDebouncedInput from "@/shared/hooks/useDebouncedInput.ts";
 import useTagsList from "@/shared/hooks/useTagsList.ts";
-import { cn } from "@/shared/lib/utils";
 
 export default function SearchModal({ reject }: DefaultModalChildrenProps) {
   const { debouncedValue, inputValue, changeValue, handleChange } =
     useDebouncedInput();
+  const { recentSearches, removeRecentItem, clearRecentSearches } =
+    useSearchBookmark(debouncedValue);
   const { data: tags } = useTagsList({ sort_by: "count", limit: 10 });
 
   const tagsList = useMemo(
@@ -31,6 +34,7 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
         className={"absolute top-2.5 right-2.5 p-1.5"}
         onClick={reject}
         iconSize={"lg"}
+        variants={"square"}
       />
       <section className={"w-full p-5 shadow-md"}>
         <div
@@ -51,6 +55,26 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
         </div>
       </section>
       <section className={"mx-auto my-10 w-1/2"}>
+        <header className={"flex-center-between mb-5"}>
+          <div className={"flex-center gap-2"}>
+            <Clock className={"text-neutral-400"} />
+            <h2 className={"text-lg"}>Recent Searches</h2>
+          </div>
+          <Button variant={"ghost"} onClick={clearRecentSearches}>
+            Clear All
+          </Button>
+        </header>
+        <ul className={"flex-col-center-center gap-2"}>
+          {recentSearches.map((search, index) => (
+            <li key={`search-recent-${search}_${index}`} className={"w-full"}>
+              <RecentItem onClick={() => removeRecentItem(index)}>
+                {search}
+              </RecentItem>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section className={"mx-auto my-10 w-1/2"}>
         <header className={"flex-center mb-5 gap-2"}>
           <TrendingUp className={"text-neutral-400"} />
           <h2 className={"text-lg"}>Popular Tags</h2>
@@ -67,23 +91,67 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
   );
 }
 
-interface XButtonProps {
-  onClick?: () => void;
-  className?: string;
-  iconSize?: "sm" | "lg";
-}
+const useRecentSearches = () => {
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
-function XButton({ onClick, className = "", iconSize = "sm" }: XButtonProps) {
-  const size = iconSize === "sm" ? "size-4" : "size-6";
+  const storeRecentSearches = useCallback(() => {
+    localStorage.setItem("recentSearches", JSON.stringify(recentSearches));
+  }, [recentSearches]);
 
-  return (
-    <Button
-      variant={"ghost"}
-      size={"custom"}
-      className={cn("rounded-full", className)}
-      onClick={onClick ?? (() => null)}
-    >
-      <XIcon className={size} />
-    </Button>
-  );
-}
+  const addRecentSearch = useCallback((searchValue: string) => {
+    if (searchValue === "") return;
+    setRecentSearches((prev) =>
+      [searchValue, ...prev.filter((value) => value !== searchValue)].slice(
+        0,
+        5
+      )
+    );
+  }, []);
+
+  const removeRecentItem = (index: number) => {
+    setRecentSearches((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+  };
+
+  useEffect(() => {
+    const storedRecentSearches = localStorage.getItem("recentSearches");
+    if (!storedRecentSearches) return;
+
+    const parsedList = JSON.parse(storedRecentSearches);
+    if (!Array.isArray(parsedList) || parsedList.length === 0) return;
+
+    setRecentSearches(
+      storedRecentSearches ? JSON.parse(storedRecentSearches) : []
+    );
+  }, []);
+
+  useEffect(() => {
+    storeRecentSearches();
+  }, [recentSearches.length, storeRecentSearches]);
+
+  return {
+    recentSearches,
+    addRecentSearch,
+    removeRecentItem,
+    clearRecentSearches,
+  };
+};
+
+const useSearchBookmark = (searchValue?: string) => {
+  const {
+    recentSearches,
+    addRecentSearch,
+    removeRecentItem,
+    clearRecentSearches,
+  } = useRecentSearches();
+
+  useEffect(() => {
+    console.log(searchValue);
+    addRecentSearch(searchValue ?? "");
+  }, [searchValue, addRecentSearch]);
+
+  return { recentSearches, removeRecentItem, clearRecentSearches };
+};
