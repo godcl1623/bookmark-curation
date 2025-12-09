@@ -15,7 +15,7 @@ import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import TagItem from "@/shared/components/molecules/TagItem";
 import { FOLDER_COLORS } from "@/shared/consts";
-import useInput from "@/shared/hooks/useInput";
+import useDebouncedInput from "@/shared/hooks/useDebouncedInput.ts";
 import createNewTag from "@/shared/services/tags/create-new-tag";
 
 interface AddTagsProps {
@@ -106,18 +106,6 @@ const useTags = (initialList: TagType[] = []) => {
   }, [initialList]);
 
   return { tags, addTag, addNewTag, removeTag };
-};
-
-const useDebouncedInput = (defaultValue: string = "") => {
-  const { inputValue, changeValue, handleChange } = useInput(defaultValue);
-  const [debouncedValue, setDebouncedValue] = useState("");
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(inputValue), 500);
-    return () => clearTimeout(timer);
-  }, [inputValue]);
-
-  return { debouncedValue, inputValue, changeValue, handleChange };
 };
 
 const useInputWrapperRect = () => {
