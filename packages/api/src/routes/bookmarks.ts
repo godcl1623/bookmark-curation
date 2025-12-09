@@ -5,12 +5,61 @@ import prisma from "../lib/prisma";
 const router = Router();
 
 // Get all bookmarks
-router.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (_req, res) => {
+router.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
   try {
+    const { search } = req.query;
+
+    // Build where clause with search conditions
+    const whereClause: any = {
+      deleted_at: null,
+    };
+
+    // Add search conditions if search query is provided
+    if (search && typeof search === "string" && search.trim() !== "") {
+      const searchTerm = search.trim();
+      whereClause.OR = [
+        {
+          title: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          description: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          domain: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          url: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          bookmark_tags: {
+            some: {
+              tags: {
+                name: {
+                  contains: searchTerm,
+                  mode: "insensitive",
+                },
+                deleted_at: null,
+              },
+            },
+          },
+        },
+      ];
+    }
+
     const bookmarks = await prisma.bookmarks.findMany({
-      where: {
-        deleted_at: null,
-      },
+      where: whereClause,
       include: {
         users: {
           select: {

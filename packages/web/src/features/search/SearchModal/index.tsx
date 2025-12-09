@@ -2,19 +2,28 @@ import { Clock, SearchIcon, TrendingUp } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types.ts";
+import BookmarkCard from "@/features/bookmarks/BookmarkList/components/BookmarkCard";
 import RecentItem from "@/features/search/SearchModal/RecentItem.tsx";
 import XButton from "@/features/search/SearchModal/XButton.tsx";
 import Button from "@/shared/components/atoms/button.tsx";
 import TagItem from "@/shared/components/molecules/TagItem.tsx";
+import useBookmarksList from "@/shared/hooks/useBookmarksList.ts";
 import useDebouncedInput from "@/shared/hooks/useDebouncedInput.ts";
+import useDirectoriesData from "@/shared/hooks/useDirectoriesData.ts";
 import useTagsList from "@/shared/hooks/useTagsList.ts";
 
 export default function SearchModal({ reject }: DefaultModalChildrenProps) {
   const { debouncedValue, inputValue, changeValue, handleChange } =
     useDebouncedInput();
-  const { recentSearches, removeRecentItem, clearRecentSearches } =
-    useSearchBookmark(debouncedValue);
+  const {
+    recentSearches,
+    removeRecentItem,
+    clearRecentSearches,
+    bookmarks,
+    isLoading,
+  } = useSearchBookmark(debouncedValue);
   const { data: tags } = useTagsList({ sort_by: "count", limit: 10 });
+  const loadedDirectory = useDirectoriesData(window.location.pathname, true);
 
   const tagsList = useMemo(
     () =>
@@ -54,39 +63,70 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
           )}
         </div>
       </section>
-      <section className={"mx-auto my-10 w-1/2"}>
-        <header className={"flex-center-between mb-5"}>
-          <div className={"flex-center gap-2"}>
-            <Clock className={"text-neutral-400"} />
-            <h2 className={"text-lg"}>Recent Searches</h2>
-          </div>
-          <Button variant={"ghost"} onClick={clearRecentSearches}>
-            Clear All
-          </Button>
-        </header>
-        <ul className={"flex-col-center-center gap-2"}>
-          {recentSearches.map((search, index) => (
-            <li key={`search-recent-${search}_${index}`} className={"w-full"}>
-              <RecentItem onClick={() => removeRecentItem(index)}>
-                {search}
-              </RecentItem>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section className={"mx-auto my-10 w-1/2"}>
-        <header className={"flex-center mb-5 gap-2"}>
-          <TrendingUp className={"text-neutral-400"} />
-          <h2 className={"text-lg"}>Popular Tags</h2>
-        </header>
-        <ul className={"flex-center gap-2"}>
-          {tagsList.map((tag) => (
-            <li key={`search-tag-${tag.id}`}>
-              <TagItem tag={tag.name} bookmarks={tag._count.bookmark_tags} />
-            </li>
-          ))}
-        </ul>
-      </section>
+      {debouncedValue !== "" && bookmarks && bookmarks.length > 0 ? (
+        <section className={"mx-auto my-10 w-max"}>
+          <p className={"mb-5 text-sm font-bold text-neutral-500"}>
+            검색결과: 북마크 {bookmarks.length}개
+          </p>
+          <ul className={"grid grid-cols-3 gap-5"}>
+            {bookmarks.map((bookmark) => (
+              <li key={`search-bookmark-${bookmark.id}`}>
+                <BookmarkCard
+                  {...bookmark}
+                  refetch={loadedDirectory?.refetch}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : (
+        <>
+          <section className={"mx-auto my-10 w-1/2"}>
+            <header className={"flex-center-between mb-5"}>
+              <div className={"flex-center gap-2"}>
+                <Clock className={"text-neutral-400"} />
+                <h2 className={"text-lg"}>Recent Searches</h2>
+              </div>
+              <Button variant={"ghost"} onClick={clearRecentSearches}>
+                Clear All
+              </Button>
+            </header>
+            <ul className={"flex-col-center-center gap-2"}>
+              {recentSearches.map((search, index) => (
+                <li
+                  key={`search-recent-${search}_${index}`}
+                  className={"w-full"}
+                >
+                  <RecentItem
+                    onClick={() => changeValue(search)}
+                    onRemove={() => removeRecentItem(index)}
+                  >
+                    {search}
+                  </RecentItem>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className={"mx-auto my-10 w-1/2"}>
+            <header className={"flex-center mb-5 gap-2"}>
+              <TrendingUp className={"text-neutral-400"} />
+              <h2 className={"text-lg"}>Popular Tags</h2>
+            </header>
+            <ul className={"flex-center gap-2"}>
+              {tagsList.map((tag) => (
+                <li key={`search-tag-${tag.id}`}>
+                  <button onClick={() => changeValue(tag.name)}>
+                    <TagItem
+                      tag={tag.name}
+                      bookmarks={tag._count.bookmark_tags}
+                    />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </>
+      )}
     </article>
   );
 }
@@ -148,10 +188,21 @@ const useSearchBookmark = (searchValue?: string) => {
     clearRecentSearches,
   } = useRecentSearches();
 
+  const { data: bookmarks, isLoading } = useBookmarksList(
+    searchValue ? { search: searchValue } : undefined
+  );
+
   useEffect(() => {
-    console.log(searchValue);
-    addRecentSearch(searchValue ?? "");
+    if (searchValue && searchValue.trim() !== "") {
+      addRecentSearch(searchValue);
+    }
   }, [searchValue, addRecentSearch]);
 
-  return { recentSearches, removeRecentItem, clearRecentSearches };
+  return {
+    recentSearches,
+    removeRecentItem,
+    clearRecentSearches,
+    bookmarks,
+    isLoading,
+  };
 };
