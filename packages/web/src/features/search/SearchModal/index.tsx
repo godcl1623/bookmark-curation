@@ -1,13 +1,29 @@
-import { SearchIcon, XIcon } from "lucide-react";
+import { SearchIcon, TrendingUp, XIcon } from "lucide-react";
+import { useMemo } from "react";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types.ts";
 import Button from "@/shared/components/atoms/button.tsx";
+import TagItem from "@/shared/components/molecules/TagItem.tsx";
 import useDebouncedInput from "@/shared/hooks/useDebouncedInput.ts";
+import useTagsList from "@/shared/hooks/useTagsList.ts";
 import { cn } from "@/shared/lib/utils";
 
 export default function SearchModal({ reject }: DefaultModalChildrenProps) {
   const { debouncedValue, inputValue, changeValue, handleChange } =
     useDebouncedInput();
+  const { data: tags } = useTagsList({ sort_by: "count", limit: 10 });
+
+  const tagsList = useMemo(
+    () =>
+      tags
+        ?.filter((tag) => tag._count.bookmark_tags > 0)
+        .sort((prev, next) => {
+          if (prev._count.bookmark_tags === next._count.bookmark_tags)
+            return prev.name.localeCompare(next.name);
+          return next._count.bookmark_tags - prev._count.bookmark_tags;
+        }) ?? [],
+    [tags]
+  );
 
   return (
     <article className={"absolute inset-0 size-full bg-white"}>
@@ -33,6 +49,19 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
             <XButton className={"p-1"} onClick={() => changeValue("")} />
           )}
         </div>
+      </section>
+      <section className={"mx-auto my-10 w-1/2"}>
+        <header className={"flex-center mb-5 gap-2"}>
+          <TrendingUp className={"text-neutral-400"} />
+          <h2 className={"text-lg"}>Popular Tags</h2>
+        </header>
+        <ul className={"flex-center gap-2"}>
+          {tagsList.map((tag) => (
+            <li key={`search-tag-${tag.id}`}>
+              <TagItem tag={tag.name} bookmarks={tag._count.bookmark_tags} />
+            </li>
+          ))}
+        </ul>
       </section>
     </article>
   );

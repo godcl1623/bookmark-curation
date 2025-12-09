@@ -5,6 +5,7 @@ import { cn } from "@/shared/lib/utils";
 
 interface TagItemProps {
   tag: string;
+  bookmarks?: number;
   onClick?: () => void;
   needClose?: boolean;
   size?: "sm" | "md" | "lg";
@@ -12,6 +13,7 @@ interface TagItemProps {
 
 export default function TagItem({
   tag,
+  bookmarks,
   onClick,
   needClose = false,
   size = "md",
@@ -29,6 +31,15 @@ export default function TagItem({
       )}
     >
       #{tag}
+      {bookmarks != null && (
+        <span
+          className={
+            "flex-center-center size-5 rounded-full bg-blue-300/60 text-xs"
+          }
+        >
+          {bookmarks > 99 ? "99+" : bookmarks}
+        </span>
+      )}
       {needClose && (
         <button type={"button"} onClick={handleClick}>
           <X className={"size-4"} />
