@@ -9,6 +9,7 @@ import { NavLink } from "react-router";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
 import Options from "@/features/bookmarks/Header/components/Options";
+import SearchModal from "@/features/search/SearchModal";
 import Button from "@/shared/components/atoms/button";
 import type { BasicComponentProps } from "@/shared/types";
 import useGlobalStore from "@/stores/global";
@@ -16,7 +17,8 @@ import useGlobalStore from "@/stores/global";
 export default function Header() {
   const currentView = useGlobalStore((state) => state.currentView);
   const setCurrentView = useGlobalStore((state) => state.setCurrentView);
-  const { handleClick } = useSetting();
+  const { handleSettingClick } = useSetting();
+  const { handleSearchClick } = useSearch();
 
   const toggleView = (view: "card" | "list") => () => setCurrentView(view);
 
@@ -24,10 +26,10 @@ export default function Header() {
     <header className={"flex-center-between bg-white px-10 py-3"}>
       <Logo />
       <div className={STYLES.container}>
-        <OptionButton>
+        <OptionButton onClick={handleSearchClick}>
           <Search className={STYLES.iconMd} />
         </OptionButton>
-        <OptionButton onClick={handleClick}>
+        <OptionButton onClick={handleSettingClick}>
           <Settings className={STYLES.iconMd} />
         </OptionButton>
         <ul className={"flex-center gap-1 rounded-md bg-neutral-200 p-1"}>
@@ -62,11 +64,21 @@ const STYLES = {
 const useSetting = () => {
   const { openModal } = useModal();
 
-  const handleClick = () => {
+  const handleSettingClick = () => {
     openModal(Options);
   };
 
-  return { handleClick };
+  return { handleSettingClick };
+};
+
+const useSearch = () => {
+  const { openModal } = useModal();
+
+  const handleSearchClick = () => {
+    openModal(SearchModal);
+  };
+
+  return { handleSearchClick };
 };
 
 function Logo() {

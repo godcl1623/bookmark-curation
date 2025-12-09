@@ -27,11 +27,13 @@ export default function SearchList({
   wrapperHeight,
 }: SearchListProps) {
   const queryClient = useQueryClient();
-  const { data: tags } = useTagsList(searchValue);
+  const { data: tags } = useTagsList({ search: searchValue });
   const { containerRef } = useClickOutside(closeModal ?? (() => null));
 
   const initializeTagList = () => {
-    queryClient.invalidateQueries({ queryKey: TAGS_QUERY_KEY.TOTAL_LISTS("") });
+    queryClient.invalidateQueries({
+      queryKey: TAGS_QUERY_KEY.TOTAL_LISTS({ search: "" }),
+    });
   };
 
   const handleClickTag = (tag: TagType) => {

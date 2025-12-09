@@ -7,7 +7,15 @@ const router = Router();
 // Get all tags
 router.get(SERVICE_ENDPOINTS.TAGS.path, async (req, res) => {
   try {
-    const { search } = req.query;
+    const { search, sort_by, limit } = req.query;
+    const limitNum = limit ? parseInt(limit as string) : undefined;
+
+    if (limitNum !== undefined && (isNaN(limitNum) || limitNum < 1)) {
+      return res.status(400).json({
+        ok: false,
+        error: "Invalid limit parameter",
+      });
+    }
 
     const tags = await prisma.tags.findMany({
       where: {
@@ -34,9 +42,11 @@ router.get(SERVICE_ENDPOINTS.TAGS.path, async (req, res) => {
           },
         },
       },
-      orderBy: {
-        name: "asc",
-      },
+      orderBy:
+        sort_by === "count"
+          ? { bookmark_tags: { _count: "desc" } }
+          : { name: "asc" },
+      ...(limitNum ? { take: limitNum } : {}),
     });
     res.json({ ok: true, data: tags });
   } catch (error) {
@@ -103,6 +113,14 @@ router.post(SERVICE_ENDPOINTS.TAGS.path, async (req, res) => {
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }
+});
+
+// Get a single tag (not implemented)
+router.get(SERVICE_ENDPOINTS.TAGS.path + "/:id", async (req, res) => {
+  res.status(501).json({
+    ok: false,
+    error: "Not implemented",
+  });
 });
 
 // Update a tag
