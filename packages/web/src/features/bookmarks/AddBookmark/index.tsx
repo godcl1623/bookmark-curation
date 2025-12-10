@@ -85,6 +85,7 @@ export default function AddBookmark({
           className={"flex flex-col gap-7 p-6 pt-0"}
           onSubmit={handleSubmit(successCallback)}
           onKeyDown={disableKeyDown}
+          onReset={reject}
         >
           <LabeledElement label={"URL"} errorMessage={urlErrorMessage}>
             <Link className={COMMON_STYLES.ornament} />

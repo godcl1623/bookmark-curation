@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import SearchList from "@/features/bookmarks/AddBookmark/components/AddTags/SearchList";
 import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
-import TagItem from "@/shared/components/molecules/TagItem";
+import TagItem from "@/shared/components/molecules/TagItem.tsx";
 import { FOLDER_COLORS } from "@/shared/consts";
 import useDebouncedInput from "@/shared/hooks/useDebouncedInput.ts";
 import createNewTag from "@/shared/services/tags/create-new-tag";
@@ -74,7 +74,9 @@ const useTags = (initialList: TagType[] = []) => {
   const [tags, setTags] = useState<TagType[]>([]);
 
   const addTag = (tag: TagType) => {
-    setTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
+    setTags((prev) =>
+      prev.map((prevTag) => prevTag.id).includes(tag.id) ? prev : [...prev, tag]
+    );
   };
 
   const addNewTag = async (tagName: string) => {
@@ -99,10 +101,14 @@ const useTags = (initialList: TagType[] = []) => {
   };
 
   useEffect(() => {
-    setTags((prev) => [
-      ...initialList,
-      ...prev.filter((tag) => !initialList.includes(tag)),
-    ]);
+    if (initialList.length === 0) return;
+    setTags((prev) =>
+      prev
+        .filter(
+          (prevTag) => !initialList.map((tag) => tag.id).includes(prevTag.id)
+        )
+        .concat(initialList)
+    );
   }, [initialList]);
 
   return { tags, addTag, addNewTag, removeTag };
