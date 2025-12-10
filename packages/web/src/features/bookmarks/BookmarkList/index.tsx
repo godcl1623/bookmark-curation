@@ -1,9 +1,10 @@
 import type { Bookmark, Folder as FolderType } from "@linkvault/shared";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, LayoutGrid, LayoutList } from "lucide-react";
 import { NavLink, useLocation } from "react-router";
 
 import BookmarkCard from "@/features/bookmarks/BookmarkList/components/BookmarkCard";
 import FolderButton from "@/features/bookmarks/BookmarkList/components/FolderButton";
+import OptionButton from "@/shared/components/molecules/OptionButton.tsx";
 import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 import { cn } from "@/shared/lib/utils";
 import useGlobalStore from "@/stores/global";
@@ -12,15 +13,24 @@ import BlankFallback from "./components/BlankFallback";
 
 export default function BookmarkList() {
   const currentView = useGlobalStore((state) => state.currentView);
+  const isMobile = useGlobalStore((state) => state.isMobile);
+  const setCurrentView = useGlobalStore((state) => state.setCurrentView);
   const { pathname } = useLocation();
   const loadedDirectory = useDirectoriesData(pathname ?? "/", true);
 
   const { folders, bookmarks, breadcrumbs } = loadedDirectory?.data ?? {};
   const isListView = currentView === "list";
+  const smallIconStyle = isMobile ? STYLES.iconSm : STYLES.iconMd;
+
+  const toggleView = (view: "card" | "list") => () => setCurrentView(view);
 
   return (
     <main className={"h-[calc(100vh-64px)] w-[85%] rounded-2xl bg-blue-50/75"}>
-      <aside className={"w-full rounded-t-2xl border-b bg-neutral-50 p-5"}>
+      <aside
+        className={
+          "flex-center-between w-full rounded-t-2xl border-b bg-neutral-50 p-5"
+        }
+      >
         <nav className={"px-5"}>
           <ul className={"flex-center gap-2 font-bold"}>
             <li className={"flex-center gap-2"}>
@@ -51,6 +61,24 @@ export default function BookmarkList() {
             ))}
           </ul>
         </nav>
+        <ul className={"flex-center gap-1 rounded-md bg-neutral-200 p-1"}>
+          <li className={"flex-center"}>
+            <OptionButton
+              isActive={currentView === "card"}
+              onClick={toggleView("card")}
+            >
+              <LayoutGrid className={smallIconStyle} />
+            </OptionButton>
+          </li>
+          <li className={"flex-center"}>
+            <OptionButton
+              isActive={currentView === "list"}
+              onClick={toggleView("list")}
+            >
+              <LayoutList className={smallIconStyle} />
+            </OptionButton>
+          </li>
+        </ul>
       </aside>
       {(!folders && !bookmarks) ||
         (folders?.length === 0 && bookmarks?.length === 0 && <BlankFallback />)}
@@ -86,3 +114,8 @@ export default function BookmarkList() {
     </main>
   );
 }
+
+const STYLES = {
+  iconMd: "size-5",
+  iconSm: "size-4",
+};

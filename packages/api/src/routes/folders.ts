@@ -49,7 +49,7 @@ router.get(SERVICE_ENDPOINTS.FOLDERS.path, async (_req, res) => {
 router.post(SERVICE_ENDPOINTS.FOLDERS.path, async (req, res) => {
   try {
     const { data_id, title, color, parent_id } = req.body;
-    const userId = 3; // TODO: Get from auth session
+    const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
 
     // Validate required fields
     if (!data_id || !title) {
@@ -152,7 +152,7 @@ router.post(SERVICE_ENDPOINTS.FOLDERS.path, async (req, res) => {
 router.put(SERVICE_ENDPOINTS.FOLDERS.path + "/:data_id", async (req, res) => {
   try {
     const { data_id } = req.params;
-    const userId = 3; // TODO: Get from auth session
+    const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
 
     if (!data_id) {
       return res.status(400).json({ ok: false, error: "data_id is required" });
@@ -261,7 +261,7 @@ router.delete(
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = 3; // TODO: Get from auth session
+      const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
 
       if (!data_id) {
         return res

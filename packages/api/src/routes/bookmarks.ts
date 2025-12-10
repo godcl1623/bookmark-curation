@@ -281,7 +281,7 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
       type,
       tag_ids,
     } = req.body;
-    const userId = 3; // TODO: Get from auth session
+    const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
 
     // Validate required fields
     if (!data_id) {
@@ -482,7 +482,7 @@ router.patch(
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = 3; // TODO: Get from auth session
+      const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
 
       if (!data_id) {
         return res
@@ -523,7 +523,8 @@ router.patch(
         // Only updated_at is present
         return res.status(400).json({
           ok: false,
-          error: "At least one status field (is_favorite, is_archived, is_private) must be provided",
+          error:
+            "At least one status field (is_favorite, is_archived, is_private) must be provided",
         });
       }
 
@@ -587,7 +588,7 @@ router.put(
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = 3; // TODO: Get from auth session
+      const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
 
       if (!data_id) {
         return res
@@ -841,7 +842,7 @@ router.delete(
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = 3; // TODO: Get from auth session
+      const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
 
       if (!data_id) {
         return res

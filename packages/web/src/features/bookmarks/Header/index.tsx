@@ -1,55 +1,38 @@
-import {
-  Bookmark,
-  LayoutGrid,
-  LayoutList,
-  Search,
-  Settings,
-} from "lucide-react";
+import { Bookmark, MenuIcon, Search, Settings } from "lucide-react";
 import { NavLink } from "react-router";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
 import Options from "@/features/bookmarks/Header/components/Options";
 import SearchModal from "@/features/search/SearchModal";
 import Button from "@/shared/components/atoms/button";
-import type { BasicComponentProps } from "@/shared/types";
+import OptionButton from "@/shared/components/molecules/OptionButton.tsx";
+import { cn } from "@/shared/lib/utils";
 import useGlobalStore from "@/stores/global";
 
 export default function Header() {
-  const currentView = useGlobalStore((state) => state.currentView);
-  const setCurrentView = useGlobalStore((state) => state.setCurrentView);
+  const isMobile = useGlobalStore((state) => state.isMobile);
   const { handleSettingClick } = useSetting();
   const { handleSearchClick } = useSearch();
 
-  const toggleView = (view: "card" | "list") => () => setCurrentView(view);
+  const normalIconStyle = isMobile ? STYLES.iconSm : STYLES.iconMd;
 
   return (
-    <header className={"flex-center-between bg-white px-10 py-3"}>
+    <header
+      className={"flex-center-between gap-2 bg-white p-1.5 md:px-10 md:py-3"}
+    >
+      {isMobile && (
+        <Button variant={"ghost"}>
+          <MenuIcon className={normalIconStyle} />
+        </Button>
+      )}
       <Logo />
       <div className={STYLES.container}>
         <OptionButton onClick={handleSearchClick}>
-          <Search className={STYLES.iconMd} />
+          <Search className={normalIconStyle} />
         </OptionButton>
         <OptionButton onClick={handleSettingClick}>
-          <Settings className={STYLES.iconMd} />
+          <Settings className={normalIconStyle} />
         </OptionButton>
-        <ul className={"flex-center gap-1 rounded-md bg-neutral-200 p-1"}>
-          <li className={"flex-center"}>
-            <OptionButton
-              isActive={currentView === "card"}
-              onClick={toggleView("card")}
-            >
-              <LayoutGrid className={STYLES.iconSm} />
-            </OptionButton>
-          </li>
-          <li className={"flex-center"}>
-            <OptionButton
-              isActive={currentView === "list"}
-              onClick={toggleView("list")}
-            >
-              <LayoutList className={STYLES.iconSm} />
-            </OptionButton>
-          </li>
-        </ul>
       </div>
     </header>
   );
@@ -82,32 +65,19 @@ const useSearch = () => {
 };
 
 function Logo() {
+  const isMobile = useGlobalStore((state) => state.isMobile);
+
   return (
     <NavLink className={STYLES.container} to={"/"}>
-      <div className={"rounded-md bg-blue-600 p-1.5 text-white"}>
-        <Bookmark />
+      <div
+        className={cn(
+          "rounded-md bg-blue-600 p-1.5 text-white",
+          isMobile ? "p-1" : "p-1.5"
+        )}
+      >
+        <Bookmark className={isMobile ? STYLES.iconSm : ""} />
       </div>
-      <h1>LinkVault</h1>
+      <h1 className={isMobile ? "text-base" : ""}>LinkVault</h1>
     </NavLink>
-  );
-}
-
-interface OptionButtonProps extends BasicComponentProps {
-  isActive?: boolean;
-  onClick?: () => void;
-}
-
-function OptionButton({
-  children,
-  isActive = false,
-  onClick = () => null,
-}: OptionButtonProps) {
-  const activeVariant = isActive ? "outline" : "ghost";
-  const activeColor = isActive ? "text-blue-600" : "";
-
-  return (
-    <Button size={"icon-sm"} variant={activeVariant} onClick={onClick}>
-      <span className={activeColor}>{children}</span>
-    </Button>
   );
 }
