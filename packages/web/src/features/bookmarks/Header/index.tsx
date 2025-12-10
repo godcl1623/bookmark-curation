@@ -1,10 +1,9 @@
-import { Bookmark, MenuIcon, Search, Settings } from "lucide-react";
+import { Bookmark, Search, Settings } from "lucide-react";
 import { NavLink } from "react-router";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
 import Options from "@/features/bookmarks/Header/components/Options";
 import SearchModal from "@/features/search/SearchModal";
-import Button from "@/shared/components/atoms/button";
 import OptionButton from "@/shared/components/molecules/OptionButton.tsx";
 import { cn } from "@/shared/lib/utils";
 import useGlobalStore from "@/stores/global";
@@ -17,14 +16,7 @@ export default function Header() {
   const normalIconStyle = isMobile ? STYLES.iconSm : STYLES.iconMd;
 
   return (
-    <header
-      className={"flex-center-between gap-2 bg-white p-1.5 md:px-10 md:py-3"}
-    >
-      {isMobile && (
-        <Button variant={"ghost"}>
-          <MenuIcon className={normalIconStyle} />
-        </Button>
-      )}
+    <header className={"flex-center-between bg-white p-1.5 md:px-10 md:py-3"}>
       <Logo />
       <div className={STYLES.container}>
         <OptionButton onClick={handleSearchClick}>
