@@ -21,10 +21,15 @@ export default function FolderButton({
     <Button
       size={"custom"}
       variant={"ghost"}
-      className={"rounded-lg bg-white px-4 py-2 shadow-sm"}
+      className={
+        "rounded-lg bg-white px-2 py-1 text-xs shadow-sm md:px-4 md:py-2 md:text-sm"
+      }
       onClick={handleClick}
     >
-      <div className={"rounded-lg p-2"} style={{ backgroundColor: color }}>
+      <div
+        className={"rounded-sm p-1 md:rounded-lg md:p-2"}
+        style={{ backgroundColor: color }}
+      >
         <Folder className={"text-white"} />
       </div>
       {title}

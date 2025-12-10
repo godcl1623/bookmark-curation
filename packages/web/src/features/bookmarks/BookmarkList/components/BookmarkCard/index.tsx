@@ -120,8 +120,8 @@ const STYLES = {
   container: {
     common:
       "cursor-pointer gap-0 p-0 hover:shadow-md hover:brightness-95 active:[&:not(:has(button:active))]:brightness-90",
-    card: "h-[360px] w-[320px]",
-    list: "grid w-full grid-cols-[max-content_1fr] rounded-xl bg-white p-2 shadow-sm",
+    card: "w-[300px] h-[338px] md:h-[360px] md:w-[320px]",
+    list: "grid w-full grid-cols-[max-content_1fr] rounded-xl bg-white p-1 md:p-2 shadow-sm",
   },
   thumbnail: {
     common: "bg-neutral-100 rounded-t-xl",
@@ -133,9 +133,9 @@ const STYLES = {
     list: "flex-center-between",
   },
   options: {
-    common: "flex items-center p-1 pb-0",
+    common: "flex items-center p-0.5 md:p-1 pb-0",
     card: "justify-between border-t border-neutral-200",
-    list: "flex-1 justify-end gap-2",
+    list: "flex-1 justify-end gap-1 md:gap-2",
   },
 };
 

@@ -96,8 +96,8 @@ export default function BookmarkList() {
       {(!folders && !bookmarks) ||
         (folders?.length === 0 && bookmarks?.length === 0 && <BlankFallback />)}
       {folders && folders.length > 0 && (
-        <article className={"p-5"}>
-          <ul className={"flex-center gap-4"}>
+        <article className={"p-2.5 md:p-5"}>
+          <ul className={"flex-center flex-wrap gap-2 md:gap-4"}>
             {folders.map((folder: FolderType) => (
               <li key={`dir_button_${folder.data_id}`}>
                 <FolderButton {...folder} />
@@ -107,8 +107,18 @@ export default function BookmarkList() {
         </article>
       )}
       {bookmarks && bookmarks.length > 0 && (
-        <article className={cn("p-5", folders?.length > 0 && "mt-6")}>
-          <ul className={cn("flex-center gap-4", isListView && "flex-col")}>
+        <article
+          className={cn(
+            "w-full p-2.5 md:p-5",
+            folders?.length > 0 && "mt-3 md:mt-6"
+          )}
+        >
+          <ul
+            className={cn(
+              "flex-center flex-wrap gap-2 md:gap-4",
+              isListView && "flex-col"
+            )}
+          >
             {bookmarks.map((bookmark: Bookmark) => (
               <li
                 key={`bookmark_button_${bookmark.data_id}`}
