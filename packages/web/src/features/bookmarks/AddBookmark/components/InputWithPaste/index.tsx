@@ -41,7 +41,7 @@ export default function InputWithPaste({
         type={"button"}
         size={"custom"}
         variant={"ghost"}
-        className={"p-1.5"}
+        className={"p-1 md:p-1.5"}
         onClick={pasteValue}
       >
         <ClipboardPlus className={COMMON_STYLES.ornament} />

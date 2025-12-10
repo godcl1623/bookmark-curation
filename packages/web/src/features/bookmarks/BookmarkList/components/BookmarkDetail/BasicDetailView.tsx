@@ -7,18 +7,20 @@ import handleFavorite from "@/features/bookmarks/BookmarkList/utils";
 import Button from "@/shared/components/atoms/button.tsx";
 import TagItem from "@/shared/components/molecules/TagItem.tsx";
 import { cn } from "@/shared/lib/utils";
+import useGlobalStore from "@/stores/global.ts";
 
 export default function BasicDetailView({
   title,
   domain,
   description,
-  parent,
+  folders,
   url,
   tags,
   data_id,
   is_favorite,
   refetch,
 }: Bookmark & { refetch?: () => void }) {
+  const isMobile = useGlobalStore((state) => state.isMobile);
   const [isFavorite, changeLocalFavorite] = useLocalFavoriteState(is_favorite);
 
   const handleClick = () => {
@@ -29,9 +31,11 @@ export default function BasicDetailView({
   return (
     <>
       <header className={"flex-center-between"}>
-        <h2 className={"line-clamp-1 text-2xl text-black"}>{title}</h2>
-        <div className={"flex-center gap-2"}>
-          <FolderTag>{parent?.title}</FolderTag>
+        <h2 className={"line-clamp-1 text-lg text-black md:text-2xl"}>
+          {title}
+        </h2>
+        <div className={"flex-center gap-1 md:gap-2"}>
+          <FolderTag>{folders?.title}</FolderTag>
           <Button
             size={"icon-sm"}
             variant={"ghost"}
@@ -39,7 +43,7 @@ export default function BasicDetailView({
           >
             <Star
               className={cn(
-                "size-6",
+                isMobile ? "size-5" : "size-6",
                 isFavorite ? "fill-yellow-400 text-yellow-400" : ""
               )}
             />

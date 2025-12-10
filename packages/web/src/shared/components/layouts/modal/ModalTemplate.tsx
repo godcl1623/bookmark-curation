@@ -32,13 +32,13 @@ export default function ModalTemplate({
     <Card className={cn("screen-center gap-0 p-0", width, height)}>
       <CardHeader
         className={cn(
-          "flex-center-between p-6",
+          "flex-center-between p-3 md:p-6",
           displayHeaderBorder && "border-b border-neutral-200"
         )}
       >
         <h1 className={"text-lg font-semibold"}>{title}</h1>
         <Button variant={"ghost"} size={"icon-sm"} onClick={reject}>
-          <X className={"size-6"} />
+          <X className={"size-5 md:size-6"} />
         </Button>
       </CardHeader>
       <CardContent className={"flex-1 overflow-y-auto p-0"}>

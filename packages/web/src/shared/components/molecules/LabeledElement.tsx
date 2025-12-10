@@ -23,7 +23,7 @@ export default function LabeledElement({
   const elementStyle =
     variants === "blank"
       ? ""
-      : "flex-center gap-1 rounded-lg border border-neutral-200 p-2.5 focus-within:border-blue-500";
+      : "flex-center gap-1 rounded-lg border border-neutral-200 p-1.5 md:p-2.5 focus-within:border-blue-500";
 
   return (
     <Wrapper
