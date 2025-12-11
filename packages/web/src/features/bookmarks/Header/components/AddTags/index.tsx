@@ -20,7 +20,7 @@ export default function AddTags() {
   } = useTagsList();
 
   return (
-    <article className={"h-[calc(100%-50px)] overflow-y-auto p-5"}>
+    <article className={"h-[calc(100%-50px)] overflow-y-auto p-2.5 md:p-5"}>
       <DataAddForm
         key={`form_${isRefetching}`}
         title={"Add New Tag"}

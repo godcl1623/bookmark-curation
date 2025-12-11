@@ -18,6 +18,7 @@ import useEdit from "@/shared/hooks/useEdit.ts";
 import { cn } from "@/shared/lib/utils";
 import deleteTag from "@/shared/services/tags/delete-tag";
 import updateTag from "@/shared/services/tags/update-tag";
+import useGlobalStore from "@/stores/global.ts";
 
 export default function TagListItem({
   id,
@@ -27,6 +28,7 @@ export default function TagListItem({
   refetch,
   ...props
 }: Tag & { refetch?: () => void }) {
+  const isMobile = useGlobalStore((state) => state.isMobile);
   const [isEdit, changeEditMode] = useEdit();
 
   const colorList = useMemo(
@@ -40,7 +42,9 @@ export default function TagListItem({
 
   return (
     <section
-      className={"flex-center gap-4 rounded-lg border border-neutral-200 p-4"}
+      className={
+        "flex-center gap-2 rounded-lg border border-neutral-200 p-2 md:gap-4 md:p-4"
+      }
     >
       {isEdit ? (
         <FormCore
@@ -49,6 +53,7 @@ export default function TagListItem({
             name: TAGS_FORM_ELEMENTS.NAME,
             initialValue: name,
           }}
+          shouldDisplayVertical={isMobile}
           addOns={() => (
             <AddonWrapper>
               <ControlledSelect

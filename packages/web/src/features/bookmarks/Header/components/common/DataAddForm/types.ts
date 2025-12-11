@@ -8,6 +8,7 @@ export interface FormCoreProps {
   };
   addOns?: () => ReactNode;
   actions?: () => ReactNode;
+  shouldDisplayVertical?: boolean;
   onSubmit?: (event: FormEvent<HTMLFormElement>) => void;
   onReset?: () => void;
 }
