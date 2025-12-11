@@ -20,6 +20,7 @@ import { cn } from "@/shared/lib/utils";
 import deleteFolder from "@/shared/services/folders/delete-folder";
 import updateFolder from "@/shared/services/folders/update-folder";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
+import useGlobalStore from "@/stores/global.ts";
 
 export default function FolderListItem({
   title,
@@ -29,6 +30,7 @@ export default function FolderListItem({
   refetch,
   ...props
 }: FolderType & { refetch?: () => void }) {
+  const isMobile = useGlobalStore((state) => state.isMobile);
   const [isEdit, changeEditMode] = useEdit();
   const { data: folders } = useFolderList();
   const folderList = useMemo(
@@ -50,7 +52,9 @@ export default function FolderListItem({
 
   return (
     <section
-      className={"flex-center gap-4 rounded-lg border border-neutral-200 p-4"}
+      className={
+        "flex-center gap-2 rounded-lg border border-neutral-200 p-2 md:gap-4 md:p-4"
+      }
     >
       {isEdit ? (
         <FormCore
@@ -59,6 +63,7 @@ export default function FolderListItem({
             name: FOLDERS_FORM_ELEMENTS.INPUT,
             initialValue: title,
           }}
+          shouldDisplayVertical={isMobile}
           addOns={() => (
             <>
               <AddonWrapper>

@@ -9,7 +9,7 @@ export default function BlankFallback() {
         <Bookmark className={"size-10"} />
       </div>
       <h2>No bookmarks yet</h2>
-      <p className={"text-muted-foreground"}>
+      <p className={"px-7 text-center text-muted-foreground"}>
         Start building your collection by adding your first bookmark
       </p>
       <AddBookmarkButton />

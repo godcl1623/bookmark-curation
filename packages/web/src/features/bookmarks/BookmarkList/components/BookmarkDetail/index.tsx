@@ -19,6 +19,7 @@ import { cn } from "@/shared/lib/utils";
 import deleteBookmark from "@/shared/services/bookmarks/delete-bookmark";
 import updateBookmark from "@/shared/services/bookmarks/update-bookmark";
 import type { BasicComponentProps } from "@/shared/types";
+import { useMemo } from "react";
 
 export default function BookmarkDetail({
   reject,
@@ -50,13 +51,13 @@ export default function BookmarkDetail({
     <ModalLayout reject={reject}>
       <ModalTemplate
         reject={reject}
-        width={"w-1/3"}
+        width={"w-full sm:min-w-[380px] md:w-1/2 lg:w-1/3"}
         height={"h-[85vh]"}
         title={"Bookmark Details"}
         actionComponent={() => (
           <CardAction
             className={cn(
-              "grid w-full gap-2 border-t border-neutral-200 p-5",
+              "grid w-full gap-2 border-t border-neutral-200 p-2.5 md:p-5",
               isEdit ? "grid-cols-2" : "grid-cols-3"
             )}
           >
@@ -75,7 +76,9 @@ export default function BookmarkDetail({
         )}
       >
         <div className={"h-1/2 w-full bg-neutral-100"} />
-        <CardDescription className={"flex flex-col gap-5 p-5"}>
+        <CardDescription
+          className={"flex flex-col gap-2.5 p-2.5 md:gap-5 md:p-5"}
+        >
           {isEdit ? (
             <DetailEdit
               formId={FORM_ID}
@@ -151,7 +154,10 @@ function ActionButton({
       {...(form && { form })}
       size={"custom"}
       variant={"blank"}
-      className={cn("w-full py-1.5 text-base", styles[style])}
+      className={cn(
+        "w-full py-1 text-sm md:py-1.5 md:text-base",
+        styles[style]
+      )}
       onClick={onClick}
     >
       {children}
@@ -205,32 +211,30 @@ interface DateInfoProps {
 }
 
 function DateInfo({ created_at, updated_at }: DateInfoProps) {
+  const dataSet = useMemo(() => {
+    return [
+      { label: "Created:", icon: <Calendar />, value: created_at },
+      { label: "Modified:", icon: <CalendarCog />, value: updated_at },
+    ];
+  }, [created_at, updated_at]);
+
   return (
     <div
-      className={"flex-center-between border-t border-neutral-200 px-5 pt-5"}
+      className={
+        "flex-center-between border-t border-neutral-200 p-2.5 pb-0! md:p-5"
+      }
     >
-      <div className={"flex-center gap-2"}>
-        <div className={"rounded-lg bg-neutral-100 p-2"}>
-          <Calendar />
+      {dataSet.map(({ label, icon, value }) => (
+        <div className={"flex-center gap-2"} key={label}>
+          <div className={"rounded-lg bg-neutral-100 p-1 md:p-2"}>{icon}</div>
+          <div>
+            <h3 className={"text-xs font-semibold"}>{label}</h3>
+            <p className={"text-sm font-bold text-black md:text-lg"}>
+              {value ? value.split("T")[0] : "-"}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className={"text-xs font-semibold"}>Created:</h3>
-          <p className={"text-lg font-bold text-black"}>
-            {created_at ? created_at.split("T")[0] : "-"}
-          </p>
-        </div>
-      </div>
-      <div className={"flex-center gap-2"}>
-        <div className={"rounded-lg bg-neutral-100 p-2"}>
-          <CalendarCog />
-        </div>
-        <div>
-          <h3 className={"text-xs font-semibold"}>Modified:</h3>
-          <p className={"text-lg font-bold text-black"}>
-            {updated_at ? updated_at.split("T")[0] : "-"}
-          </p>
-        </div>
-      </div>
+      ))}
     </div>
   );
 }

@@ -58,6 +58,7 @@ export interface Bookmark extends Folder {
   click_count: number;
   tags: Tag[];
   type: DataType;
+  folders: { id: number; title: string; color: string } | null;
 }
 
 export interface BookmarkTag {

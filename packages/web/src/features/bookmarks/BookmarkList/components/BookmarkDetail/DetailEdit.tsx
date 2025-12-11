@@ -53,7 +53,11 @@ export default function DetailEdit({
       onSubmit={onSubmit ? onSubmit : () => null}
       id={formId}
     >
-      <div className={"flex-center-between"}>
+      <div
+        className={
+          "flex flex-col gap-5 md:flex-row md:items-center md:justify-between"
+        }
+      >
         <LabeledElement
           label={"Title"}
           variants={"blank"}
@@ -61,7 +65,7 @@ export default function DetailEdit({
         >
           <ControlledInput
             placeholder={"Enter bookmark title"}
-            className={cn("text-xl text-black", STYLES.common_input)}
+            className={cn("text-lg text-black md:text-xl", STYLES.common_input)}
             name={BOOKMARK_FORM_ELEMENTS.TITLE}
             passedValue={initial.title}
           />
@@ -105,7 +109,7 @@ export default function DetailEdit({
         <ControlledTextArea
           placeholder={"Add your notes here..."}
           className={cn(COMMON_STYLES.input, STYLES.textarea)}
-          defaultValue={initial.description}
+          passedValue={initial.description}
           name={BOOKMARK_FORM_ELEMENTS.NOTE}
         />
       </LabeledElement>

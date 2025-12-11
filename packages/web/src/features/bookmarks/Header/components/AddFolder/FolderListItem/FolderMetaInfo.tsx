@@ -2,7 +2,9 @@ import type { Folder as FolderTypes } from "@linkvault/shared";
 import { Folder, Pencil, Trash2 } from "lucide-react";
 
 import Button from "@/shared/components/atoms/button";
+import { cn } from "@/shared/lib/utils";
 import type { BasicComponentProps } from "@/shared/types";
+import useGlobalStore from "@/stores/global.ts";
 
 interface FolderMetaInfoProps {
   changeEditMode: () => void;
@@ -16,17 +18,21 @@ export default function FolderMetaInfo({
   changeEditMode,
   handleDelete,
 }: FolderMetaInfoProps & FolderTypes) {
+  const isMobile = useGlobalStore((state) => state.isMobile);
+
   return (
     <>
       <div
-        className={"rounded-lg p-2 text-white"}
+        className={"rounded-sm p-1 text-white md:rounded-lg md:p-2"}
         style={{ backgroundColor: color }}
       >
-        <Folder />
+        <Folder className={isMobile ? "size-5" : "size-6"} />
       </div>
       <div className={"flex-1 flex-col"}>
-        <h2>{title}</h2>
-        <p className={"text-sm text-neutral-500"}>
+        <h2 className={cn("line-clamp-1", isMobile ? "text-base" : "")}>
+          {title}
+        </h2>
+        <p className={"text-xs text-neutral-500 md:text-sm"}>
           북마크 {_count.bookmarks}개
         </p>
       </div>

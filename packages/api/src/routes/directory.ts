@@ -101,7 +101,7 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
 router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
   try {
     const pathParam = req.query.path;
-    const userId = 3; // TODO: Get from auth session (using first user from seed)
+    const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session (using first user from seed)
 
     if (!pathParam || typeof pathParam !== "string") {
       return res

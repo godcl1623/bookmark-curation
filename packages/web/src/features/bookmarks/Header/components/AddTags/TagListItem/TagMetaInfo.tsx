@@ -2,7 +2,9 @@ import type { Tag } from "@linkvault/shared";
 import { Hash, Pencil, Trash2 } from "lucide-react";
 
 import Button from "@/shared/components/atoms/button";
+import { cn } from "@/shared/lib/utils";
 import type { BasicComponentProps } from "@/shared/types";
+import useGlobalStore from "@/stores/global.ts";
 
 interface TagMetaInfoProps {
   changeEditMode: () => void;
@@ -15,14 +17,22 @@ export default function TagMetaInfo({
   changeEditMode,
   handleDelete,
 }: TagMetaInfoProps & Tag) {
+  const isMobile = useGlobalStore((state) => state.isMobile);
+
   return (
     <>
-      <div className={"rounded-lg bg-blue-100 p-2 text-blue-500"}>
-        <Hash />
+      <div
+        className={
+          "rounded-sm bg-blue-100 p-1 text-blue-500 md:rounded-lg md:p-2"
+        }
+      >
+        <Hash className={isMobile ? "size-5" : "size-6"} />
       </div>
       <div className={"flex-1 flex-col"}>
-        <h2>{name}</h2>
-        <p className={"text-sm text-neutral-500"}>
+        <h2 className={cn("line-clamp-1", isMobile ? "text-base" : "")}>
+          {name}
+        </h2>
+        <p className={"text-xs text-neutral-500 md:text-sm"}>
           북마크 {_count.bookmark_tags}개
         </p>
       </div>

@@ -26,12 +26,16 @@ export default function Options({ reject }: DefaultModalChildrenProps) {
     <ModalLayout reject={reject}>
       <ModalTemplate
         reject={reject}
-        width={"w-[40%]"}
-        height={"h-[50vh]"}
+        width={"w-full md:w-[40%]"}
+        height={"h-[80vh] md:h-[50vh]"}
         title={"Options"}
         displayHeaderBorder={true}
       >
-        <ul className={"flex-center border-b border-neutral-200 px-8 pt-2"}>
+        <ul
+          className={
+            "flex-center w-full overflow-x-auto border-b border-neutral-200 px-4 pt-2 md:px-8"
+          }
+        >
           {TABS_DATA.map(({ value, display }) => {
             return (
               <li key={`tab_${value}`}>
@@ -110,7 +114,7 @@ function TabButton({
       variant={"ghost"}
       size={"custom"}
       className={cn(
-        "rounded-none px-4 py-2 text-base",
+        "rounded-none px-2 py-1 text-sm md:px-4 md:py-2 md:text-base",
         isActive ? "border-b-2 border-blue-500 pb-1.5 text-blue-500" : ""
       )}
       onClick={changeTab ? changeTab : () => null}
@@ -119,7 +123,7 @@ function TabButton({
       {children}
       <span
         className={cn(
-          "flex-center-center size-6 rounded-full bg-neutral-200 p-1.5 font-bold text-neutral-700",
+          "flex-center-center size-5 rounded-full bg-neutral-200 p-1.5 font-bold text-neutral-700 md:size-6",
           countText.length < 3 ? "text-xs" : "text-[10px]"
         )}
       >

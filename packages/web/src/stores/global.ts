@@ -4,18 +4,24 @@ interface GlobalStore {
   openIds: Set<string>;
   slugToId: Record<string, string>;
   currentView: "card" | "list";
+  isMobile: boolean;
+  isTablet: boolean;
 }
 
 interface GlobalActions {
   toggleOpen: (id: string) => void;
   updateSlugToId: (tables: Record<string, string>[]) => void;
   setCurrentView: (view: "card" | "list") => void;
+  setIsMobile: (isMobile: boolean) => void;
+  setIsTablet: (isTablet: boolean) => void;
 }
 
 const useGlobalStore = create<GlobalStore & GlobalActions>((set, get) => ({
   openIds: new Set(),
   slugToId: {},
   currentView: "card",
+  isMobile: false,
+  isTablet: false,
   toggleOpen: (id) => {
     if (get().openIds.has(id)) {
       return set((state) => {
@@ -41,6 +47,8 @@ const useGlobalStore = create<GlobalStore & GlobalActions>((set, get) => ({
       },
     })),
   setCurrentView: (view) => set({ currentView: view }),
+  setIsMobile: (isMobile) => set({ isMobile }),
+  setIsTablet: (isTablet) => set({ isTablet }),
 }));
 
 export default useGlobalStore;

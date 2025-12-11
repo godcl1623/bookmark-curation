@@ -35,4 +35,29 @@ const usePrefetchDirectories = () => {
       });
     }
   }, [response, toggleOpen, openIds]);
+
+  useGlobalLayout();
+};
+
+const useGlobalLayout = () => {
+  const setIsMobile = useGlobalStore((state) => state.setIsMobile);
+  const setIsTablet = useGlobalStore((state) => state.setIsTablet);
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      const { width } = entries[0].contentRect;
+      if (width < 768) {
+        setIsMobile(true);
+        setIsTablet(false);
+      } else if (width < 1024) {
+        setIsMobile(false);
+        setIsTablet(true);
+      } else {
+        setIsMobile(false);
+        setIsTablet(false);
+      }
+    });
+    resizeObserver.observe(document.body);
+    return () => resizeObserver.disconnect();
+  }, [setIsMobile, setIsTablet]);
 };
