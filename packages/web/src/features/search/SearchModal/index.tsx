@@ -11,8 +11,13 @@ import useBookmarksList from "@/shared/hooks/useBookmarksList.ts";
 import useDebouncedInput from "@/shared/hooks/useDebouncedInput.ts";
 import useDirectoriesData from "@/shared/hooks/useDirectoriesData.ts";
 import useTagsList from "@/shared/hooks/useTagsList.ts";
+import { cn } from "@/shared/lib/utils";
+import useGlobalStore from "@/stores/global.ts";
 
 export default function SearchModal({ reject }: DefaultModalChildrenProps) {
+  const isMobile = useGlobalStore((state) => state.isMobile);
+  const isTablet = useGlobalStore((state) => state.isTablet);
+  console.log(isMobile, isTablet);
   const { debouncedValue, inputValue, changeValue, handleChange } =
     useDebouncedInput();
   const {
@@ -38,17 +43,21 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
   );
 
   return (
-    <article className={"absolute inset-0 size-full bg-white"}>
+    <article
+      className={
+        "absolute inset-0 h-max min-h-full min-w-full bg-white pt-7 md:pt-0"
+      }
+    >
       <XButton
-        className={"absolute top-2.5 right-2.5 p-1.5"}
+        className={"absolute top-0 right-0 p-1.5 md:top-2.5 md:right-2.5"}
         onClick={reject}
         iconSize={"lg"}
         variants={"square"}
       />
-      <section className={"w-full p-5 shadow-md"}>
+      <section className={"w-full p-2.5 shadow-md md:p-5"}>
         <div
           className={
-            "flex-center mx-auto max-w-1/2 gap-3 rounded-lg border border-neutral-300 px-4 py-2"
+            "flex-center gap-3 rounded-lg border border-neutral-300 px-2 py-2 md:mx-auto md:max-w-1/2 md:px-4"
           }
         >
           <SearchIcon />
@@ -64,11 +73,20 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
         </div>
       </section>
       {debouncedValue !== "" && bookmarks && bookmarks.length > 0 ? (
-        <section className={"mx-auto my-10 w-max"}>
+        <section
+          className={
+            "flex-col-center-center mx-auto my-5 w-full px-5 md:my-10 md:px-0"
+          }
+        >
           <p className={"mb-5 text-sm font-bold text-neutral-500"}>
             검색결과: 북마크 {bookmarks.length}개
           </p>
-          <ul className={"grid grid-cols-3 gap-5"}>
+          <ul
+            className={cn(
+              "mx-auto w-full",
+              "flex flex-wrap justify-center gap-5"
+            )}
+          >
             {bookmarks.map((bookmark) => (
               <li key={`search-bookmark-${bookmark.id}`}>
                 <BookmarkCard
@@ -81,13 +99,24 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
         </section>
       ) : (
         <>
-          <section className={"mx-auto my-10 w-1/2"}>
+          <section className={"mx-auto my-5 w-[85%] md:my-10 md:w-1/2"}>
             <header className={"flex-center-between mb-5"}>
               <div className={"flex-center gap-2"}>
-                <Clock className={"text-neutral-400"} />
-                <h2 className={"text-lg"}>Recent Searches</h2>
+                <Clock
+                  className={cn("text-neutral-400", isMobile ? "size-5" : "")}
+                />
+                <h2 className={isMobile ? "text-base" : "text-lg"}>
+                  Recent Searches
+                </h2>
               </div>
-              <Button variant={"ghost"} onClick={clearRecentSearches}>
+              <Button
+                variant={"ghost"}
+                onClick={clearRecentSearches}
+                className={cn(
+                  "text-neutral-400",
+                  isMobile ? "text-xs" : "text-sm"
+                )}
+              >
                 Clear All
               </Button>
             </header>
@@ -107,12 +136,16 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
               ))}
             </ul>
           </section>
-          <section className={"mx-auto my-10 w-1/2"}>
+          <section className={"mx-auto my-5 w-[85%] md:my-10 md:w-1/2"}>
             <header className={"flex-center mb-5 gap-2"}>
-              <TrendingUp className={"text-neutral-400"} />
-              <h2 className={"text-lg"}>Popular Tags</h2>
+              <TrendingUp
+                className={cn("text-neutral-400", isMobile ? "size-5" : "")}
+              />
+              <h2 className={isMobile ? "text-base" : "text-lg"}>
+                Popular Tags
+              </h2>
             </header>
-            <ul className={"flex-center gap-2"}>
+            <ul className={"flex-center w-full flex-wrap gap-2"}>
               {tagsList.map((tag) => (
                 <li key={`search-tag-${tag.id}`}>
                   <button onClick={() => changeValue(tag.name)}>
