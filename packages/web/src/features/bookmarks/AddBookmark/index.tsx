@@ -17,6 +17,7 @@ import useHandleSubmit from "@/shared/hooks/useHandleSubmit";
 import { cn } from "@/shared/lib/utils";
 import createNewBookmark from "@/shared/services/bookmarks/create-new-bookmark";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
+import useGlobalStore from "@/stores/global.ts";
 
 import AddTags from "./components/AddTags";
 import InputWithPaste from "./components/InputWithPaste";
@@ -26,6 +27,7 @@ export default function AddBookmark({
   resolve,
   reject,
 }: DefaultModalChildrenProps) {
+  const isMobile = useGlobalStore((state) => state.isMobile);
   const { data: folders } = useFolderList();
   const { refetch } = useDirectoriesData("/", true);
   const { urlErrorMessage, titleErrorMessage, noteErrorMessage, handleSubmit } =
@@ -66,23 +68,27 @@ export default function AddBookmark({
     <ModalLayout reject={reject}>
       <Card
         className={
-          "screen-center h-[90vh] max-h-[88.89rem] w-full overflow-y-auto sm:w-[90%] lg:w-[60%] lg:max-w-[50rem]"
+          "screen-center h-max w-full py-3 sm:w-[90%] md:py-6 lg:w-[60%] lg:max-w-200"
         }
       >
         <CardHeader
-          className={"flex-center-between border-b border-neutral-200"}
+          className={
+            "flex-center-between border-b border-neutral-200 p-3! pt-0! md:p-6! md:pt-0!"
+          }
         >
-          <h1>Add New Bookmark</h1>
+          <h1 className={isMobile ? "text-base" : ""}>Add New Bookmark</h1>
           <Button
             variant={"ghost"}
             className={"text-neutral-500"}
             onClick={reject}
           >
-            <X className={"size-6"} />
+            <X className={isMobile ? "size-5" : "size-6"} />
           </Button>
         </CardHeader>
         <form
-          className={"flex flex-col gap-7 p-6 pt-0"}
+          className={
+            "flex h-full flex-col gap-3.5 overflow-y-auto px-3 md:gap-7 md:px-6"
+          }
           onSubmit={handleSubmit(successCallback)}
           onKeyDown={disableKeyDown}
           onReset={reject}
@@ -179,8 +185,8 @@ function FormControl({
 }: FormControlProps) {
   const variantStyle =
     variant === "blank"
-      ? "bg-blue-500 py-2 text-lg text-white"
-      : "py-2 text-lg";
+      ? "bg-blue-500 py-2 text-sm text-white md:text-lg"
+      : "py-2 text-sm md:text-lg";
   const handleClick = () => {
     if (onClick) onClick();
   };

@@ -14,6 +14,7 @@ import {
 } from "@/shared/components/organisms/card";
 import { cn } from "@/shared/lib/utils";
 import type { BasicComponentProps } from "@/shared/types";
+import useGlobalStore from "@/stores/global.ts";
 
 import BookmarkDetail from "../BookmarkDetail";
 import FolderTag from "./FolderTag";
@@ -36,6 +37,7 @@ export default function BookmarkCard({
   refetch,
   ...props
 }: Bookmark & BookmarkCardProps) {
+  const isMobile = useGlobalStore((state) => state.isMobile);
   const { openModal } = useModal();
   const isLoading = false;
 
@@ -55,17 +57,23 @@ export default function BookmarkCard({
     <Card
       className={cn(
         STYLES.container.common,
-        isCard ? STYLES.container.card : STYLES.container.list
+        isCard
+          ? STYLES.container.card
+          : isMobile
+            ? STYLES.container.list_mobile
+            : STYLES.container.list_normal
       )}
       onClick={handleClickCard}
     >
-      <div
-        className={cn(
-          STYLES.thumbnail.common,
-          isCard ? STYLES.thumbnail.card : STYLES.thumbnail.list
-        )}
-      />
-      <CardContent className={"h-1/2 px-5 py-3"}>
+      {(isCard || (!isMobile && !isCard)) && (
+        <div
+          className={cn(
+            STYLES.thumbnail.common,
+            isCard ? STYLES.thumbnail.card : STYLES.thumbnail.list
+          )}
+        />
+      )}
+      <CardContent className={"h-1/2 w-full px-5 py-3"}>
         <BookmarkHeader isLoading={isLoading}>
           <BookmarkTitle isLoading={isLoading}>{title}</BookmarkTitle>
           <FolderTag>{parent?.title}</FolderTag>
@@ -121,7 +129,9 @@ const STYLES = {
     common:
       "cursor-pointer gap-0 p-0 hover:shadow-md hover:brightness-95 active:[&:not(:has(button:active))]:brightness-90",
     card: "w-[300px] h-[338px] md:h-[360px] md:w-[320px]",
-    list: "grid w-full grid-cols-[max-content_1fr] rounded-xl bg-white p-1 md:p-2 shadow-sm",
+    list_normal:
+      "grid w-full grid-cols-[max-content_1fr] rounded-xl bg-white p-1 md:p-2 shadow-sm",
+    list_mobile: "w-full rounded-xl bg-white p-1 md:p-2 shadow-sm",
   },
   thumbnail: {
     common: "bg-neutral-100 rounded-t-xl",
