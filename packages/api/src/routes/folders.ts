@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 import prisma from "../lib/prisma";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
 // Get all folders
-router.get(SERVICE_ENDPOINTS.FOLDERS.path, async (_req, res) => {
+router.get(SERVICE_ENDPOINTS.FOLDERS.path, requireAuth, async (_req, res) => {
   try {
     const folders = await prisma.folders.findMany({
       where: {
@@ -46,10 +47,10 @@ router.get(SERVICE_ENDPOINTS.FOLDERS.path, async (_req, res) => {
 });
 
 // Create a new folder
-router.post(SERVICE_ENDPOINTS.FOLDERS.path, async (req, res) => {
+router.post(SERVICE_ENDPOINTS.FOLDERS.path, requireAuth, async (req, res) => {
   try {
     const { data_id, title, color, parent_id } = req.body;
-    const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
+    const userId = req.user!.id;
 
     // Validate required fields
     if (!data_id || !title) {
@@ -149,10 +150,10 @@ router.post(SERVICE_ENDPOINTS.FOLDERS.path, async (req, res) => {
 });
 
 // Update a folder
-router.put(SERVICE_ENDPOINTS.FOLDERS.path + "/:data_id", async (req, res) => {
+router.put(SERVICE_ENDPOINTS.FOLDERS.path + "/:data_id", requireAuth, async (req, res) => {
   try {
     const { data_id } = req.params;
-    const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
+    const userId = req.user!.id;
 
     if (!data_id) {
       return res.status(400).json({ ok: false, error: "data_id is required" });
@@ -258,10 +259,11 @@ router.put(SERVICE_ENDPOINTS.FOLDERS.path + "/:data_id", async (req, res) => {
 // Delete a folder (soft delete)
 router.delete(
   SERVICE_ENDPOINTS.FOLDERS.path + "/:data_id",
+  requireAuth,
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
+      const userId = req.user!.id;
 
       if (!data_id) {
         return res

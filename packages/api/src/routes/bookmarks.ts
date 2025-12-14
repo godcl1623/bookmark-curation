@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 import prisma from "../lib/prisma";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
 // Get all bookmarks
-router.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
+router.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, requireAuth, async (req, res) => {
   try {
     const { search } = req.query;
 
@@ -106,7 +107,7 @@ router.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
 });
 
 // Get bookmark by ID
-router.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, async (req, res) => {
+router.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, requireAuth, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -263,7 +264,7 @@ function validateDescription(description: string | undefined): {
 }
 
 // Create a new bookmark
-router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
+router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, requireAuth, async (req, res) => {
   try {
     const {
       data_id,
@@ -281,7 +282,7 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
       type,
       tag_ids,
     } = req.body;
-    const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
+    const userId = req.user!.id;
 
     // Validate required fields
     if (!data_id) {
@@ -479,10 +480,11 @@ router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, async (req, res) => {
 // Patch bookmark status (for quick state changes like favorite, archive, etc.)
 router.patch(
   SERVICE_ENDPOINTS.BOOKMARKS.ALL.path + "/:data_id",
+  requireAuth,
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
+      const userId = req.user!.id;
 
       if (!data_id) {
         return res
@@ -585,10 +587,11 @@ router.patch(
 // Update a bookmark
 router.put(
   SERVICE_ENDPOINTS.BOOKMARKS.ALL.path + "/:data_id",
+  requireAuth,
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
+      const userId = req.user!.id;
 
       if (!data_id) {
         return res
@@ -839,10 +842,11 @@ router.put(
 // Delete a bookmark (soft delete)
 router.delete(
   SERVICE_ENDPOINTS.BOOKMARKS.ALL.path + "/:data_id",
+  requireAuth,
   async (req, res) => {
     try {
       const { data_id } = req.params;
-      const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
+      const userId = req.user!.id;
 
       if (!data_id) {
         return res

@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 import prisma from "../lib/prisma";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
 // Get all tags
-router.get(SERVICE_ENDPOINTS.TAGS.path, async (req, res) => {
+router.get(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
   try {
     const { search, sort_by, limit } = req.query;
     const limitNum = limit ? parseInt(limit as string) : undefined;
@@ -58,10 +59,10 @@ router.get(SERVICE_ENDPOINTS.TAGS.path, async (req, res) => {
 });
 
 // Create a new tag
-router.post(SERVICE_ENDPOINTS.TAGS.path, async (req, res) => {
+router.post(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
   try {
     const { name, color } = req.body;
-    const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
+    const userId = req.user!.id;
 
     if (!name) {
       return res.status(400).json({
@@ -116,7 +117,7 @@ router.post(SERVICE_ENDPOINTS.TAGS.path, async (req, res) => {
 });
 
 // Get a single tag (not implemented)
-router.get(SERVICE_ENDPOINTS.TAGS.path + "/:id", async (req, res) => {
+router.get(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res) => {
   res.status(501).json({
     ok: false,
     error: "Not implemented",
@@ -124,10 +125,10 @@ router.get(SERVICE_ENDPOINTS.TAGS.path + "/:id", async (req, res) => {
 });
 
 // Update a tag
-router.put(SERVICE_ENDPOINTS.TAGS.path + "/:id", async (req, res) => {
+router.put(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
+    const userId = req.user!.id;
 
     if (isNaN(id)) {
       return res.status(400).json({ ok: false, error: "Invalid tag ID" });
@@ -199,10 +200,10 @@ router.put(SERVICE_ENDPOINTS.TAGS.path + "/:id", async (req, res) => {
 });
 
 // Delete a tag (soft delete)
-router.delete(SERVICE_ENDPOINTS.TAGS.path + "/:id", async (req, res) => {
+router.delete(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session
+    const userId = req.user!.id;
 
     if (isNaN(id)) {
       return res.status(400).json({ ok: false, error: "Invalid tag ID" });

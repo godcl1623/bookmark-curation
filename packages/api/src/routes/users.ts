@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 import prisma from "../lib/prisma";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
 // Get all users
-router.get(SERVICE_ENDPOINTS.USERS.path, async (_req, res) => {
+router.get(SERVICE_ENDPOINTS.USERS.path, requireAuth, async (_req, res) => {
   try {
     const users = await prisma.users.findMany({
       select: {
@@ -31,7 +32,7 @@ router.get(SERVICE_ENDPOINTS.USERS.path, async (_req, res) => {
 });
 
 // Get statistics
-router.get(SERVICE_ENDPOINTS.STATS.path, async (_req, res) => {
+router.get(SERVICE_ENDPOINTS.STATS.path, requireAuth, async (_req, res) => {
   try {
     const [userCount, bookmarkCount, folderCount, tagCount] = await Promise.all(
       [
