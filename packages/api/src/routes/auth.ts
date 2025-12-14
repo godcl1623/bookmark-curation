@@ -73,8 +73,7 @@ router.get(
 
       res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, getCookieOptions());
 
-      const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?access_token=${accessToken}`;
-      return res.redirect(redirectUrl);
+      return res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
     } catch (error) {
       console.error("Google OAuth callback error:", error);
       return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
