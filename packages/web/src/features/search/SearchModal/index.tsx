@@ -28,7 +28,7 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
     isLoading,
   } = useSearchBookmark(debouncedValue);
   const { data: tags } = useTagsList({ sort_by: "count", limit: 10 });
-  const loadedDirectory = useDirectoriesData(window.location.pathname, true);
+  const loadedDirectory = useDirectoriesData(window.location.pathname);
 
   const tagsList = useMemo(
     () =>

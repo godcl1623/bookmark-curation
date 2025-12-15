@@ -7,6 +7,7 @@ import useFolderList from "@/shared/hooks/useFolderList";
 import getDirectoryByPath from "@/shared/services/directories/get-directory-by-path";
 import DIRECTORY_QUERY_KEY from "@/shared/services/directories/queryKey";
 import type { BasicComponentProps } from "@/shared/types";
+import useAuthStore from "@/stores/auth.ts";
 import useGlobalStore from "@/stores/global";
 
 export default function InitPrefetcher({ children }: BasicComponentProps) {
@@ -19,11 +20,13 @@ export default function InitPrefetcher({ children }: BasicComponentProps) {
 const usePrefetchDirectories = () => {
   const toggleOpen = useGlobalStore((state) => state.toggleOpen);
   const openIds = useGlobalStore((state) => state.openIds);
+  const accessToken = useAuthStore((state) => state.accessToken);
   const { pathname } = useLocation();
 
   const { data: response } = useQuery<{ ok: boolean; data: Directory } | null>({
     queryKey: DIRECTORY_QUERY_KEY.BY_PATH(pathname),
     queryFn: () => (pathname != null ? getDirectoryByPath(pathname) : null),
+    enabled: accessToken != null,
   });
 
   useEffect(() => {
@@ -61,3 +64,5 @@ const useGlobalLayout = () => {
     return () => resizeObserver.disconnect();
   }, [setIsMobile, setIsTablet]);
 };
+
+const useCheckAuthentication = () => {};

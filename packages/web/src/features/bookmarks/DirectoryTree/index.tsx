@@ -5,7 +5,7 @@ import useDirectoriesData from "../../../shared/hooks/useDirectoriesData";
 import DirectoryList from "./components/DirectoryList";
 
 export default function DirectoryTree() {
-  const loadedDirectory = useDirectoriesData("/", true);
+  const loadedDirectory = useDirectoriesData("/");
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
 
   return (

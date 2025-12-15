@@ -6,7 +6,7 @@ import type { BasicComponentProps } from "@/shared/types";
 
 export default function ClientViewLayout({ children }: BasicComponentProps) {
   const { pathname } = useLocation();
-  const loadedDirectory = useDirectoriesData(pathname ?? "/", true);
+  const loadedDirectory = useDirectoriesData(pathname ?? "/");
 
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
 

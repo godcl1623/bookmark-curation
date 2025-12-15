@@ -1,11 +1,10 @@
-import { Bookmark, Search, Settings } from "lucide-react";
-import { NavLink } from "react-router";
+import { Search, Settings } from "lucide-react";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
 import Options from "@/features/bookmarks/Header/components/Options";
 import SearchModal from "@/features/search/SearchModal";
+import Logo from "@/shared/components/molecules/Logo.tsx";
 import OptionButton from "@/shared/components/molecules/OptionButton.tsx";
-import { cn } from "@/shared/lib/utils";
 import useGlobalStore from "@/stores/global";
 
 export default function Header() {
@@ -55,21 +54,3 @@ const useSearch = () => {
 
   return { handleSearchClick };
 };
-
-function Logo() {
-  const isMobile = useGlobalStore((state) => state.isMobile);
-
-  return (
-    <NavLink className={STYLES.container} to={"/"}>
-      <div
-        className={cn(
-          "rounded-md bg-blue-600 p-1.5 text-white",
-          isMobile ? "p-1" : "p-1.5"
-        )}
-      >
-        <Bookmark className={isMobile ? STYLES.iconSm : ""} />
-      </div>
-      <h1 className={isMobile ? "text-base" : ""}>LinkVault</h1>
-    </NavLink>
-  );
-}
