@@ -1,17 +1,18 @@
-import { Router, Request, Response } from "express";
+import { Request, Response, Router } from "express";
 import passport from "passport";
 import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyRefreshToken,
-  hashRefreshToken,
   createSession,
   findValidSession,
-  revokeSession,
-  revokeAllUserSessions,
+  generateAccessToken,
+  generateRefreshToken,
   getRefreshTokenExpiryDate,
+  hashRefreshToken,
+  revokeAllUserSessions,
+  revokeSession,
+  verifyRefreshToken,
 } from "../lib/auth";
 import { requireAuth } from "../middleware/auth";
+import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 
 const router = Router();
 
@@ -30,22 +31,27 @@ const getCookieOptions = () => {
 };
 
 router.get(
-  "/api/auth/google",
+  SERVICE_ENDPOINTS.AUTH.GOOGLE.SIGNIN.path,
   passport.authenticate("google", {
     session: false,
     scope: ["profile", "email"],
-  })
+  }),
 );
 
 router.get(
-  "/api/auth/google/callback",
-  passport.authenticate("google", { session: false, failureRedirect: "/login" }),
+  SERVICE_ENDPOINTS.AUTH.GOOGLE.CALLBACK.path,
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "/login",
+  }),
   async (req: Request, res: Response) => {
     try {
       const user = req.user;
 
       if (!user || !user.email) {
-        return res.redirect(`${process.env.FRONTEND_URL}/login?error=authentication_failed`);
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/login?error=authentication_failed`,
+        );
       }
 
       const accessToken = generateAccessToken({
@@ -73,99 +79,144 @@ router.get(
 
       res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, getCookieOptions());
 
-      return res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/auth/callback#access_token=${accessToken}`,
+      );
     } catch (error) {
       console.error("Google OAuth callback error:", error);
-      return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?error=server_error`,
+      );
     }
-  }
+  },
 );
 
-router.post("/api/auth/refresh", async (req: Request, res: Response) => {
-  try {
-    const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
+router.post(
+  SERVICE_ENDPOINTS.AUTH.REFRESH.path,
+  async (req: Request, res: Response) => {
+    try {
+      const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
 
-    if (!refreshToken) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "Refresh token not found",
-      });
-    }
-
-    const decoded = verifyRefreshToken(refreshToken);
-
-    const session = await findValidSession(decoded.userId, refreshToken);
-
-    if (!session) {
-      res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, getCookieOptions());
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "Invalid or expired session",
-      });
-    }
-
-    const accessToken = generateAccessToken({
-      userId: decoded.userId,
-      uuid: decoded.uuid,
-      email: decoded.email,
-    });
-
-    return res.json({
-      access_token: accessToken,
-      token_type: "Bearer",
-    });
-  } catch (error) {
-    console.error("Token refresh error:", error);
-
-    res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, getCookieOptions());
-
-    return res.status(401).json({
-      error: "Unauthorized",
-      message: error instanceof Error ? error.message : "Token refresh failed",
-    });
-  }
-});
-
-router.post("/api/auth/logout", requireAuth, async (req: Request, res: Response) => {
-  try {
-    const user = req.user;
-
-    if (!user) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User not authenticated",
-      });
-    }
-
-    const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
-
-    if (refreshToken) {
-      try {
-        const session = await findValidSession(user.id, refreshToken);
-        if (session) {
-          await revokeSession(session.id);
-        }
-      } catch (error) {
-        console.error("Session revocation error:", error);
+      if (!refreshToken) {
+        return res.status(401).json({
+          error: "Unauthorized",
+          message: "Refresh token not found",
+        });
       }
+
+      const decoded = verifyRefreshToken(refreshToken);
+
+      const session = await findValidSession(decoded.userId, refreshToken);
+
+      if (!session) {
+        res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, getCookieOptions());
+        return res.status(401).json({
+          error: "Unauthorized",
+          message: "Invalid or expired session",
+        });
+      }
+
+      const accessToken = generateAccessToken({
+        userId: decoded.userId,
+        uuid: decoded.uuid,
+        email: decoded.email,
+      });
+
+      return res.json({
+        access_token: accessToken,
+        token_type: "Bearer",
+      });
+    } catch (error) {
+      console.error("Token refresh error:", error);
+
+      res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, getCookieOptions());
+
+      return res.status(401).json({
+        error: "Unauthorized",
+        message:
+          error instanceof Error ? error.message : "Token refresh failed",
+      });
     }
+  },
+);
 
-    res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, getCookieOptions());
+router.post(
+  SERVICE_ENDPOINTS.AUTH.LOGOUT.CURRENT.path,
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
 
-    return res.json({
-      message: "Logged out successfully",
-    });
-  } catch (error) {
-    console.error("Logout error:", error);
-    return res.status(500).json({
-      error: "Internal server error",
-      message: "Logout failed",
-    });
-  }
-});
+      if (!user) {
+        return res.status(401).json({
+          error: "Unauthorized",
+          message: "User not authenticated",
+        });
+      }
 
-router.post("/api/auth/logout-all", requireAuth, async (req: Request, res: Response) => {
-  try {
+      const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
+
+      if (refreshToken) {
+        try {
+          const session = await findValidSession(user.id, refreshToken);
+          if (session) {
+            await revokeSession(session.id);
+          }
+        } catch (error) {
+          console.error("Session revocation error:", error);
+        }
+      }
+
+      res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, getCookieOptions());
+
+      return res.json({
+        message: "Logged out successfully",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      return res.status(500).json({
+        error: "Internal server error",
+        message: "Logout failed",
+      });
+    }
+  },
+);
+
+router.post(
+  SERVICE_ENDPOINTS.AUTH.LOGOUT.ALL.path,
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return res.status(401).json({
+          error: "Unauthorized",
+          message: "User not authenticated",
+        });
+      }
+
+      await revokeAllUserSessions(user.id);
+
+      res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, getCookieOptions());
+
+      return res.json({
+        message: "Logged out from all devices successfully",
+      });
+    } catch (error) {
+      console.error("Logout all error:", error);
+      return res.status(500).json({
+        error: "Internal server error",
+        message: "Logout from all devices failed",
+      });
+    }
+  },
+);
+
+router.get(
+  SERVICE_ENDPOINTS.AUTH.ME.path,
+  requireAuth,
+  (req: Request, res: Response) => {
     const user = req.user;
 
     if (!user) {
@@ -175,42 +226,17 @@ router.post("/api/auth/logout-all", requireAuth, async (req: Request, res: Respo
       });
     }
 
-    await revokeAllUserSessions(user.id);
-
-    res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, getCookieOptions());
-
     return res.json({
-      message: "Logged out from all devices successfully",
+      user: {
+        id: user.id,
+        uuid: user.uuid,
+        email: user.email,
+        display_name: user.display_name,
+        avatar_url: user.avatar_url,
+        locale: user.locale,
+      },
     });
-  } catch (error) {
-    console.error("Logout all error:", error);
-    return res.status(500).json({
-      error: "Internal server error",
-      message: "Logout from all devices failed",
-    });
-  }
-});
-
-router.get("/api/auth/me", requireAuth, (req: Request, res: Response) => {
-  const user = req.user;
-
-  if (!user) {
-    return res.status(401).json({
-      error: "Unauthorized",
-      message: "User not authenticated",
-    });
-  }
-
-  return res.json({
-    user: {
-      id: user.id,
-      uuid: user.uuid,
-      email: user.email,
-      display_name: user.display_name,
-      avatar_url: user.avatar_url,
-      locale: user.locale,
-    },
-  });
-});
+  },
+);
 
 export default router;

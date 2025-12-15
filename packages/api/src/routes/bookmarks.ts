@@ -1,164 +1,174 @@
 import { Router } from "express";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 import prisma from "../lib/prisma";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth } from "@/middleware/auth";
 
 const router = Router();
 
 // Get all bookmarks
-router.get(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, requireAuth, async (req, res) => {
-  try {
-    const { search } = req.query;
+router.get(
+  SERVICE_ENDPOINTS.BOOKMARKS.ALL.path,
+  requireAuth,
+  async (req, res) => {
+    try {
+      const { search } = req.query;
 
-    // Build where clause with search conditions
-    const whereClause: any = {
-      deleted_at: null,
-    };
+      // Build where clause with search conditions
+      const whereClause: any = {
+        deleted_at: null,
+      };
 
-    // Add search conditions if search query is provided
-    if (search && typeof search === "string" && search.trim() !== "") {
-      const searchTerm = search.trim();
-      whereClause.OR = [
-        {
-          title: {
-            contains: searchTerm,
-            mode: "insensitive",
+      // Add search conditions if search query is provided
+      if (search && typeof search === "string" && search.trim() !== "") {
+        const searchTerm = search.trim();
+        whereClause.OR = [
+          {
+            title: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
           },
-        },
-        {
-          description: {
-            contains: searchTerm,
-            mode: "insensitive",
+          {
+            description: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
           },
-        },
-        {
-          domain: {
-            contains: searchTerm,
-            mode: "insensitive",
+          {
+            domain: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
           },
-        },
-        {
-          url: {
-            contains: searchTerm,
-            mode: "insensitive",
+          {
+            url: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
           },
-        },
-        {
-          bookmark_tags: {
-            some: {
-              tags: {
-                name: {
-                  contains: searchTerm,
-                  mode: "insensitive",
+          {
+            bookmark_tags: {
+              some: {
+                tags: {
+                  name: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                  },
+                  deleted_at: null,
                 },
-                deleted_at: null,
               },
             },
           },
+        ];
+      }
+
+      const bookmarks = await prisma.bookmarks.findMany({
+        where: whereClause,
+        include: {
+          users: {
+            select: {
+              id: true,
+              display_name: true,
+              avatar_url: true,
+            },
+          },
+          folders: {
+            select: {
+              id: true,
+              title: true,
+              color: true,
+            },
+          },
+          bookmark_tags: {
+            include: {
+              tags: true,
+            },
+          },
+          media: true,
         },
-      ];
+        orderBy: {
+          created_at: "desc",
+        },
+      });
+
+      // Transform bookmark_tags to flat tags array
+      const bookmarksWithTags = bookmarks.map((bookmark) => {
+        const { bookmark_tags, ...rest } = bookmark;
+        return {
+          ...rest,
+          tags: bookmark_tags.map((bt) => bt.tags),
+        };
+      });
+
+      res.json({ ok: true, data: bookmarksWithTags });
+    } catch (error) {
+      res.status(500).json({
+        ok: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
+  },
+);
 
-    const bookmarks = await prisma.bookmarks.findMany({
-      where: whereClause,
-      include: {
-        users: {
-          select: {
-            id: true,
-            display_name: true,
-            avatar_url: true,
-          },
-        },
-        folders: {
-          select: {
-            id: true,
-            title: true,
-            color: true,
-          },
-        },
-        bookmark_tags: {
-          include: {
-            tags: true,
-          },
-        },
-        media: true,
-      },
-      orderBy: {
-        created_at: "desc",
-      },
-    });
+// Get bookmark by ID
+router.get(
+  SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path,
+  requireAuth,
+  async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res
+          .status(400)
+          .json({ ok: false, error: "Invalid bookmark ID" });
+      }
 
-    // Transform bookmark_tags to flat tags array
-    const bookmarksWithTags = bookmarks.map((bookmark) => {
+      const bookmark = await prisma.bookmarks.findFirst({
+        where: { id, deleted_at: null },
+        include: {
+          users: {
+            select: {
+              id: true,
+              display_name: true,
+              avatar_url: true,
+            },
+          },
+          folders: true,
+          bookmark_tags: {
+            include: {
+              tags: true,
+            },
+          },
+          media: true,
+          bookmark_history: {
+            orderBy: {
+              created_at: "desc",
+            },
+            take: 10,
+          },
+        },
+      });
+
+      if (!bookmark) {
+        return res.status(404).json({ ok: false, error: "Bookmark not found" });
+      }
+
+      // Transform bookmark_tags to flat tags array
       const { bookmark_tags, ...rest } = bookmark;
-      return {
+      const bookmarkWithTags = {
         ...rest,
         tags: bookmark_tags.map((bt) => bt.tags),
       };
-    });
 
-    res.json({ ok: true, data: bookmarksWithTags });
-  } catch (error) {
-    res.status(500).json({
-      ok: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-});
-
-// Get bookmark by ID
-router.get(SERVICE_ENDPOINTS.BOOKMARKS.DETAIL.path, requireAuth, async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ ok: false, error: "Invalid bookmark ID" });
+      res.json({ ok: true, data: bookmarkWithTags });
+    } catch (error) {
+      res.status(500).json({
+        ok: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
-
-    const bookmark = await prisma.bookmarks.findFirst({
-      where: { id, deleted_at: null },
-      include: {
-        users: {
-          select: {
-            id: true,
-            display_name: true,
-            avatar_url: true,
-          },
-        },
-        folders: true,
-        bookmark_tags: {
-          include: {
-            tags: true,
-          },
-        },
-        media: true,
-        bookmark_history: {
-          orderBy: {
-            created_at: "desc",
-          },
-          take: 10,
-        },
-      },
-    });
-
-    if (!bookmark) {
-      return res.status(404).json({ ok: false, error: "Bookmark not found" });
-    }
-
-    // Transform bookmark_tags to flat tags array
-    const { bookmark_tags, ...rest } = bookmark;
-    const bookmarkWithTags = {
-      ...rest,
-      tags: bookmark_tags.map((bt) => bt.tags),
-    };
-
-    res.json({ ok: true, data: bookmarkWithTags });
-  } catch (error) {
-    res.status(500).json({
-      ok: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-});
+  },
+);
 
 // Validation helper functions
 const FORBIDDEN_URL_SCHEMES =
@@ -264,218 +274,225 @@ function validateDescription(description: string | undefined): {
 }
 
 // Create a new bookmark
-router.post(SERVICE_ENDPOINTS.BOOKMARKS.ALL.path, requireAuth, async (req, res) => {
-  try {
-    const {
-      data_id,
-      parent_id,
-      title,
-      description,
-      url,
-      domain,
-      favicon_url,
-      preview_image,
-      metadata,
-      is_favorite,
-      is_archived,
-      is_private,
-      type,
-      tag_ids,
-    } = req.body;
-    const userId = req.user!.id;
-
-    // Validate required fields
-    if (!data_id) {
-      return res.status(400).json({
-        ok: false,
-        error: "data_id is required",
-      });
-    }
-
-    // Validate URL
-    const urlValidation = validateUrl(url);
-    if (!urlValidation.valid) {
-      return res.status(400).json({
-        ok: false,
-        error: urlValidation.error,
-      });
-    }
-
-    // Validate title
-    const titleValidation = validateTitle(title);
-    if (!titleValidation.valid) {
-      return res.status(400).json({
-        ok: false,
-        error: titleValidation.error,
-      });
-    }
-
-    // Validate description
-    const descriptionValidation = validateDescription(description);
-    if (!descriptionValidation.valid) {
-      return res.status(400).json({
-        ok: false,
-        error: descriptionValidation.error,
-      });
-    }
-
-    // Validate tag_ids if provided
-    if (tag_ids !== undefined && !Array.isArray(tag_ids)) {
-      return res.status(400).json({
-        ok: false,
-        error: "tag_ids must be an array",
-      });
-    }
-
-    // Verify tags belong to user if tag_ids are provided
-    if (tag_ids && tag_ids.length > 0) {
-      const uniqueTagIds = [...new Set(tag_ids)];
-      const existingTags = await prisma.tags.findMany({
-        where: {
-          id: { in: uniqueTagIds },
-          user_id: userId,
-          deleted_at: null,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (existingTags.length !== uniqueTagIds.length) {
-        return res.status(404).json({
-          ok: false,
-          error: "One or more tags not found or access denied",
-        });
-      }
-    }
-
-    // Find folder by data_id if parent_id is provided
-    let dbFolderId: number | null = null;
-    if (parent_id) {
-      const folder = await prisma.folders.findFirst({
-        where: {
-          data_id: parent_id,
-          user_id: userId,
-          deleted_at: null,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (!folder) {
-        return res.status(404).json({
-          ok: false,
-          error: "Folder not found",
-        });
-      }
-
-      dbFolderId = folder.id;
-    }
-
-    // Get the highest position to append the new bookmark at the end
-    const maxPositionBookmark = await prisma.bookmarks.findFirst({
-      where: {
-        user_id: userId,
-        folder_id: dbFolderId,
-      },
-      orderBy: {
-        position: "desc",
-      },
-      select: {
-        position: true,
-      },
-    });
-
-    const newPosition = (maxPositionBookmark?.position ?? -1) + 1;
-
-    const bookmark = await prisma.bookmarks.create({
-      data: {
+router.post(
+  SERVICE_ENDPOINTS.BOOKMARKS.ALL.path,
+  requireAuth,
+  async (req, res) => {
+    try {
+      const {
         data_id,
-        user_id: userId,
-        folder_id: dbFolderId,
-        parent_id: parent_id !== undefined ? parent_id : null,
-        title: titleValidation.title,
-        description: descriptionValidation.description,
-        url: urlValidation.url!,
-        domain: domain !== undefined ? domain : null,
-        favicon_url: favicon_url !== undefined ? favicon_url : null,
-        preview_image: preview_image !== undefined ? preview_image : null,
-        metadata: metadata || {},
-        is_favorite: is_favorite ?? false,
-        is_archived: is_archived ?? false,
-        is_private: is_private ?? true,
-        position: newPosition,
-        type: type || "bookmark",
-      },
-    });
+        parent_id,
+        title,
+        description,
+        url,
+        domain,
+        favicon_url,
+        preview_image,
+        metadata,
+        is_favorite,
+        is_archived,
+        is_private,
+        type,
+        tag_ids,
+      } = req.body;
+      const userId = req.user!.id;
 
-    // Create bookmark_tags relationships if tag_ids are provided
-    if (tag_ids && tag_ids.length > 0) {
-      const uniqueTagIds = [...new Set(tag_ids)];
-      await prisma.bookmark_tags.createMany({
-        data: uniqueTagIds.map((tag_id) => ({
-          bookmark_id: bookmark.id,
-          tag_id,
+      // Validate required fields
+      if (!data_id) {
+        return res.status(400).json({
+          ok: false,
+          error: "data_id is required",
+        });
+      }
+
+      // Validate URL
+      const urlValidation = validateUrl(url);
+      if (!urlValidation.valid) {
+        return res.status(400).json({
+          ok: false,
+          error: urlValidation.error,
+        });
+      }
+
+      // Validate title
+      const titleValidation = validateTitle(title);
+      if (!titleValidation.valid) {
+        return res.status(400).json({
+          ok: false,
+          error: titleValidation.error,
+        });
+      }
+
+      // Validate description
+      const descriptionValidation = validateDescription(description);
+      if (!descriptionValidation.valid) {
+        return res.status(400).json({
+          ok: false,
+          error: descriptionValidation.error,
+        });
+      }
+
+      // Validate tag_ids if provided
+      if (tag_ids !== undefined && !Array.isArray(tag_ids)) {
+        return res.status(400).json({
+          ok: false,
+          error: "tag_ids must be an array",
+        });
+      }
+
+      // Verify tags belong to user if tag_ids are provided
+      if (tag_ids && tag_ids.length > 0) {
+        const uniqueTagIds = [...new Set(tag_ids)];
+        const existingTags = await prisma.tags.findMany({
+          where: {
+            id: { in: uniqueTagIds },
+            user_id: userId,
+            deleted_at: null,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (existingTags.length !== uniqueTagIds.length) {
+          return res.status(404).json({
+            ok: false,
+            error: "One or more tags not found or access denied",
+          });
+        }
+      }
+
+      // Find folder by data_id if parent_id is provided
+      let dbFolderId: number | null = null;
+      if (parent_id) {
+        const folder = await prisma.folders.findFirst({
+          where: {
+            data_id: parent_id,
+            user_id: userId,
+            deleted_at: null,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (!folder) {
+          return res.status(404).json({
+            ok: false,
+            error: "Folder not found",
+          });
+        }
+
+        dbFolderId = folder.id;
+      }
+
+      // Get the highest position to append the new bookmark at the end
+      const maxPositionBookmark = await prisma.bookmarks.findFirst({
+        where: {
           user_id: userId,
-        })),
+          folder_id: dbFolderId,
+        },
+        orderBy: {
+          position: "desc",
+        },
+        select: {
+          position: true,
+        },
       });
-    }
 
-    // Fetch the created bookmark with all relations
-    const createdBookmark = await prisma.bookmarks.findUnique({
-      where: { id: bookmark.id },
-      include: {
-        users: {
-          select: {
-            id: true,
-            display_name: true,
-            avatar_url: true,
-          },
-        },
-        folders: {
-          select: {
-            id: true,
-            title: true,
-            color: true,
-          },
-        },
-        bookmark_tags: {
-          include: {
-            tags: true,
-          },
-        },
-        media: true,
-      },
-    });
+      const newPosition = (maxPositionBookmark?.position ?? -1) + 1;
 
-    // Transform bookmark_tags to flat tags array
-    const bookmarkWithTags = createdBookmark
-      ? (() => {
-          const { bookmark_tags, ...rest } = createdBookmark;
-          return {
-            ...rest,
-            tags: bookmark_tags.map((bt) => bt.tags),
-          };
-        })()
-      : null;
+      const bookmark = await prisma.bookmarks.create({
+        data: {
+          data_id,
+          user_id: userId,
+          folder_id: dbFolderId,
+          parent_id: parent_id !== undefined ? parent_id : null,
+          title: titleValidation.title,
+          description: descriptionValidation.description,
+          url: urlValidation.url!,
+          domain: domain !== undefined ? domain : null,
+          favicon_url: favicon_url !== undefined ? favicon_url : null,
+          preview_image: preview_image !== undefined ? preview_image : null,
+          metadata: metadata || {},
+          is_favorite: is_favorite ?? false,
+          is_archived: is_archived ?? false,
+          is_private: is_private ?? true,
+          position: newPosition,
+          type: type || "bookmark",
+        },
+      });
 
-    res.status(201).json({ ok: true, data: bookmarkWithTags });
-  } catch (error) {
-    // Handle unique constraint violation
-    if (error instanceof Error && error.message.includes("Unique constraint")) {
-      return res.status(409).json({
+      // Create bookmark_tags relationships if tag_ids are provided
+      if (tag_ids && tag_ids.length > 0) {
+        const uniqueTagIds = [...new Set(tag_ids)];
+        await prisma.bookmark_tags.createMany({
+          data: uniqueTagIds.map((tag_id) => ({
+            bookmark_id: bookmark.id,
+            tag_id,
+            user_id: userId,
+          })),
+        });
+      }
+
+      // Fetch the created bookmark with all relations
+      const createdBookmark = await prisma.bookmarks.findUnique({
+        where: { id: bookmark.id },
+        include: {
+          users: {
+            select: {
+              id: true,
+              display_name: true,
+              avatar_url: true,
+            },
+          },
+          folders: {
+            select: {
+              id: true,
+              title: true,
+              color: true,
+            },
+          },
+          bookmark_tags: {
+            include: {
+              tags: true,
+            },
+          },
+          media: true,
+        },
+      });
+
+      // Transform bookmark_tags to flat tags array
+      const bookmarkWithTags = createdBookmark
+        ? (() => {
+            const { bookmark_tags, ...rest } = createdBookmark;
+            return {
+              ...rest,
+              tags: bookmark_tags.map((bt) => bt.tags),
+            };
+          })()
+        : null;
+
+      res.status(201).json({ ok: true, data: bookmarkWithTags });
+    } catch (error) {
+      // Handle unique constraint violation
+      if (
+        error instanceof Error &&
+        error.message.includes("Unique constraint")
+      ) {
+        return res.status(409).json({
+          ok: false,
+          error: "Bookmark with this data_id already exists",
+        });
+      }
+
+      res.status(500).json({
         ok: false,
-        error: "Bookmark with this data_id already exists",
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
-
-    res.status(500).json({
-      ok: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-});
+  },
+);
 
 // Patch bookmark status (for quick state changes like favorite, archive, etc.)
 router.patch(

@@ -36,6 +36,30 @@ const SERVICE_ENDPOINTS = {
   STATS: {
     path: "/stats",
   },
+  AUTH: {
+    ME: {
+      path: "/auth/me",
+    },
+    LOGOUT: {
+      CURRENT: {
+        path: "/auth/logout",
+      },
+      ALL: {
+        path: "/auth/logout-all",
+      },
+    },
+    REFRESH: {
+      path: "/auth/refresh",
+    },
+    GOOGLE: {
+      SIGNIN: {
+        path: "/auth/google",
+      },
+      CALLBACK: {
+        path: "/auth/google/callback",
+      },
+    },
+  },
 } as const;
 
 export default SERVICE_ENDPOINTS;
