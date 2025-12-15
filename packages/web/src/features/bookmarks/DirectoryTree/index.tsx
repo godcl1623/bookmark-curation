@@ -1,4 +1,5 @@
 import Button from "@/shared/components/atoms/button";
+import useMe from "@/shared/hooks/useMe.ts";
 import type { BasicComponentProps } from "@/shared/types";
 
 import useDirectoriesData from "../../../shared/hooks/useDirectoriesData";
@@ -7,11 +8,21 @@ import DirectoryList from "./components/DirectoryList";
 export default function DirectoryTree() {
   const loadedDirectory = useDirectoriesData("/");
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
+  const { user } = useMe();
 
   return (
     <aside
       className={"flex w-[15%] flex-col gap-5 overflow-y-auto bg-white p-5"}
     >
+      {user != null && (
+        <div
+          className={
+            "rounded-lg bg-blue-400 py-1.5 text-center text-sm font-bold text-white"
+          }
+        >
+          {user?.email}
+        </div>
+      )}
       <DefaultFilterButton>All</DefaultFilterButton>
       <DefaultFilterButton>Favorites</DefaultFilterButton>
       <nav>

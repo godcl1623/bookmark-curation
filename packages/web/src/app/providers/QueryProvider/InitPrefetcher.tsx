@@ -1,9 +1,12 @@
 import type { Directory } from "@linkvault/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { useLocation } from "react-router";
+import toast from "react-hot-toast";
+import { useLocation, useNavigate } from "react-router";
 
 import useFolderList from "@/shared/hooks/useFolderList";
+import useMe from "@/shared/hooks/useMe.ts";
+import refreshToken from "@/shared/services/auth/refresh-token";
 import getDirectoryByPath from "@/shared/services/directories/get-directory-by-path";
 import DIRECTORY_QUERY_KEY from "@/shared/services/directories/queryKey";
 import type { BasicComponentProps } from "@/shared/types";
@@ -13,6 +16,8 @@ import useGlobalStore from "@/stores/global";
 export default function InitPrefetcher({ children }: BasicComponentProps) {
   usePrefetchDirectories();
   useFolderList();
+  useMe();
+  useCheckAuthentication();
 
   return children;
 }
@@ -65,4 +70,24 @@ const useGlobalLayout = () => {
   }, [setIsMobile, setIsTablet]);
 };
 
-const useCheckAuthentication = () => {};
+const useCheckAuthentication = () => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (accessToken == null) {
+      refreshToken()
+        .then((response) => {
+          if (response.access_token) {
+            setAccessToken(response.access_token);
+          }
+        })
+        .catch((error) => {
+          toast.error("세션이 만료되었습니다. 다시 로그인해주세요.");
+          navigate("/login");
+          console.error(error);
+        });
+    }
+  }, [accessToken, setAccessToken, navigate]);
+};
