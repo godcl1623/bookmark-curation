@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { Search, Settings } from "lucide-react";
 import toast from "react-hot-toast";
@@ -9,7 +10,7 @@ import SearchModal from "@/features/search/SearchModal";
 import Button from "@/shared/components/atoms/button.tsx";
 import Logo from "@/shared/components/molecules/Logo.tsx";
 import OptionButton from "@/shared/components/molecules/OptionButton.tsx";
-import useMe from "@/shared/hooks/useMe.ts";
+import useAuth from "@/shared/hooks/useAuth.ts";
 import logoutUser from "@/shared/services/auth/logout-user.ts";
 import useAuthStore from "@/stores/auth.ts";
 import useGlobalStore from "@/stores/global";
@@ -19,16 +20,15 @@ export default function Header() {
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const { handleSettingClick } = useSetting();
   const { handleSearchClick } = useSearch();
-  const { user } = useMe();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const normalIconStyle = isMobile ? STYLES.iconSm : STYLES.iconMd;
 
   const handleLogut = async () => {
     try {
       await logoutUser();
-      clearAuth();
-      navigate("/login");
       toast.success("로그아웃 되었습니다.");
     } catch (error) {
       if (error instanceof Error) {
@@ -37,6 +37,10 @@ export default function Header() {
         toast.error(`로그아웃에 실패했습니다(${error.status})`);
       }
       console.error(error);
+    } finally {
+      clearAuth();
+      queryClient.clear();
+      navigate("/login");
     }
   };
 

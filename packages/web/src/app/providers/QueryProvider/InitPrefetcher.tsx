@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router";
 
+import useAuth from "@/shared/hooks/useAuth.ts";
 import useFolderList from "@/shared/hooks/useFolderList";
-import useMe from "@/shared/hooks/useMe.ts";
 import refreshToken from "@/shared/services/auth/refresh-token";
 import getDirectoryByPath from "@/shared/services/directories/get-directory-by-path";
 import DIRECTORY_QUERY_KEY from "@/shared/services/directories/queryKey";
@@ -16,7 +16,7 @@ import useGlobalStore from "@/stores/global";
 export default function InitPrefetcher({ children }: BasicComponentProps) {
   usePrefetchDirectories();
   useFolderList();
-  useMe();
+  useAuth();
   useCheckAuthentication();
 
   return children;

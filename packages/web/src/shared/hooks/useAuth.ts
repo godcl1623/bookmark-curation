@@ -5,7 +5,7 @@ import getMe from "@/shared/services/auth/get-me.ts";
 import AUTH_QUERY_KEY from "@/shared/services/auth/queryKey.ts";
 import useAuthStore from "@/stores/auth.ts";
 
-const useMe = () => {
+const useAuth = () => {
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const {
@@ -17,9 +17,11 @@ const useMe = () => {
     queryKey: AUTH_QUERY_KEY.ME,
     queryFn: () => (accessToken != null ? getMe() : null),
     enabled: accessToken != null,
+    staleTime: 60 * 5 * 1000,
+    retry: false,
   });
 
   return { user: response?.user, isLoading, isError, refetch };
 };
 
-export default useMe;
+export default useAuth;

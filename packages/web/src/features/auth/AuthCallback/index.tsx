@@ -19,27 +19,22 @@ const useHandleCallback = () => {
     (isError: boolean = true) => {
       if (isError) {
         toast.error("올바르지 않은 접근입니다.");
+      } else {
+        window.history.replaceState({}, "", "/auth/callback");
       }
-      navigate("/");
+      navigate("/", { replace: true });
       return;
     },
     [navigate]
   );
 
-  const parseHash = useCallback(
-    (hashString: string) => {
-      if (hashString === "") return redirectToRoot();
-      return hashString.slice(1).split("=");
-    },
-    [redirectToRoot]
-  );
-
   useEffect(() => {
     if (hash === "") return redirectToRoot();
-    const [key, value] = parseHash(hash) ?? [];
+    const params = new URLSearchParams(hash.substring(1));
 
-    if (key !== "access_token") return redirectToRoot();
-    setAccessToken(value);
+    if (!params.has("access_token")) return redirectToRoot();
+    const token = params.get("access_token");
+    setAccessToken(token);
     redirectToRoot(false);
-  }, [hash, redirectToRoot, parseHash, setAccessToken]);
+  }, [hash, redirectToRoot, setAccessToken]);
 };

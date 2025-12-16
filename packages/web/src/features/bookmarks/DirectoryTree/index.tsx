@@ -1,5 +1,5 @@
 import Button from "@/shared/components/atoms/button";
-import useMe from "@/shared/hooks/useMe.ts";
+import useAuth from "@/shared/hooks/useAuth.ts";
 import type { BasicComponentProps } from "@/shared/types";
 
 import useDirectoriesData from "../../../shared/hooks/useDirectoriesData";
@@ -8,7 +8,7 @@ import DirectoryList from "./components/DirectoryList";
 export default function DirectoryTree() {
   const loadedDirectory = useDirectoriesData("/");
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
-  const { user } = useMe();
+  const { user } = useAuth();
 
   return (
     <aside
