@@ -12,7 +12,9 @@ export default function DirectoryTree() {
 
   return (
     <aside
-      className={"flex w-[15%] flex-col gap-5 overflow-y-auto bg-white p-5"}
+      className={
+        "flex w-[15%] min-w-[200px] flex-col gap-5 overflow-y-auto bg-white p-5"
+      }
     >
       {user != null && (
         <div

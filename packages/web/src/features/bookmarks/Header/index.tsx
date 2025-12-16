@@ -44,6 +44,12 @@ export default function Header() {
     <header className={"flex-center-between bg-white p-1.5 md:px-10 md:py-3"}>
       <Logo />
       <div className={STYLES.container}>
+        <OptionButton onClick={handleSearchClick}>
+          <Search className={normalIconStyle} />
+        </OptionButton>
+        <OptionButton onClick={handleSettingClick}>
+          <Settings className={normalIconStyle} />
+        </OptionButton>
         {user && (
           <Button
             variant={"blank"}
@@ -54,12 +60,6 @@ export default function Header() {
             Logout
           </Button>
         )}
-        <OptionButton onClick={handleSearchClick}>
-          <Search className={normalIconStyle} />
-        </OptionButton>
-        <OptionButton onClick={handleSettingClick}>
-          <Settings className={normalIconStyle} />
-        </OptionButton>
       </div>
     </header>
   );

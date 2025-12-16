@@ -11,7 +11,9 @@ export default function ClientViewLayout({ children }: BasicComponentProps) {
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
 
   return (
-    <div className={"relative flex h-[calc(100vh-64px)]"}>
+    <div
+      className={"relative flex h-[calc(100vh-44px)] md:h-[calc(100vh-64px)]"}
+    >
       {children}
 
       {(folders?.length > 0 || bookmarks?.length > 0) && (

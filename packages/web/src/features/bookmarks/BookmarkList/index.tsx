@@ -27,7 +27,7 @@ export default function BookmarkList() {
   return (
     <main
       className={
-        "w-full rounded-2xl bg-blue-50/75 md:h-[calc(100vh-64px)] md:w-[85%]"
+        "relative w-full rounded-2xl bg-blue-50/75 md:h-[calc(100vh-64px)] md:w-[85%]"
       }
     >
       {/* FIXME: 긴 폴더명 처리방법 생각 */}
