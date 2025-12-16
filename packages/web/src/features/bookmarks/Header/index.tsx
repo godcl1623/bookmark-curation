@@ -18,6 +18,7 @@ import useGlobalStore from "@/stores/global";
 export default function Header() {
   const isMobile = useGlobalStore((state) => state.isMobile);
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const setIsLoggedOut = useAuthStore((state) => state.setIsLoggedOut);
   const { handleSettingClick } = useSetting();
   const { handleSearchClick } = useSearch();
   const { user } = useAuth();
@@ -26,9 +27,13 @@ export default function Header() {
 
   const normalIconStyle = isMobile ? STYLES.iconSm : STYLES.iconMd;
 
-  const handleLogut = async () => {
+  const handleLogOut = async () => {
     try {
       await logoutUser();
+      setIsLoggedOut(true);
+      clearAuth();
+      queryClient.clear();
+      navigate("/login");
       toast.success("로그아웃 되었습니다.");
     } catch (error) {
       if (error instanceof Error) {
@@ -37,10 +42,6 @@ export default function Header() {
         toast.error(`로그아웃에 실패했습니다(${error.status})`);
       }
       console.error(error);
-    } finally {
-      clearAuth();
-      queryClient.clear();
-      navigate("/login");
     }
   };
 
@@ -59,7 +60,7 @@ export default function Header() {
             variant={"blank"}
             size={isMobile ? "sm" : "lg"}
             className={"bg-red-400 text-xs font-bold text-white md:text-base"}
-            onClick={handleLogut}
+            onClick={handleLogOut}
           >
             Logout
           </Button>

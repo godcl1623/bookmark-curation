@@ -12,6 +12,7 @@ export default function AuthCallback() {
 
 const useHandleCallback = () => {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setIsLoggedOut = useAuthStore((state) => state.setIsLoggedOut);
   const { hash } = useLocation();
   const navigate = useNavigate();
 
@@ -19,13 +20,15 @@ const useHandleCallback = () => {
     (isError: boolean = true) => {
       if (isError) {
         toast.error("올바르지 않은 접근입니다.");
+        navigate("/login", { replace: true });
       } else {
         window.history.replaceState({}, "", "/auth/callback");
+        setIsLoggedOut(false);
+        navigate("/", { replace: true });
       }
-      navigate("/", { replace: true });
       return;
     },
-    [navigate]
+    [navigate, setIsLoggedOut]
   );
 
   useEffect(() => {

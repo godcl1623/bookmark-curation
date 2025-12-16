@@ -72,6 +72,7 @@ const useGlobalLayout = () => {
 
 const useCheckAuthentication = () => {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const isLoggedOut = useAuthStore((state) => state.isLoggedOut);
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const navigate = useNavigate();
 
@@ -84,10 +85,12 @@ const useCheckAuthentication = () => {
           }
         })
         .catch((error) => {
-          toast.error("세션이 만료되었습니다. 다시 로그인해주세요.");
+          if (!isLoggedOut) {
+            toast.error("세션이 만료되었습니다. 다시 로그인해주세요.");
+          }
           navigate("/login");
           console.error(error);
         });
     }
-  }, [accessToken, setAccessToken, navigate]);
+  }, [accessToken, setAccessToken, navigate, isLoggedOut]);
 };
