@@ -2,6 +2,7 @@ import "./index.css";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { Toaster } from "react-hot-toast";
 
 import AppRoutes from "@/app/Routes";
 
@@ -13,6 +14,7 @@ createRoot(document.getElementById("root")!).render(
     <QueryProvider>
       <ModalProvider>
         <AppRoutes />
+        <Toaster />
       </ModalProvider>
     </QueryProvider>
   </StrictMode>

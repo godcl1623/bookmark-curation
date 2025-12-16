@@ -16,7 +16,7 @@ export default function BookmarkList() {
   const isMobile = useGlobalStore((state) => state.isMobile);
   const setCurrentView = useGlobalStore((state) => state.setCurrentView);
   const { pathname } = useLocation();
-  const loadedDirectory = useDirectoriesData(pathname ?? "/", true);
+  const loadedDirectory = useDirectoriesData(pathname ?? "/");
 
   const { folders, bookmarks, breadcrumbs } = loadedDirectory?.data ?? {};
   const isListView = currentView === "list";
@@ -27,7 +27,7 @@ export default function BookmarkList() {
   return (
     <main
       className={
-        "w-full rounded-2xl bg-blue-50/75 md:h-[calc(100vh-64px)] md:w-[85%]"
+        "relative w-full rounded-2xl bg-blue-50/75 md:h-[calc(100vh-64px)] md:w-[85%]"
       }
     >
       {/* FIXME: 긴 폴더명 처리방법 생각 */}
@@ -93,8 +93,10 @@ export default function BookmarkList() {
           </li>
         </ul>
       </aside>
-      {(!folders && !bookmarks) ||
-        (folders?.length === 0 && bookmarks?.length === 0 && <BlankFallback />)}
+      {((!folders && !bookmarks) ||
+        (folders?.length === 0 && bookmarks?.length === 0)) && (
+        <BlankFallback />
+      )}
       {folders && folders.length > 0 && (
         <article className={"p-2.5 md:p-5"}>
           <ul className={"flex-center flex-wrap gap-2 md:gap-4"}>

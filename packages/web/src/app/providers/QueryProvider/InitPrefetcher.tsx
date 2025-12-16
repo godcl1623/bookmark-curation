@@ -1,17 +1,23 @@
 import type { Directory } from "@linkvault/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { useLocation } from "react-router";
+import toast from "react-hot-toast";
+import { useLocation, useNavigate } from "react-router";
 
+import useAuth from "@/shared/hooks/useAuth.ts";
 import useFolderList from "@/shared/hooks/useFolderList";
+import refreshToken from "@/shared/services/auth/refresh-token";
 import getDirectoryByPath from "@/shared/services/directories/get-directory-by-path";
 import DIRECTORY_QUERY_KEY from "@/shared/services/directories/queryKey";
 import type { BasicComponentProps } from "@/shared/types";
+import useAuthStore from "@/stores/auth.ts";
 import useGlobalStore from "@/stores/global";
 
 export default function InitPrefetcher({ children }: BasicComponentProps) {
   usePrefetchDirectories();
   useFolderList();
+  useAuth();
+  useCheckAuthentication();
 
   return children;
 }
@@ -19,11 +25,13 @@ export default function InitPrefetcher({ children }: BasicComponentProps) {
 const usePrefetchDirectories = () => {
   const toggleOpen = useGlobalStore((state) => state.toggleOpen);
   const openIds = useGlobalStore((state) => state.openIds);
+  const accessToken = useAuthStore((state) => state.accessToken);
   const { pathname } = useLocation();
 
   const { data: response } = useQuery<{ ok: boolean; data: Directory } | null>({
     queryKey: DIRECTORY_QUERY_KEY.BY_PATH(pathname),
     queryFn: () => (pathname != null ? getDirectoryByPath(pathname) : null),
+    enabled: accessToken != null,
   });
 
   useEffect(() => {
@@ -60,4 +68,29 @@ const useGlobalLayout = () => {
     resizeObserver.observe(document.body);
     return () => resizeObserver.disconnect();
   }, [setIsMobile, setIsTablet]);
+};
+
+const useCheckAuthentication = () => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isLoggedOut = useAuthStore((state) => state.isLoggedOut);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (accessToken == null) {
+      refreshToken()
+        .then((response) => {
+          if (response.access_token) {
+            setAccessToken(response.access_token);
+          }
+        })
+        .catch((error) => {
+          if (!isLoggedOut) {
+            toast.error("세션이 만료되었습니다. 다시 로그인해주세요.");
+          }
+          navigate("/login");
+          console.error(error);
+        });
+    }
+  }, [accessToken, setAccessToken, navigate, isLoggedOut]);
 };

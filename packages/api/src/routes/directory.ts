@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 import prisma from "../lib/prisma";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
 // Get directory contents (folders and bookmarks) by parent_id
-router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
+router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, requireAuth, async (req, res) => {
   try {
     const parentIdParam = req.query.parent_id;
     const parentId =
@@ -98,10 +99,10 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, async (req, res) => {
 });
 
 // Get directory contents by path (e.g., /Development/Frontend)
-router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, async (req, res) => {
+router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, requireAuth, async (req, res) => {
   try {
     const pathParam = req.query.path;
-    const userId = Number(process.env.USER_ID_TEMP ?? "1"); // TODO: Get from auth session (using first user from seed)
+    const userId = req.user!.id;
 
     if (!pathParam || typeof pathParam !== "string") {
       return res

@@ -29,7 +29,7 @@ export default function AddBookmark({
 }: DefaultModalChildrenProps) {
   const isMobile = useGlobalStore((state) => state.isMobile);
   const { data: folders } = useFolderList();
-  const { refetch } = useDirectoriesData("/", true);
+  const { refetch } = useDirectoriesData("/");
   const { urlErrorMessage, titleErrorMessage, noteErrorMessage, handleSubmit } =
     useHandleSubmit({
       onSubmit: async (data) => {

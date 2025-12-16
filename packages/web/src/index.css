@@ -111,6 +111,10 @@
 }
 
 @layer base {
+    html, body, div#root {
+        @apply h-screen;
+    }
+
     * {
         @apply border-border outline-ring/50;
     }

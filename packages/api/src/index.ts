@@ -1,13 +1,16 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 import prisma, { disconnectPrisma } from "./lib/prisma";
+import passport from "./config/passport";
 import bookmarksRouter from "./routes/bookmarks";
 import foldersRouter from "./routes/folders";
 import tagsRouter from "./routes/tags";
 import directoryRouter from "./routes/directory";
 import usersRouter from "./routes/users";
+import authRouter from "./routes/auth";
 
 // Handle BigInt serialization for JSON
 BigInt.prototype.toJSON = function () {
@@ -40,6 +43,8 @@ app.use(
   }),
 );
 app.use(express.json());
+app.use(cookieParser());
+app.use(passport.initialize());
 
 app.get(SERVICE_ENDPOINTS.HEALTH_CHECK.SERVER.path, (_req, res) => {
   res.json({ ok: true });
@@ -59,6 +64,7 @@ app.get(SERVICE_ENDPOINTS.HEALTH_CHECK.DB.path, async (_req, res) => {
 });
 
 // API Routes
+app.use(authRouter);
 app.use(usersRouter);
 app.use(bookmarksRouter);
 app.use(foldersRouter);

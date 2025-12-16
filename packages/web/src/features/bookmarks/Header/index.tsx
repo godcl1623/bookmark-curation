@@ -1,19 +1,49 @@
-import { Bookmark, Search, Settings } from "lucide-react";
-import { NavLink } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { Search, Settings } from "lucide-react";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
 import Options from "@/features/bookmarks/Header/components/Options";
 import SearchModal from "@/features/search/SearchModal";
+import Button from "@/shared/components/atoms/button.tsx";
+import Logo from "@/shared/components/molecules/Logo.tsx";
 import OptionButton from "@/shared/components/molecules/OptionButton.tsx";
-import { cn } from "@/shared/lib/utils";
+import useAuth from "@/shared/hooks/useAuth.ts";
+import logoutUser from "@/shared/services/auth/logout-user.ts";
+import useAuthStore from "@/stores/auth.ts";
 import useGlobalStore from "@/stores/global";
 
 export default function Header() {
   const isMobile = useGlobalStore((state) => state.isMobile);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const setIsLoggedOut = useAuthStore((state) => state.setIsLoggedOut);
   const { handleSettingClick } = useSetting();
   const { handleSearchClick } = useSearch();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const normalIconStyle = isMobile ? STYLES.iconSm : STYLES.iconMd;
+
+  const handleLogOut = async () => {
+    try {
+      await logoutUser();
+      setIsLoggedOut(true);
+      clearAuth();
+      queryClient.clear();
+      navigate("/login");
+      toast.success("로그아웃 되었습니다.");
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`로그아웃에 실패했습니다(${error.message}'`);
+      } else if (isAxiosError(error)) {
+        toast.error(`로그아웃에 실패했습니다(${error.status})`);
+      }
+      console.error(error);
+    }
+  };
 
   return (
     <header className={"flex-center-between bg-white p-1.5 md:px-10 md:py-3"}>
@@ -25,6 +55,16 @@ export default function Header() {
         <OptionButton onClick={handleSettingClick}>
           <Settings className={normalIconStyle} />
         </OptionButton>
+        {user && (
+          <Button
+            variant={"blank"}
+            size={isMobile ? "sm" : "lg"}
+            className={"bg-red-400 text-xs font-bold text-white md:text-base"}
+            onClick={handleLogOut}
+          >
+            Logout
+          </Button>
+        )}
       </div>
     </header>
   );
@@ -55,21 +95,3 @@ const useSearch = () => {
 
   return { handleSearchClick };
 };
-
-function Logo() {
-  const isMobile = useGlobalStore((state) => state.isMobile);
-
-  return (
-    <NavLink className={STYLES.container} to={"/"}>
-      <div
-        className={cn(
-          "rounded-md bg-blue-600 p-1.5 text-white",
-          isMobile ? "p-1" : "p-1.5"
-        )}
-      >
-        <Bookmark className={isMobile ? STYLES.iconSm : ""} />
-      </div>
-      <h1 className={isMobile ? "text-base" : ""}>LinkVault</h1>
-    </NavLink>
-  );
-}

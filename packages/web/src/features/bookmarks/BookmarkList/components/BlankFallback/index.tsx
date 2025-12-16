@@ -4,7 +4,7 @@ import AddBookmarkButton from "./AddBookmarkButton";
 
 export default function BlankFallback() {
   return (
-    <article className={"flex-col-center-center size-full gap-5"}>
+    <article className={"screen-center flex-col-center-center w-full gap-5"}>
       <div className={"rounded-full bg-blue-100 p-7 text-blue-500"}>
         <Bookmark className={"size-10"} />
       </div>

@@ -12,6 +12,15 @@ export interface User {
   last_login_at: string | null;
 }
 
+export interface Me {
+  avatar_url: string;
+  display_name: string;
+  email: string;
+  id: number;
+  locale: string | null;
+  uuid: string;
+}
+
 export type DataType = "folder" | "bookmark";
 
 export interface Folder {
