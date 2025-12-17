@@ -10,6 +10,25 @@ export default function AuthCallback() {
   return null;
 }
 
+const isValidToken = (token: string): boolean => {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+
+    const payload = JSON.parse(atob(parts[1]));
+
+    if (!payload.exp || !payload.userId || !payload.uuid || !payload.type) {
+      return false;
+    }
+
+    if (payload.type !== "access") return false;
+
+    return payload.exp > Date.now() / 1000;
+  } catch {
+    return false;
+  }
+};
+
 const useHandleCallback = () => {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const setIsLoggedOut = useAuthStore((state) => state.setIsLoggedOut);
@@ -22,7 +41,6 @@ const useHandleCallback = () => {
         toast.error("올바르지 않은 접근입니다.");
         navigate("/login", { replace: true });
       } else {
-        window.history.replaceState({}, "", "/auth/callback");
         setIsLoggedOut(false);
         navigate("/", { replace: true });
       }
@@ -33,10 +51,18 @@ const useHandleCallback = () => {
 
   useEffect(() => {
     if (hash === "") return redirectToRoot();
+
+    window.history.replaceState({}, "", "/auth/callback");
+
     const params = new URLSearchParams(hash.substring(1));
 
     if (!params.has("access_token")) return redirectToRoot();
     const token = params.get("access_token");
+
+    if (!token || !isValidToken(token)) {
+      return redirectToRoot();
+    }
+
     setAccessToken(token);
     redirectToRoot(false);
   }, [hash, redirectToRoot, setAccessToken]);

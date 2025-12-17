@@ -3,7 +3,6 @@ import jwt, { SignOptions } from "jsonwebtoken";
 export interface JwtPayload {
   userId: number;
   uuid: string;
-  email: string;
   type: "access" | "refresh";
 }
 
@@ -34,6 +33,7 @@ export const generateAccessToken = (payload: Omit<JwtPayload, "type">): string =
 
   const options: SignOptions = {
     expiresIn,
+    algorithm: "HS256",
   };
 
   return jwt.sign(
@@ -49,6 +49,7 @@ export const generateRefreshToken = (payload: Omit<JwtPayload, "type">): string 
 
   const options: SignOptions = {
     expiresIn,
+    algorithm: "HS256",
   };
 
   return jwt.sign(
