@@ -57,13 +57,11 @@ router.get(
       const accessToken = generateAccessToken({
         userId: user.id,
         uuid: user.uuid,
-        email: user.email,
       });
 
       const refreshToken = generateRefreshToken({
         userId: user.id,
         uuid: user.uuid,
-        email: user.email,
       });
 
       const refreshTokenHash = await hashRefreshToken(refreshToken);
@@ -119,7 +117,6 @@ router.post(
       const accessToken = generateAccessToken({
         userId: decoded.userId,
         uuid: decoded.uuid,
-        email: decoded.email,
       });
 
       return res.json({
