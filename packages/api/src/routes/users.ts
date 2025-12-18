@@ -31,22 +31,35 @@ router.get(SERVICE_ENDPOINTS.USERS.path, requireAuth, async (_req, res) => {
   }
 });
 
-// Get statistics
-router.get(SERVICE_ENDPOINTS.STATS.path, requireAuth, async (_req, res) => {
+// Get statistics for current user
+router.get(SERVICE_ENDPOINTS.STATS.path, requireAuth, async (req, res) => {
   try {
-    const [userCount, bookmarkCount, folderCount, tagCount] = await Promise.all(
-      [
-        prisma.users.count(),
-        prisma.bookmarks.count(),
-        prisma.folders.count(),
-        prisma.tags.count(),
-      ],
-    );
+    const userId = req.user!.id;
+
+    const [bookmarkCount, folderCount, tagCount] = await Promise.all([
+      prisma.bookmarks.count({
+        where: {
+          user_id: userId,
+          deleted_at: null,
+        },
+      }),
+      prisma.folders.count({
+        where: {
+          user_id: userId,
+          deleted_at: null,
+        },
+      }),
+      prisma.tags.count({
+        where: {
+          user_id: userId,
+          deleted_at: null,
+        },
+      }),
+    ]);
 
     res.json({
       ok: true,
       data: {
-        users: userCount,
         bookmarks: bookmarkCount,
         folders: folderCount,
         tags: tagCount,

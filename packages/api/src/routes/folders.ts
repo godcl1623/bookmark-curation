@@ -6,10 +6,13 @@ import { requireAuth } from "../middleware/auth";
 const router = Router();
 
 // Get all folders
-router.get(SERVICE_ENDPOINTS.FOLDERS.path, requireAuth, async (_req, res) => {
+router.get(SERVICE_ENDPOINTS.FOLDERS.path, requireAuth, async (req, res) => {
   try {
+    const userId = req.user!.id;
+
     const folders = await prisma.folders.findMany({
       where: {
+        user_id: userId,
         deleted_at: null,
       },
       include: {
