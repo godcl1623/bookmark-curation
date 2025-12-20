@@ -11,6 +11,7 @@ export default function DirectoryList({
   directoryList,
   currentDir = "/",
 }: DirectoryListProps) {
+  console.log(directoryList);
   return (
     <ul className={"flex flex-col gap-2"}>
       {directoryList?.map((folder) => {
