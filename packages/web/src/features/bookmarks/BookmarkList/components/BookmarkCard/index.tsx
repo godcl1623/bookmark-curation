@@ -12,6 +12,7 @@ import {
   CardDescription,
   CardTitle,
 } from "@/shared/components/organisms/card";
+import { COMMON_STYLES } from "@/shared/consts";
 import { cn } from "@/shared/lib/utils";
 import type { BasicComponentProps } from "@/shared/types";
 import useGlobalStore from "@/stores/global.ts";
@@ -58,7 +59,7 @@ export default function BookmarkCard({
       className={cn(
         STYLES.container.common,
         isCard
-          ? STYLES.container.card
+          ? COMMON_STYLES.card
           : isMobile
             ? STYLES.container.list_mobile
             : STYLES.container.list_normal
@@ -128,7 +129,6 @@ const STYLES = {
   container: {
     common:
       "cursor-pointer gap-0 p-0 hover:shadow-md hover:brightness-95 active:[&:not(:has(button:active))]:brightness-90",
-    card: "w-[300px] h-[338px] md:h-[360px] md:w-[320px]",
     list_normal:
       "grid w-full grid-cols-[max-content_1fr] rounded-xl bg-white p-1 md:p-2 shadow-sm",
     list_mobile: "w-full rounded-xl bg-white p-1 md:p-2 shadow-sm",

@@ -3,13 +3,12 @@ import { type FormEvent, useMemo } from "react";
 
 import AddTags from "@/features/bookmarks/AddBookmark/components/AddTags";
 import InputWithPaste from "@/features/bookmarks/AddBookmark/components/InputWithPaste";
-import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
 import { findIndex } from "@/features/bookmarks/Header/utils";
 import ControlledInput from "@/shared/components/molecules/ControlledInput.tsx";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import ControlledTextArea from "@/shared/components/molecules/ControlledTextArea";
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
-import { BOOKMARK_FORM_ELEMENTS } from "@/shared/consts";
+import { BOOKMARK_FORM_ELEMENTS, COMMON_STYLES } from "@/shared/consts";
 import useFolderList from "@/shared/hooks/useFolderList";
 import { cn } from "@/shared/lib/utils";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";

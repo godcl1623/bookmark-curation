@@ -2,9 +2,9 @@ import { ChevronDown } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
-import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button";
 import Option from "@/shared/components/molecules/ControlledSelect/Option";
+import { COMMON_STYLES } from "@/shared/consts";
 import { cn } from "@/shared/lib/utils";
 
 interface ValueType {
