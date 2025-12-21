@@ -1,4 +1,5 @@
 import Button from "@/shared/components/atoms/button";
+import Skeleton from "@/shared/components/molecules/Skeleton";
 import useAuth from "@/shared/hooks/useAuth.ts";
 import type { BasicComponentProps } from "@/shared/types";
 
@@ -16,22 +17,36 @@ export default function DirectoryTree() {
         "flex w-[15%] min-w-[200px] flex-col gap-5 overflow-y-auto bg-white p-5"
       }
     >
-      {user != null && (
-        <div
-          className={
-            "rounded-lg bg-blue-400 py-1.5 text-center text-sm font-bold text-white"
-          }
-        >
-          {user?.email}
-        </div>
+      {loadedDirectory?.isLoading ? (
+        <Skeleton height={35} />
+      ) : (
+        user != null && (
+          <div
+            className={
+              "rounded-lg bg-blue-400 py-1.5 text-center text-sm font-bold text-white"
+            }
+          >
+            {user?.email}
+          </div>
+        )
       )}
       <DefaultFilterButton>All</DefaultFilterButton>
       <DefaultFilterButton>Favorites</DefaultFilterButton>
       <nav>
-        <DirectoryList
-          currentDir={"/"}
-          directoryList={[...(folders ?? []), ...(bookmarks ?? [])]}
-        />
+        {loadedDirectory?.isLoading ? (
+          Array.from({ length: 3 }, (_, k) => k).map((value) => (
+            <Skeleton
+              key={`skeleton-${value}`}
+              height={40}
+              className={"mb-2"}
+            />
+          ))
+        ) : (
+          <DirectoryList
+            currentDir={"/"}
+            directoryList={[...(folders ?? []), ...(bookmarks ?? [])]}
+          />
+        )}
       </nav>
     </aside>
   );
