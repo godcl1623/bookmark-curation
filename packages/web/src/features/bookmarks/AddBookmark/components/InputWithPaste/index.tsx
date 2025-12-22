@@ -2,8 +2,8 @@ import { ClipboardPlus } from "lucide-react";
 import { type ChangeEvent, type ReactNode, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
 import Button from "@/shared/components/atoms/button";
+import { COMMON_STYLES } from "@/shared/consts";
 
 interface InputProps {
   key: number | string;

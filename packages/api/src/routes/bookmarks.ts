@@ -12,9 +12,11 @@ router.get(
   async (req, res) => {
     try {
       const { search } = req.query;
+      const userId = req.user!.id;
 
       // Build where clause with search conditions
       const whereClause: any = {
+        user_id: userId,
         deleted_at: null,
       };
 
@@ -117,6 +119,8 @@ router.get(
   async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      const userId = req.user!.id;
+
       if (isNaN(id)) {
         return res
           .status(400)
@@ -124,7 +128,7 @@ router.get(
       }
 
       const bookmark = await prisma.bookmarks.findFirst({
-        where: { id, deleted_at: null },
+        where: { id, user_id: userId, deleted_at: null },
         include: {
           users: {
             select: {

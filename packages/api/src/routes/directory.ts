@@ -9,6 +9,7 @@ const router = Router();
 router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, requireAuth, async (req, res) => {
   try {
     const parentIdParam = req.query.parent_id;
+    const userId = req.user!.id;
     const parentId =
       parentIdParam === undefined || parentIdParam === "null"
         ? null
@@ -24,7 +25,7 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, requireAuth, async (req, r
 
     const [folders, bookmarks] = await Promise.all([
       prisma.folders.findMany({
-        where: { parent_id: parentId, deleted_at: null },
+        where: { user_id: userId, parent_id: parentId, deleted_at: null },
         include: {
           users: {
             select: {
@@ -44,7 +45,7 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, requireAuth, async (req, r
         },
       }),
       prisma.bookmarks.findMany({
-        where: { folder_id: parentId, deleted_at: null },
+        where: { user_id: userId, folder_id: parentId, deleted_at: null },
         include: {
           users: {
             select: {

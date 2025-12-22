@@ -30,10 +30,10 @@ export default function DirectoryButton({
   const hierarchy = url == null ? 0 : url.split("/").length - 1;
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    if (!isOpen && onClick) {
+      onClick(event);
+    }
     if (dataType === "folder") {
-      if (!isOpen && onClick) {
-        onClick(event);
-      }
       if (url && url !== pathname) navigate(url);
     }
   };

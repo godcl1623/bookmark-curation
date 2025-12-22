@@ -9,6 +9,7 @@ const router = Router();
 router.get(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
   try {
     const { search, sort_by, limit } = req.query;
+    const userId = req.user!.id;
     const limitNum = limit ? parseInt(limit as string) : undefined;
 
     if (limitNum !== undefined && (isNaN(limitNum) || limitNum < 1)) {
@@ -20,6 +21,7 @@ router.get(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
 
     const tags = await prisma.tags.findMany({
       where: {
+        user_id: userId,
         deleted_at: null,
         ...(search && typeof search === "string"
           ? {

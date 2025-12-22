@@ -8,6 +8,7 @@ import AddonWrapper from "@/features/bookmarks/Header/components/common/DataAddF
 import { FOLDERS_FORM_ELEMENTS } from "@/features/bookmarks/Header/consts";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
+import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 import useFolderList from "@/shared/hooks/useFolderList";
 import createNewFolder from "@/shared/services/folders/create-new-folder";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
@@ -18,8 +19,14 @@ export default function AddFolder() {
     isLoading,
     isError,
     isRefetching,
-    refetch,
+    refetch: refetchFolders,
   } = useFolderList();
+  const { refetch: refetchDirectories } = useDirectoriesData("/");
+
+  const refetchData = () => {
+    refetchFolders();
+    refetchDirectories();
+  };
 
   return (
     <article className={"h-[calc(100%-50px)] overflow-y-auto p-2.5 md:p-5"}>
@@ -52,7 +59,7 @@ export default function AddFolder() {
             </AddonWrapper>
           </>
         )}
-        onSubmit={handleSubmit(refetch)}
+        onSubmit={handleSubmit(refetchData)}
       />
       {/* FIXME: 로딩, 에러 화면 구성 */}
       {isLoading && <p>Loading...</p>}
@@ -61,7 +68,7 @@ export default function AddFolder() {
         <ul className={"mt-5 flex flex-col gap-2"}>
           {folders.map((folder) => (
             <li key={`option-${folder.id}`}>
-              <FolderListItem {...folder} refetch={refetch} />
+              <FolderListItem {...folder} refetch={refetchData} />
             </li>
           ))}
         </ul>
