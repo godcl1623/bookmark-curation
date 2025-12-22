@@ -11,10 +11,9 @@ import {
 import toast from "react-hot-toast";
 
 import SearchList from "@/features/bookmarks/AddBookmark/components/AddTags/SearchList";
-import { COMMON_STYLES } from "@/features/bookmarks/AddBookmark/consts";
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import TagItem from "@/shared/components/molecules/TagItem.tsx";
-import { FOLDER_COLORS } from "@/shared/consts";
+import { COMMON_STYLES, FOLDER_COLORS } from "@/shared/consts";
 import useDebouncedInput from "@/shared/hooks/useDebouncedInput.ts";
 import createNewTag from "@/shared/services/tags/create-new-tag";
 

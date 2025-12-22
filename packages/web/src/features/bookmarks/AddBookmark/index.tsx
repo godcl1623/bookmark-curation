@@ -10,7 +10,7 @@ import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import ControlledTextArea from "@/shared/components/molecules/ControlledTextArea";
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import { Card, CardHeader } from "@/shared/components/organisms/card";
-import { BOOKMARK_FORM_ELEMENTS } from "@/shared/consts";
+import { BOOKMARK_FORM_ELEMENTS, COMMON_STYLES } from "@/shared/consts";
 import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 import useFolderList from "@/shared/hooks/useFolderList";
 import useHandleSubmit from "@/shared/hooks/useHandleSubmit";
@@ -21,7 +21,6 @@ import useGlobalStore from "@/stores/global.ts";
 
 import AddTags from "./components/AddTags";
 import InputWithPaste from "./components/InputWithPaste";
-import { COMMON_STYLES } from "./consts";
 
 export default function AddBookmark({
   resolve,
