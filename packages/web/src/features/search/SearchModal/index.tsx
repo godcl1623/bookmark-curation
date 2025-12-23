@@ -16,17 +16,11 @@ import useGlobalStore from "@/stores/global.ts";
 
 export default function SearchModal({ reject }: DefaultModalChildrenProps) {
   const isMobile = useGlobalStore((state) => state.isMobile);
-  const isTablet = useGlobalStore((state) => state.isTablet);
-  console.log(isMobile, isTablet);
+
   const { debouncedValue, inputValue, changeValue, handleChange } =
     useDebouncedInput();
-  const {
-    recentSearches,
-    removeRecentItem,
-    clearRecentSearches,
-    bookmarks,
-    isLoading,
-  } = useSearchBookmark(debouncedValue);
+  const { recentSearches, removeRecentItem, clearRecentSearches, bookmarks } =
+    useSearchBookmark(debouncedValue);
   const { data: tags } = useTagsList({ sort_by: "count", limit: 10 });
   const loadedDirectory = useDirectoriesData(window.location.pathname);
 
