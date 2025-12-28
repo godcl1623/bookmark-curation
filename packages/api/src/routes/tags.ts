@@ -51,9 +51,9 @@ router.get(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
           : { name: "asc" },
       ...(limitNum ? { take: limitNum } : {}),
     });
-    res.json({ ok: true, data: tags });
+    return res.json({ ok: true, data: tags });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Unknown error",
     });
@@ -102,7 +102,7 @@ router.post(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
       },
     });
 
-    res.status(201).json({ ok: true, data: tag });
+    return res.status(201).json({ ok: true, data: tag });
   } catch (error) {
     if (error instanceof Error && error.message.includes("Unique constraint")) {
       return res.status(409).json({
@@ -111,7 +111,7 @@ router.post(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
       });
     }
 
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Unknown error",
     });
@@ -119,8 +119,8 @@ router.post(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
 });
 
 // Get a single tag (not implemented)
-router.get(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res) => {
-  res.status(501).json({
+router.get(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (_req, res) => {
+  return res.status(501).json({
     ok: false,
     error: "Not implemented",
   });
@@ -185,7 +185,7 @@ router.put(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res) =
       },
     });
 
-    res.json({ ok: true, data: tag });
+    return res.json({ ok: true, data: tag });
   } catch (error) {
     if (error instanceof Error && error.message.includes("Unique constraint")) {
       return res.status(409).json({
@@ -194,7 +194,7 @@ router.put(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res) =
       });
     }
 
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Unknown error",
     });
@@ -233,9 +233,9 @@ router.delete(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res
       },
     });
 
-    res.json({ ok: true, data: tag });
+    return res.json({ ok: true, data: tag });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Unknown error",
     });

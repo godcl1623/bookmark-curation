@@ -20,7 +20,8 @@ COPY tsconfig.json ./
 # Generate Prisma Client
 RUN npx prisma generate --schema=./prisma/schema.prisma
 
-# Build API (shared package는 소스 그대로 사용)
+# Build shared package first, then API
+RUN npm run build -w @linkvault/shared
 RUN npm run build -w @linkvault/api
 
 # Production stage
@@ -41,14 +42,14 @@ RUN npm ci --omit=dev
 
 # Copy built files from builder
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
-COPY --from=builder /app/packages/shared/src ./packages/shared/src
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/shared/package.json ./packages/shared/
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/generated ./generated
 
 # Copy entrypoint script
 COPY packages/api/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN chmod 755 /entrypoint.sh
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
