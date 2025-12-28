@@ -40,9 +40,9 @@ router.get(SERVICE_ENDPOINTS.FOLDERS.path, requireAuth, async (req, res) => {
         position: "asc",
       },
     });
-    res.json({ ok: true, data: folders });
+    return res.json({ ok: true, data: folders });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Unknown error",
     });
@@ -134,7 +134,7 @@ router.post(SERVICE_ENDPOINTS.FOLDERS.path, requireAuth, async (req, res) => {
       },
     });
 
-    res.status(201).json({ ok: true, data: folder });
+    return res.status(201).json({ ok: true, data: folder });
   } catch (error) {
     // Handle unique constraint violation
     if (error instanceof Error && error.message.includes("Unique constraint")) {
@@ -145,7 +145,7 @@ router.post(SERVICE_ENDPOINTS.FOLDERS.path, requireAuth, async (req, res) => {
       });
     }
 
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Unknown error",
     });
@@ -242,7 +242,7 @@ router.put(SERVICE_ENDPOINTS.FOLDERS.path + "/:data_id", requireAuth, async (req
       },
     });
 
-    res.json({ ok: true, data: folder });
+    return res.json({ ok: true, data: folder });
   } catch (error) {
     // Handle unique constraint violation
     if (error instanceof Error && error.message.includes("Unique constraint")) {
@@ -252,7 +252,7 @@ router.put(SERVICE_ENDPOINTS.FOLDERS.path + "/:data_id", requireAuth, async (req
       });
     }
 
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Unknown error",
     });
@@ -314,9 +314,9 @@ router.delete(
         },
       });
 
-      res.json({ ok: true, data: folder });
+      return res.json({ ok: true, data: folder });
     } catch (error) {
-      res.status(500).json({
+      return res.status(500).json({
         ok: false,
         error: error instanceof Error ? error.message : "Unknown error",
       });

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
+import { folders } from "../../../../generated/prisma/index";
 
 const router = Router();
 
@@ -10,7 +11,7 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, requireAuth, async (req, r
   try {
     const parentIdParam = req.query.parent_id;
     const userId = req.user!.id;
-    const parentId =
+    const parentId: number | null =
       parentIdParam === undefined || parentIdParam === "null"
         ? null
         : parseInt(parentIdParam as string);
@@ -83,7 +84,7 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, requireAuth, async (req, r
       };
     });
 
-    res.json({
+    return res.json({
       ok: true,
       data: {
         parent_id: parentId,
@@ -92,7 +93,7 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, requireAuth, async (req, r
       },
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Unknown error",
     });
@@ -164,15 +165,15 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, requireAuth, async (req, re
     }
 
     // Sequential search
-    let currentParentId = null;
-    const breadcrumbs = [];
+    let currentParentId: number | null = null;
+    const breadcrumbs: any[] = [];
 
-    for (const title of segments) {
-      const folder = await prisma.folders.findFirst({
+    for (const folderTitle of segments) {
+      const folder: folders | null = await prisma.folders.findFirst({
         where: {
           user_id: userId,
           parent_id: currentParentId,
-          title,
+          title: folderTitle,
           deleted_at: null,
         },
       });
@@ -180,7 +181,7 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, requireAuth, async (req, re
       if (!folder) {
         return res.status(404).json({
           ok: false,
-          error: `Folder not found: ${title}`,
+          error: `Folder not found: ${folderTitle}`,
           breadcrumbs,
         });
       }
@@ -219,7 +220,7 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, requireAuth, async (req, re
       };
     });
 
-    res.json({
+    return res.json({
       ok: true,
       data: {
         folder: finalFolder,
@@ -230,7 +231,7 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, requireAuth, async (req, re
       },
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Unknown error",
     });
