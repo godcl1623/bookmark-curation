@@ -102,9 +102,9 @@ router.get(
         };
       });
 
-      res.json({ ok: true, data: bookmarksWithTags });
+      return res.json({ ok: true, data: bookmarksWithTags });
     } catch (error) {
-      res.status(500).json({
+      return res.status(500).json({
         ok: false,
         error: error instanceof Error ? error.message : "Unknown error",
       });
@@ -164,9 +164,9 @@ router.get(
         tags: bookmark_tags.map((bt) => bt.tags),
       };
 
-      res.json({ ok: true, data: bookmarkWithTags });
+      return res.json({ ok: true, data: bookmarkWithTags });
     } catch (error) {
-      res.status(500).json({
+      return res.status(500).json({
         ok: false,
         error: error instanceof Error ? error.message : "Unknown error",
       });
@@ -346,7 +346,7 @@ router.post(
 
       // Verify tags belong to user if tag_ids are provided
       if (tag_ids && tag_ids.length > 0) {
-        const uniqueTagIds = [...new Set(tag_ids)];
+        const uniqueTagIds: number[] = Array.from(new Set(tag_ids as number[]));
         const existingTags = await prisma.tags.findMany({
           where: {
             id: { in: uniqueTagIds },
@@ -429,9 +429,9 @@ router.post(
 
       // Create bookmark_tags relationships if tag_ids are provided
       if (tag_ids && tag_ids.length > 0) {
-        const uniqueTagIds = [...new Set(tag_ids)];
+        const uniqueTagIds: number[] = Array.from(new Set(tag_ids as number[]));
         await prisma.bookmark_tags.createMany({
-          data: uniqueTagIds.map((tag_id) => ({
+          data: uniqueTagIds.map((tag_id: number) => ({
             bookmark_id: bookmark.id,
             tag_id,
             user_id: userId,
@@ -477,7 +477,7 @@ router.post(
           })()
         : null;
 
-      res.status(201).json({ ok: true, data: bookmarkWithTags });
+      return res.status(201).json({ ok: true, data: bookmarkWithTags });
     } catch (error) {
       // Handle unique constraint violation
       if (
@@ -490,7 +490,7 @@ router.post(
         });
       }
 
-      res.status(500).json({
+      return res.status(500).json({
         ok: false,
         error: error instanceof Error ? error.message : "Unknown error",
       });
@@ -595,9 +595,9 @@ router.patch(
           })()
         : null;
 
-      res.json({ ok: true, data: bookmarkWithTags });
+      return res.json({ ok: true, data: bookmarkWithTags });
     } catch (error) {
-      res.status(500).json({
+      return res.status(500).json({
         ok: false,
         error: error instanceof Error ? error.message : "Unknown error",
       });
@@ -697,7 +697,7 @@ router.put(
 
       // Verify tags belong to user if tag_ids are provided
       if (tag_ids !== undefined && tag_ids.length > 0) {
-        const uniqueTagIds = [...new Set(tag_ids)];
+        const uniqueTagIds: number[] = Array.from(new Set(tag_ids as number[]));
         const existingTags = await prisma.tags.findMany({
           where: {
             id: { in: uniqueTagIds },
@@ -790,9 +790,9 @@ router.put(
 
         // Create new bookmark_tags if tag_ids is not empty
         if (tag_ids.length > 0) {
-          const uniqueTagIds = [...new Set(tag_ids)];
+          const uniqueTagIds: number[] = Array.from(new Set(tag_ids as number[]));
           await prisma.bookmark_tags.createMany({
-            data: uniqueTagIds.map((tag_id) => ({
+            data: uniqueTagIds.map((tag_id: number) => ({
               bookmark_id: existingBookmark.id,
               tag_id,
               user_id: userId,
@@ -839,7 +839,7 @@ router.put(
           })()
         : null;
 
-      res.json({ ok: true, data: bookmarkWithTags });
+      return res.json({ ok: true, data: bookmarkWithTags });
     } catch (error) {
       // Handle unique constraint violation
       if (
@@ -852,7 +852,7 @@ router.put(
         });
       }
 
-      res.status(500).json({
+      return res.status(500).json({
         ok: false,
         error: error instanceof Error ? error.message : "Unknown error",
       });
@@ -899,9 +899,9 @@ router.delete(
         },
       });
 
-      res.json({ ok: true, data: bookmark });
+      return res.json({ ok: true, data: bookmark });
     } catch (error) {
-      res.status(500).json({
+      return res.status(500).json({
         ok: false,
         error: error instanceof Error ? error.message : "Unknown error",
       });

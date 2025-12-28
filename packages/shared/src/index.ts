@@ -1,2 +1,2 @@
-export { default as SERVICE_ENDPOINTS } from "./services/endpoints";
-export * from "./types";
+export { default as SERVICE_ENDPOINTS } from "./services/endpoints.js";
+export * from "./types/index.js";
