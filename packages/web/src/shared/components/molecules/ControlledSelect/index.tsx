@@ -1,5 +1,12 @@
 import { ChevronDown } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type MouseEvent,
+  type TouchEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
 import Button from "@/shared/components/atoms/button";
@@ -24,7 +31,15 @@ export default function ControlledSelect({
   name,
 }: ControlledSelectProps) {
   const { toggleDropdown, selectedValue } = useSelect(values, initialIndex);
-  const { buttonRect, buttonRef } = useButtonRect();
+  const { buttonRef } = useButtonRect();
+
+  const handleToggle = (
+    event: MouseEvent<HTMLButtonElement> | TouchEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
+    const buttonRect = buttonRef.current?.getBoundingClientRect();
+    toggleDropdown(buttonRect)();
+  };
 
   return (
     <div className={"relative flex flex-1"}>
@@ -45,8 +60,8 @@ export default function ControlledSelect({
             ? ""
             : (selectedValue.data_id ?? selectedValue.text)
         }
-        onClick={toggleDropdown(buttonRect)}
-        onTouchStart={toggleDropdown(buttonRect)}
+        onClick={handleToggle}
+        onTouchStart={handleToggle}
       >
         {selectedValue.text}
         <ChevronDown />
@@ -112,14 +127,15 @@ const useSelect = (values: ValueType[], initialIndex: number) => {
 };
 
 const useButtonRect = () => {
-  const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
+  // const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (buttonRef.current) {
-      setButtonRect(buttonRef.current.getBoundingClientRect());
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (buttonRef.current) {
+  //     setButtonRect(buttonRef.current.getBoundingClientRect());
+  //   }
+  // }, []);
 
-  return { buttonRect, buttonRef };
+  // return { buttonRect, buttonRef };
+  return { buttonRef };
 };
