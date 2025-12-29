@@ -20,13 +20,19 @@ BigInt.prototype.toJSON = function () {
 // Database connection test
 async function testDatabaseConnection() {
   try {
-    console.log("Testing database connection...");
+    if (process.env.NODE_ENV !== "production") {
+      console.log("Testing database connection...");
+    }
     await prisma.$connect();
-    console.log("✓ Database connected successfully");
+    if (process.env.NODE_ENV !== "production") {
+      console.log("✓ Database connected successfully");
+    }
 
     // Test a simple query
     const userCount = await prisma.users.count();
-    console.log(`✓ Database query successful - Users count: ${userCount}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`✓ Database query successful - Users count: ${userCount}`);
+    }
 
     return true;
   } catch (error) {
@@ -36,6 +42,7 @@ async function testDatabaseConnection() {
 }
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Parse ALLOWED_ORIGINS from comma-separated string to array
 const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -99,7 +106,9 @@ testDatabaseConnection().then((connected) => {
   }
 
   app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`Server is running on port ${PORT}`);
+    }
   });
 });
 
