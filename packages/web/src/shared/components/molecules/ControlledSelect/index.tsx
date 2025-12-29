@@ -46,6 +46,7 @@ export default function ControlledSelect({
             : (selectedValue.data_id ?? selectedValue.text)
         }
         onClick={toggleDropdown(buttonRect)}
+        onTouchStart={toggleDropdown(buttonRect)}
       >
         {selectedValue.text}
         <ChevronDown />
