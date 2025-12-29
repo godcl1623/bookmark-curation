@@ -17,9 +17,8 @@ export default defineConfig(({ mode }) => {
         registerType: "autoUpdate",
         includeAssets: ["vite.svg"],
         devOptions: {
-          enabled: false,
+          enabled: false, // 로컬 개발에서 PWA 비활성화
         },
-        selfDestroying: true,
         manifest: {
           name: "LinkVault",
           short_name: "LinkVault",
@@ -51,7 +50,7 @@ export default defineConfig(({ mode }) => {
           globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
           runtimeCaching: [
             {
-              urlPattern: /\/api\/.*\/.*/i,
+              urlPattern: /^https:\/\/api\./i, // 프로덕션 API 캐싱 (api.로 시작하는 도메인)
               handler: "NetworkFirst",
               options: {
                 cacheName: "api-cache",
