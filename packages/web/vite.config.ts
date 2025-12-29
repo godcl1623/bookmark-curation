@@ -16,6 +16,10 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: "autoUpdate",
         includeAssets: ["vite.svg"],
+        devOptions: {
+          enabled: false,
+        },
+        selfDestroying: true,
         manifest: {
           name: "LinkVault",
           short_name: "LinkVault",
@@ -47,7 +51,7 @@ export default defineConfig(({ mode }) => {
           globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
           runtimeCaching: [
             {
-              urlPattern: /^https:\/\/api\./i,
+              urlPattern: /\/api\/.*\/.*/i,
               handler: "NetworkFirst",
               options: {
                 cacheName: "api-cache",
@@ -68,6 +72,23 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
+    },
+    server: {
+      host: "0.0.0.0",
+      hmr: {
+        clientPort: 443,
+      },
+      proxy: {
+        // /api로 시작하는 모든 요청은 백엔드로 프록시
+        "/api": {
+          target: env.VITE_BACKEND_URL || "http://localhost:3002",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ""),
+        },
+      },
+      allowedHosts: env.ALLOWED_HOSTS?.split(",").map((host) =>
+        host.trim()
+      ) ?? ["localhost"],
     },
     preview: {
       allowedHosts: env.ALLOWED_HOSTS?.split(",").map((host) =>

@@ -1,10 +1,13 @@
 import passport from "passport";
 import {
-  Strategy as JwtStrategy,
   ExtractJwt,
+  Strategy as JwtStrategy,
   StrategyOptions as JwtStrategyOptions,
 } from "passport-jwt";
-import { Strategy as GoogleStrategy, Profile as GoogleProfile } from "passport-google-oauth20";
+import {
+  Profile as GoogleProfile,
+  Strategy as GoogleStrategy,
+} from "passport-google-oauth20";
 import prisma from "../lib/prisma";
 import { DecodedJwtPayload } from "../lib/auth";
 
@@ -65,10 +68,16 @@ passport.use(
     } catch (error) {
       return done(error, false);
     }
-  })
+  }),
 );
 
 const googleConfig = getGoogleConfig();
+
+if (process.env.NODE_ENV !== "production") {
+  console.log("🔍 Google OAuth Config:");
+  console.log("  Client ID:", googleConfig.clientID);
+  console.log("  Callback URL:", googleConfig.callbackURL);
+}
 
 passport.use(
   "google",
@@ -78,19 +87,23 @@ passport.use(
       clientSecret: googleConfig.clientSecret,
       callbackURL: googleConfig.callbackURL,
       scope: ["profile", "email"],
+      proxy: true,
     },
     async (
       _accessToken: string,
       _refreshToken: string,
       profile: GoogleProfile,
-      done
+      done,
     ) => {
       try {
         const email = profile.emails?.[0]?.value;
         const googleId = profile.id;
 
         if (!email || !googleId) {
-          return done(new Error("Email or Google ID not found in profile"), undefined);
+          return done(
+            new Error("Email or Google ID not found in profile"),
+            undefined,
+          );
         }
 
         let userProvider = await prisma.user_providers.findUnique({
@@ -146,8 +159,8 @@ passport.use(
       } catch (error) {
         return done(error as Error, undefined);
       }
-    }
-  )
+    },
+  ),
 );
 
 export default passport;
