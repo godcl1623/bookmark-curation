@@ -7,7 +7,7 @@ export default function AddBookmarkButton() {
 
   const handleClick = async () => {
     try {
-      await openModal(AddBookmark);
+      await openModal(AddBookmark).promise;
     } catch (error) {
       return error;
     }

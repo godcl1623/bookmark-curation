@@ -14,8 +14,12 @@ export const useModal = () => {
 
   const { modals, setModalList } = modalStoreContext;
 
-  const findModal = (name: string) => {
-    return modals.current.find((modal) => modal.name === name);
+  const findModal = (modalInfo: { id?: string | null; name?: string }) => {
+    if ("id" in modalInfo && modalInfo.id != null) {
+      return modals.current.find((modal) => modal.id === modalInfo.id);
+    } else {
+      return modals.current.find((modal) => modal.name === modalInfo.name);
+    }
   };
 
   const openModal = <P = DefaultPropsType, R = unknown>(
@@ -23,9 +27,10 @@ export const useModal = () => {
     props?: P
   ) => {
     const name = getComponentName(component);
-    const existing = findModal(name);
+    const existing = findModal({ name });
 
-    if (existing) return existing.promise as Promise<R>;
+    if (existing)
+      return { id: existing.id, promise: existing.promise as Promise<R> };
 
     let res: (value: R) => void;
     let rej!: (reason?: any) => void;
@@ -69,7 +74,7 @@ export const useModal = () => {
       return next;
     });
 
-    return promise;
+    return { id: modalDetail.id, promise };
   };
 
   const closeModal = (id: string) => {
