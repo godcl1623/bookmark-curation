@@ -79,10 +79,14 @@ const useSelect = (values: ValueType[], initialIndex: number) => {
     text: values[initialIndex]?.text,
     data_id: values[initialIndex]?.data_id ?? null,
   });
+  const optionIdRef = useRef<string | null>(null);
 
   const closeOptionModal = useCallback(() => {
-    const modal = findModal("Option");
-    if (modal) closeModal(modal.id);
+    const modal = findModal({ id: optionIdRef.current });
+    if (modal) {
+      closeModal(modal.id);
+      optionIdRef.current = null;
+    }
   }, [closeModal, findModal]);
 
   const setValue = useCallback(
@@ -99,9 +103,9 @@ const useSelect = (values: ValueType[], initialIndex: number) => {
 
   const toggleDropdown = (buttonRect?: DOMRect | null) => async () => {
     try {
-      const detail = findModal("Option");
-      if (!detail) {
-        openModal(Option, {
+      const detail = findModal({ id: optionIdRef.current });
+      if (detail == null) {
+        const { id } = openModal(Option, {
           values,
           setValue,
           closeModal: closeOptionModal,
@@ -109,6 +113,7 @@ const useSelect = (values: ValueType[], initialIndex: number) => {
           buttonLeft: buttonRect?.left,
           buttonWidth: buttonRect?.width,
         });
+        optionIdRef.current = id;
       } else {
         closeOptionModal();
       }
