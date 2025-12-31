@@ -67,7 +67,7 @@ export default function AddBookmark({
     <ModalLayout reject={reject}>
       <Card
         className={
-          "screen-center h-max w-full py-3 sm:w-[90%] md:py-6 lg:w-[60%] lg:max-w-200"
+          "screen-center min-h-max w-full py-3 sm:w-[90%] md:py-6 lg:w-[60%] lg:max-w-200"
         }
       >
         <CardHeader
