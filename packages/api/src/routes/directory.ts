@@ -65,8 +65,16 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, requireAuth, async (req, r
         },
         _count: {
           select: {
-            bookmarks: true,
-            children: true,
+            bookmarks: {
+              where: {
+                deleted_at: null,
+              },
+            },
+            children: {
+              where: {
+                deleted_at: null,
+              },
+            },
           },
         },
       },
@@ -126,7 +134,20 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, requireAuth, async (req, re
         where: { user_id: userId, parent_id: null, deleted_at: null },
         include: {
           users: { select: { id: true, display_name: true } },
-          _count: { select: { bookmarks: true, children: true } },
+          _count: {
+            select: {
+              bookmarks: {
+                where: {
+                  deleted_at: null,
+                },
+              },
+              children: {
+                where: {
+                  deleted_at: null,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -187,7 +208,20 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, requireAuth, async (req, re
       where: { parent_id: finalFolder.id, deleted_at: null },
       include: {
         users: { select: { id: true, display_name: true } },
-        _count: { select: { bookmarks: true, children: true } },
+        _count: {
+          select: {
+            bookmarks: {
+              where: {
+                deleted_at: null,
+              },
+            },
+            children: {
+              where: {
+                deleted_at: null,
+              },
+            },
+          },
+        },
       },
     });
 
