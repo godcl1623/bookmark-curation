@@ -2,6 +2,7 @@ import { Router } from "express";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 import prisma from "../lib/prisma";
 import { requireAuth } from "@/middleware/auth";
+import * as bookmarkService from "../services/bookmarks";
 
 const router = Router();
 
@@ -14,59 +15,15 @@ router.get(
       const { search } = req.query;
       const userId = req.user!.id;
 
-      // Build where clause with search conditions
-      const whereClause: any = {
-        user_id: userId,
-        deleted_at: null,
-      };
+      const searchTerm =
+        search && typeof search === "string" && search.trim() !== ""
+          ? search.trim()
+          : undefined;
 
-      // Add search conditions if search query is provided
-      if (search && typeof search === "string" && search.trim() !== "") {
-        const searchTerm = search.trim();
-        whereClause.OR = [
-          {
-            title: {
-              contains: searchTerm,
-              mode: "insensitive",
-            },
-          },
-          {
-            description: {
-              contains: searchTerm,
-              mode: "insensitive",
-            },
-          },
-          {
-            domain: {
-              contains: searchTerm,
-              mode: "insensitive",
-            },
-          },
-          {
-            url: {
-              contains: searchTerm,
-              mode: "insensitive",
-            },
-          },
-          {
-            bookmark_tags: {
-              some: {
-                tags: {
-                  name: {
-                    contains: searchTerm,
-                    mode: "insensitive",
-                  },
-                  deleted_at: null,
-                },
-              },
-            },
-          },
-        ];
-      }
-
-      const bookmarks = await prisma.bookmarks.findMany({
-        where: whereClause,
-        include: {
+      const bookmarks = await bookmarkService.getAllBookmarks(
+        userId,
+        searchTerm,
+        {
           users: {
             select: {
               id: true,
@@ -87,22 +44,10 @@ router.get(
             },
           },
           media: true,
-        },
-        orderBy: {
-          created_at: "desc",
-        },
-      });
+        }
+      );
 
-      // Transform bookmark_tags to flat tags array
-      const bookmarksWithTags = bookmarks.map((bookmark) => {
-        const { bookmark_tags, ...rest } = bookmark;
-        return {
-          ...rest,
-          tags: bookmark_tags.map((bt) => bt.tags),
-        };
-      });
-
-      return res.json({ ok: true, data: bookmarksWithTags });
+      return res.json({ ok: true, data: bookmarks });
     } catch (error) {
       return res.status(500).json({
         ok: false,
@@ -127,44 +72,13 @@ router.get(
           .json({ ok: false, error: "Invalid bookmark ID" });
       }
 
-      const bookmark = await prisma.bookmarks.findFirst({
-        where: { id, user_id: userId, deleted_at: null },
-        include: {
-          users: {
-            select: {
-              id: true,
-              display_name: true,
-              avatar_url: true,
-            },
-          },
-          folders: true,
-          bookmark_tags: {
-            include: {
-              tags: true,
-            },
-          },
-          media: true,
-          bookmark_history: {
-            orderBy: {
-              created_at: "desc",
-            },
-            take: 10,
-          },
-        },
-      });
+      const bookmark = await bookmarkService.getBookmarkById(userId, id);
 
       if (!bookmark) {
         return res.status(404).json({ ok: false, error: "Bookmark not found" });
       }
 
-      // Transform bookmark_tags to flat tags array
-      const { bookmark_tags, ...rest } = bookmark;
-      const bookmarkWithTags = {
-        ...rest,
-        tags: bookmark_tags.map((bt) => bt.tags),
-      };
-
-      return res.json({ ok: true, data: bookmarkWithTags });
+      return res.json({ ok: true, data: bookmark });
     } catch (error) {
       return res.status(500).json({
         ok: false,
@@ -390,94 +304,25 @@ router.post(
         dbFolderId = folder.id;
       }
 
-      // Get the highest position to append the new bookmark at the end
-      const maxPositionBookmark = await prisma.bookmarks.findFirst({
-        where: {
-          user_id: userId,
-          folder_id: dbFolderId,
-        },
-        orderBy: {
-          position: "desc",
-        },
-        select: {
-          position: true,
-        },
+      const bookmark = await bookmarkService.createBookmark(userId, {
+        data_id,
+        title: titleValidation.title,
+        url: urlValidation.url!,
+        description: descriptionValidation.description,
+        metadata,
+        folder_id: dbFolderId || undefined,
+        parent_id,
+        domain,
+        favicon_url,
+        preview_image,
+        is_favorite,
+        is_archived,
+        is_private,
+        type,
+        tag_ids: tag_ids ? Array.from(new Set(tag_ids as number[])) : undefined,
       });
 
-      const newPosition = (maxPositionBookmark?.position ?? -1) + 1;
-
-      const bookmark = await prisma.bookmarks.create({
-        data: {
-          data_id,
-          user_id: userId,
-          folder_id: dbFolderId,
-          parent_id: parent_id !== undefined ? parent_id : null,
-          title: titleValidation.title,
-          description: descriptionValidation.description,
-          url: urlValidation.url!,
-          domain: domain !== undefined ? domain : null,
-          favicon_url: favicon_url !== undefined ? favicon_url : null,
-          preview_image: preview_image !== undefined ? preview_image : null,
-          metadata: metadata || {},
-          is_favorite: is_favorite ?? false,
-          is_archived: is_archived ?? false,
-          is_private: is_private ?? true,
-          position: newPosition,
-          type: type || "bookmark",
-        },
-      });
-
-      // Create bookmark_tags relationships if tag_ids are provided
-      if (tag_ids && tag_ids.length > 0) {
-        const uniqueTagIds: number[] = Array.from(new Set(tag_ids as number[]));
-        await prisma.bookmark_tags.createMany({
-          data: uniqueTagIds.map((tag_id: number) => ({
-            bookmark_id: bookmark.id,
-            tag_id,
-            user_id: userId,
-          })),
-        });
-      }
-
-      // Fetch the created bookmark with all relations
-      const createdBookmark = await prisma.bookmarks.findUnique({
-        where: { id: bookmark.id },
-        include: {
-          users: {
-            select: {
-              id: true,
-              display_name: true,
-              avatar_url: true,
-            },
-          },
-          folders: {
-            select: {
-              id: true,
-              title: true,
-              color: true,
-            },
-          },
-          bookmark_tags: {
-            include: {
-              tags: true,
-            },
-          },
-          media: true,
-        },
-      });
-
-      // Transform bookmark_tags to flat tags array
-      const bookmarkWithTags = createdBookmark
-        ? (() => {
-            const { bookmark_tags, ...rest } = createdBookmark;
-            return {
-              ...rest,
-              tags: bookmark_tags.map((bt) => bt.tags),
-            };
-          })()
-        : null;
-
-      return res.status(201).json({ ok: true, data: bookmarkWithTags });
+      return res.status(201).json({ ok: true, data: bookmark });
     } catch (error) {
       // Handle unique constraint violation
       if (
@@ -717,10 +562,8 @@ router.put(
         }
       }
 
-      // Build update data object with only provided fields
-      const updateData: any = {
-        updated_at: new Date(),
-      };
+      // Build update data object
+      const updateData: any = {};
 
       // Apply validated values
       if (title !== undefined) {
@@ -773,73 +616,17 @@ router.put(
         }
       }
 
-      // Update bookmark fields
-      await prisma.bookmarks.update({
-        where: { id: existingBookmark.id },
-        data: updateData,
-      });
-
-      // Handle tag_ids replacement if provided
       if (tag_ids !== undefined) {
-        // Delete existing bookmark_tags
-        await prisma.bookmark_tags.deleteMany({
-          where: {
-            bookmark_id: existingBookmark.id,
-          },
-        });
-
-        // Create new bookmark_tags if tag_ids is not empty
-        if (tag_ids.length > 0) {
-          const uniqueTagIds: number[] = Array.from(new Set(tag_ids as number[]));
-          await prisma.bookmark_tags.createMany({
-            data: uniqueTagIds.map((tag_id: number) => ({
-              bookmark_id: existingBookmark.id,
-              tag_id,
-              user_id: userId,
-            })),
-          });
-        }
+        updateData.tag_ids = Array.from(new Set(tag_ids as number[]));
       }
 
-      // Fetch the updated bookmark with all relations
-      const updatedBookmark = await prisma.bookmarks.findUnique({
-        where: { id: existingBookmark.id },
-        include: {
-          users: {
-            select: {
-              id: true,
-              display_name: true,
-              avatar_url: true,
-            },
-          },
-          folders: {
-            select: {
-              id: true,
-              title: true,
-              color: true,
-            },
-          },
-          bookmark_tags: {
-            include: {
-              tags: true,
-            },
-          },
-          media: true,
-        },
-      });
+      const updatedBookmark = await bookmarkService.updateBookmark(
+        userId,
+        existingBookmark.id,
+        updateData
+      );
 
-      // Transform bookmark_tags to flat tags array
-      const bookmarkWithTags = updatedBookmark
-        ? (() => {
-            const { bookmark_tags, ...rest } = updatedBookmark;
-            return {
-              ...rest,
-              tags: bookmark_tags.map((bt) => bt.tags),
-            };
-          })()
-        : null;
-
-      return res.json({ ok: true, data: bookmarkWithTags });
+      return res.json({ ok: true, data: updatedBookmark });
     } catch (error) {
       // Handle unique constraint violation
       if (
@@ -891,13 +678,10 @@ router.delete(
         });
       }
 
-      // Soft delete by setting deleted_at timestamp
-      const bookmark = await prisma.bookmarks.update({
-        where: { id: existingBookmark.id },
-        data: {
-          deleted_at: new Date(),
-        },
-      });
+      const bookmark = await bookmarkService.deleteBookmark(
+        userId,
+        existingBookmark.id
+      );
 
       return res.json({ ok: true, data: bookmark });
     } catch (error) {

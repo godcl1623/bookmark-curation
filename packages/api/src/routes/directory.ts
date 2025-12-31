@@ -2,9 +2,38 @@ import { Router } from "express";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
-import { folders } from "../../../../generated/prisma/index";
+import { decrypt } from "../lib/encryption";
+import * as bookmarkService from "../services/bookmarks";
 
 const router = Router();
+
+// Helper function to decrypt folder data
+function decryptFolder(folder: any): any {
+  if (!folder) return null;
+
+  const decrypted: any = {
+    ...folder,
+    title: decrypt(folder.title)!,
+  };
+
+  if (decrypted.users) {
+    decrypted.users = {
+      ...decrypted.users,
+      display_name: decrypted.users.display_name
+        ? decrypt(decrypted.users.display_name)
+        : null,
+    };
+  }
+
+  if (decrypted.parent) {
+    decrypted.parent = {
+      ...decrypted.parent,
+      title: decrypt(decrypted.parent.title)!,
+    };
+  }
+
+  return decrypted;
+}
 
 // Get directory contents (folders and bookmarks) by parent_id
 router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, requireAuth, async (req, res) => {
@@ -24,72 +53,43 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path, requireAuth, async (req, r
       return res.status(400).json({ ok: false, error: "Invalid parent_id" });
     }
 
-    const [folders, bookmarks] = await Promise.all([
-      prisma.folders.findMany({
-        where: { user_id: userId, parent_id: parentId, deleted_at: null },
-        include: {
-          users: {
-            select: {
-              id: true,
-              display_name: true,
-            },
-          },
-          _count: {
-            select: {
-              bookmarks: true,
-              children: true,
-            },
+    // Get folders (will decrypt manually)
+    const foldersRaw = await prisma.folders.findMany({
+      where: { user_id: userId, parent_id: parentId, deleted_at: null },
+      include: {
+        users: {
+          select: {
+            id: true,
+            display_name: true,
           },
         },
-        orderBy: {
-          position: "asc",
-        },
-      }),
-      prisma.bookmarks.findMany({
-        where: { user_id: userId, folder_id: parentId, deleted_at: null },
-        include: {
-          users: {
-            select: {
-              id: true,
-              display_name: true,
-              avatar_url: true,
-            },
+        _count: {
+          select: {
+            bookmarks: true,
+            children: true,
           },
-          folders: {
-            select: {
-              id: true,
-              title: true,
-              color: true,
-            },
-          },
-          bookmark_tags: {
-            include: {
-              tags: true,
-            },
-          },
-          media: true,
         },
-        orderBy: {
-          position: "asc",
-        },
-      }),
-    ]);
-
-    // Transform bookmark_tags to flat tags array
-    const bookmarksWithTags = bookmarks.map((bookmark) => {
-      const { bookmark_tags, ...rest } = bookmark;
-      return {
-        ...rest,
-        tags: bookmark_tags.map((bt) => bt.tags),
-      };
+      },
+      orderBy: {
+        position: "asc",
+      },
     });
+
+    // Decrypt folders
+    const folders = foldersRaw.map(decryptFolder);
+
+    // Get bookmarks using service (will decrypt automatically)
+    const allBookmarks = await bookmarkService.getAllBookmarks(userId);
+    const bookmarks = allBookmarks.filter(
+      (b) => b.folder_id === parentId
+    ).sort((a, b) => a.position - b.position);
 
     return res.json({
       ok: true,
       data: {
         parent_id: parentId,
         folders,
-        bookmarks: bookmarksWithTags,
+        bookmarks,
       },
     });
   } catch (error) {
@@ -122,42 +122,25 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, requireAuth, async (req, re
 
     // Handle root
     if (segments.length === 0) {
-      const [folders, bookmarks] = await Promise.all([
-        prisma.folders.findMany({
-          where: { user_id: userId, parent_id: null, deleted_at: null },
-          include: {
-            users: { select: { id: true, display_name: true } },
-            _count: { select: { bookmarks: true, children: true } },
-          },
-        }),
-        prisma.bookmarks.findMany({
-          where: { user_id: userId, folder_id: null, deleted_at: null },
-          include: {
-            users: {
-              select: { id: true, display_name: true, avatar_url: true },
-            },
-            folders: { select: { id: true, title: true, color: true } },
-            bookmark_tags: { include: { tags: true } },
-            media: true,
-          },
-        }),
-      ]);
-
-      // Transform bookmark_tags to flat tags array
-      const bookmarksWithTags = bookmarks.map((bookmark) => {
-        const { bookmark_tags, ...rest } = bookmark;
-        return {
-          ...rest,
-          tags: bookmark_tags.map((bt) => bt.tags),
-        };
+      const foldersRaw = await prisma.folders.findMany({
+        where: { user_id: userId, parent_id: null, deleted_at: null },
+        include: {
+          users: { select: { id: true, display_name: true } },
+          _count: { select: { bookmarks: true, children: true } },
+        },
       });
+
+      const folders = foldersRaw.map(decryptFolder);
+
+      const allBookmarks = await bookmarkService.getAllBookmarks(userId);
+      const bookmarks = allBookmarks.filter((b) => b.folder_id === null);
 
       return res.json({
         ok: true,
         data: {
           folder: null,
           folders,
-          bookmarks: bookmarksWithTags,
+          bookmarks,
           path: "/",
           breadcrumbs: [],
         },
@@ -169,14 +152,21 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, requireAuth, async (req, re
     const breadcrumbs: any[] = [];
 
     for (const folderTitle of segments) {
-      const folder: folders | null = await prisma.folders.findFirst({
+      // Get all folders at this level and decrypt them
+      const foldersAtLevel: any = await prisma.folders.findMany({
         where: {
           user_id: userId,
           parent_id: currentParentId,
-          title: folderTitle,
           deleted_at: null,
         },
       });
+
+      const decryptedFolders: any = foldersAtLevel.map(decryptFolder);
+
+      // Find the folder with matching title (after decryption)
+      const folder: any = decryptedFolders.find(
+        (f: any) => f.title === folderTitle
+      );
 
       if (!folder) {
         return res.status(404).json({
@@ -192,40 +182,26 @@ router.get(SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path, requireAuth, async (req, re
 
     // Get contents of final folder
     const finalFolder = breadcrumbs[breadcrumbs.length - 1];
-    const [folders, bookmarks] = await Promise.all([
-      prisma.folders.findMany({
-        where: { parent_id: finalFolder.id, deleted_at: null },
-        include: {
-          users: { select: { id: true, display_name: true } },
-          _count: { select: { bookmarks: true, children: true } },
-        },
-      }),
-      prisma.bookmarks.findMany({
-        where: { folder_id: finalFolder.id, deleted_at: null },
-        include: {
-          users: { select: { id: true, display_name: true, avatar_url: true } },
-          folders: { select: { id: true, title: true, color: true } },
-          bookmark_tags: { include: { tags: true } },
-          media: true,
-        },
-      }),
-    ]);
 
-    // Transform bookmark_tags to flat tags array
-    const bookmarksWithTags = bookmarks.map((bookmark) => {
-      const { bookmark_tags, ...rest } = bookmark;
-      return {
-        ...rest,
-        tags: bookmark_tags.map((bt) => bt.tags),
-      };
+    const foldersRaw = await prisma.folders.findMany({
+      where: { parent_id: finalFolder.id, deleted_at: null },
+      include: {
+        users: { select: { id: true, display_name: true } },
+        _count: { select: { bookmarks: true, children: true } },
+      },
     });
+
+    const folders = foldersRaw.map(decryptFolder);
+
+    const allBookmarks = await bookmarkService.getAllBookmarks(userId);
+    const bookmarks = allBookmarks.filter((b) => b.folder_id === finalFolder.id);
 
     return res.json({
       ok: true,
       data: {
         folder: finalFolder,
         folders,
-        bookmarks: bookmarksWithTags,
+        bookmarks,
         path: pathParam,
         breadcrumbs,
       },
