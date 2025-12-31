@@ -2,6 +2,7 @@ import { Router } from "express";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
 import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
+import { decrypt } from "../lib/encryption";
 
 const router = Router();
 
@@ -22,7 +23,15 @@ router.get(SERVICE_ENDPOINTS.USERS.path, requireAuth, async (_req, res) => {
         last_login_at: true,
       },
     });
-    res.json({ ok: true, data: users });
+
+    // Decrypt user data
+    const decryptedUsers = users.map((user) => ({
+      ...user,
+      email: user.email ? decrypt(user.email) : null,
+      display_name: user.display_name ? decrypt(user.display_name) : null,
+    }));
+
+    res.json({ ok: true, data: decryptedUsers });
   } catch (error) {
     res.status(500).json({
       ok: false,

@@ -30,3 +30,7 @@ dist-ssr
 generated
 /generated/prisma
 docs
+scripts
+
+# sql
+backup_*.sql
