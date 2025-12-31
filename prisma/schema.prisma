@@ -40,8 +40,10 @@ model bookmarks {
   folder_id        Int?
   parent_id        String?                  @db.VarChar(50)
   title            String?                  @db.VarChar(200)
+  title_hash       String?                  @db.VarChar(64)
   description      String?                  @db.VarChar(2000)
   url              String                   @db.VarChar(2000)
+  url_hash         String?                  @db.VarChar(64)
   domain           String?                  @db.VarChar(255)
   favicon_url      String?
   preview_image    String?
@@ -63,7 +65,8 @@ model bookmarks {
   media            media[]
 
   @@index([user_id, folder_id], map: "idx_bookmarks_user_folder")
-  @@index([user_id, title], map: "idx_bookmarks_user_title")
+  @@index([title_hash], map: "idx_bookmarks_title_hash")
+  @@index([url_hash], map: "idx_bookmarks_url_hash")
 }
 
 model folders {
@@ -71,6 +74,7 @@ model folders {
   data_id       String      @unique @db.VarChar(50)
   user_id       Int
   title         String      @db.VarChar(200)
+  title_hash    String?     @db.VarChar(64)
   color         String?     @db.VarChar(50)
   parent_id     Int?
   position      Int?        @default(0)
@@ -83,7 +87,8 @@ model folders {
   parent        folders?    @relation("FolderHierarchy", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   children      folders[]   @relation("FolderHierarchy")
 
-  @@unique([user_id, parent_id, title], map: "folders_user_parent_title_unique")
+  @@unique([user_id, parent_id, title_hash], map: "folders_user_parent_title_hash_unique")
+  @@index([title_hash], map: "idx_folders_title_hash")
 }
 
 model media {
@@ -116,6 +121,7 @@ model tags {
   id            Int             @id @default(autoincrement())
   user_id       Int
   name          String          @db.VarChar(100)
+  name_hash     String?         @db.VarChar(64)
   slug          String          @db.VarChar(100)
   color         String?         @db.VarChar(50)
   created_at    DateTime?       @default(now()) @db.Timestamptz(6)
@@ -126,6 +132,7 @@ model tags {
 
   @@unique([user_id, slug], map: "tags_user_slug_unique")
   @@index([user_id, slug], map: "idx_tags_user_slug")
+  @@index([name_hash], map: "idx_tags_name_hash")
 }
 
 model user_providers {
@@ -153,24 +160,25 @@ model user_settings {
 }
 
 model users {
-  id               Int                @id @default(autoincrement())
-  uuid             String             @unique(map: "users_uuid_unique") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email            String?            @unique(map: "users_email_unique") @db.VarChar(255)
-  email_verified   Boolean?           @default(false)
-  display_name     String?            @db.VarChar(255)
-  avatar_url       String?
-  locale           String?            @db.VarChar(20)
-  is_active        Boolean?           @default(true)
-  created_at       DateTime?          @default(now()) @db.Timestamptz(6)
-  updated_at       DateTime?          @default(now()) @db.Timestamptz(6)
-  last_login_at    DateTime?          @db.Timestamptz(6)
-  deleted_at       DateTime?          @db.Timestamptz(6)
-  bookmark_history bookmark_history[]
-  bookmark_tags    bookmark_tags[]
-  bookmarks        bookmarks[]
-  folders          folders[]
-  sessions         sessions[]
-  tags             tags[]
-  user_providers   user_providers[]
-  user_settings    user_settings?
+  id                 Int                @id @default(autoincrement())
+  uuid               String             @unique(map: "users_uuid_unique") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email              String?            @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified     Boolean?           @default(false)
+  display_name       String?            @db.VarChar(255)
+  display_name_hash  String?            @db.VarChar(64)
+  avatar_url         String?
+  locale             String?            @db.VarChar(20)
+  is_active          Boolean?           @default(true)
+  created_at         DateTime?          @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?          @default(now()) @db.Timestamptz(6)
+  last_login_at      DateTime?          @db.Timestamptz(6)
+  deleted_at         DateTime?          @db.Timestamptz(6)
+  bookmark_history   bookmark_history[]
+  bookmark_tags      bookmark_tags[]
+  bookmarks          bookmarks[]
+  folders            folders[]
+  sessions           sessions[]
+  tags               tags[]
+  user_providers     user_providers[]
+  user_settings      user_settings?
 }

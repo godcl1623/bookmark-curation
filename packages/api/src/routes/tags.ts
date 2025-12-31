@@ -1,11 +1,10 @@
 import { Router } from "express";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
-import prisma from "../lib/prisma";
 import { requireAuth } from "../middleware/auth";
+import * as tagService from "../services/tags";
 
 const router = Router();
 
-// Get all tags
 router.get(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
   try {
     const { search, sort_by, limit } = req.query;
@@ -19,38 +18,12 @@ router.get(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
       });
     }
 
-    const tags = await prisma.tags.findMany({
-      where: {
-        user_id: userId,
-        deleted_at: null,
-        ...(search && typeof search === "string"
-          ? {
-              OR: [
-                { name: { contains: search, mode: "insensitive" } },
-                { slug: { contains: search, mode: "insensitive" } },
-              ],
-            }
-          : {}),
-      },
-      include: {
-        users: {
-          select: {
-            id: true,
-            display_name: true,
-          },
-        },
-        _count: {
-          select: {
-            bookmark_tags: true,
-          },
-        },
-      },
-      orderBy:
-        sort_by === "count"
-          ? { bookmark_tags: { _count: "desc" } }
-          : { name: "asc" },
-      ...(limitNum ? { take: limitNum } : {}),
+    const tags = await tagService.getAllTags(userId, {
+      search: search as string,
+      sort_by: sort_by as "name" | "count",
+      limit: limitNum,
     });
+
     return res.json({ ok: true, data: tags });
   } catch (error) {
     return res.status(500).json({
@@ -60,7 +33,6 @@ router.get(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
   }
 });
 
-// Create a new tag
 router.post(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
   try {
     const { name, color } = req.body;
@@ -73,34 +45,7 @@ router.post(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
       });
     }
 
-    // Generate slug from name
-    const slug = name
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9가-힣]+/g, "-")
-      .replace(/^-|-$/g, "");
-
-    const tag = await prisma.tags.create({
-      data: {
-        user_id: userId,
-        name,
-        slug,
-        color: color || null,
-      },
-      include: {
-        users: {
-          select: {
-            id: true,
-            display_name: true,
-          },
-        },
-        _count: {
-          select: {
-            bookmark_tags: true,
-          },
-        },
-      },
-    });
+    const tag = await tagService.createTag(userId, { name, color });
 
     return res.status(201).json({ ok: true, data: tag });
   } catch (error) {
@@ -118,7 +63,6 @@ router.post(SERVICE_ENDPOINTS.TAGS.path, requireAuth, async (req, res) => {
   }
 });
 
-// Get a single tag (not implemented)
 router.get(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (_req, res) => {
   return res.status(501).json({
     ok: false,
@@ -126,7 +70,6 @@ router.get(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (_req, res) 
   });
 });
 
-// Update a tag
 router.put(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -136,57 +79,18 @@ router.put(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res) =
       return res.status(400).json({ ok: false, error: "Invalid tag ID" });
     }
 
-    const existingTag = await prisma.tags.findFirst({
-      where: {
-        id,
-        user_id: userId,
-        deleted_at: null,
-      },
-    });
+    const { name, color } = req.body;
+    const tag = await tagService.updateTag(userId, id, { name, color });
 
-    if (!existingTag) {
+    return res.json({ ok: true, data: tag });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("not found")) {
       return res.status(404).json({
         ok: false,
         error: "Tag not found or access denied",
       });
     }
 
-    const { name, color } = req.body;
-
-    const updateData: any = {
-      updated_at: new Date(),
-    };
-
-    if (name !== undefined) {
-      updateData.name = name;
-      updateData.slug = name
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9가-힣]+/g, "-")
-        .replace(/^-|-$/g, "");
-    }
-    if (color !== undefined) updateData.color = color;
-
-    const tag = await prisma.tags.update({
-      where: { id },
-      data: updateData,
-      include: {
-        users: {
-          select: {
-            id: true,
-            display_name: true,
-          },
-        },
-        _count: {
-          select: {
-            bookmark_tags: true,
-          },
-        },
-      },
-    });
-
-    return res.json({ ok: true, data: tag });
-  } catch (error) {
     if (error instanceof Error && error.message.includes("Unique constraint")) {
       return res.status(409).json({
         ok: false,
@@ -201,7 +105,6 @@ router.put(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res) =
   }
 });
 
-// Delete a tag (soft delete)
 router.delete(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -211,30 +114,17 @@ router.delete(SERVICE_ENDPOINTS.TAGS.path + "/:id", requireAuth, async (req, res
       return res.status(400).json({ ok: false, error: "Invalid tag ID" });
     }
 
-    const existingTag = await prisma.tags.findFirst({
-      where: {
-        id,
-        user_id: userId,
-        deleted_at: null,
-      },
-    });
+    const tag = await tagService.deleteTag(userId, id);
 
-    if (!existingTag) {
+    return res.json({ ok: true, data: tag });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("not found")) {
       return res.status(404).json({
         ok: false,
         error: "Tag not found or access denied",
       });
     }
 
-    const tag = await prisma.tags.update({
-      where: { id },
-      data: {
-        deleted_at: new Date(),
-      },
-    });
-
-    return res.json({ ok: true, data: tag });
-  } catch (error) {
     return res.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Unknown error",

@@ -13,6 +13,7 @@ import {
 } from "../lib/auth";
 import { requireAuth } from "../middleware/auth";
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
+import { decrypt } from "../lib/encryption";
 
 const router = Router();
 
@@ -227,8 +228,8 @@ router.get(
       user: {
         id: user.id,
         uuid: user.uuid,
-        email: user.email,
-        display_name: user.display_name,
+        email: user.email ? decrypt(user.email) : null,
+        display_name: user.display_name ? decrypt(user.display_name) : null,
         avatar_url: user.avatar_url,
         locale: user.locale,
       },
