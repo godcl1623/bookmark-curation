@@ -11,7 +11,11 @@
     "kill:force": "fuser -k 3002/tcp 2>/dev/null || true; fuser -k 5173/tcp 2>/dev/null || true; pkill -9 -f 'tsx.*src/index' || true; pkill -9 -f 'vite$' || true; pkill -9 -f 'node.*vite' || true; sleep 1; echo 'Force killed all dev servers'",
     "install:all": "npm install --workspaces",
     "build": "npm run build --workspaces",
-    "lint": "npm run lint --workspaces"
+    "lint": "npm run lint --workspaces",
+    "build:mobile": "tsc -b && vite build --mode mobile",
+    "cap:sync": "npm run build:mobile && npx cap sync",
+    "cap:open": "npx cap open android",
+    "cap:run": "npm run cap:sync && npm run cap:open"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
