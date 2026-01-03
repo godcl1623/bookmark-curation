@@ -42,6 +42,9 @@ export async function getAllFolders(userId: number) {
         },
       },
       parent: {
+        where: {
+          deleted_at: null,
+        },
         select: {
           id: true,
           title: true,
@@ -50,8 +53,16 @@ export async function getAllFolders(userId: number) {
       },
       _count: {
         select: {
-          bookmarks: true,
-          children: true,
+          bookmarks: {
+            where: {
+              deleted_at: null,
+            },
+          },
+          children: {
+            where: {
+              deleted_at: null,
+            },
+          },
         },
       },
     },
@@ -78,6 +89,7 @@ export async function createFolder(
       where: {
         data_id: data.parent_id,
         user_id: userId,
+        deleted_at: null,
       },
       select: {
         id: true,
@@ -95,6 +107,7 @@ export async function createFolder(
     where: {
       user_id: userId,
       parent_id: parentFolderId,
+      deleted_at: null,
     },
     orderBy: {
       position: "desc",
@@ -124,6 +137,9 @@ export async function createFolder(
         },
       },
       parent: {
+        where: {
+          deleted_at: null,
+        },
         select: {
           id: true,
           title: true,
@@ -132,8 +148,16 @@ export async function createFolder(
       },
       _count: {
         select: {
-          bookmarks: true,
-          children: true,
+          bookmarks: {
+            where: {
+              deleted_at: null,
+            },
+          },
+          children: {
+            where: {
+              deleted_at: null,
+            },
+          },
         },
       },
     },
@@ -215,6 +239,9 @@ export async function updateFolder(
         },
       },
       parent: {
+        where: {
+          deleted_at: null,
+        },
         select: {
           id: true,
           title: true,
@@ -223,8 +250,16 @@ export async function updateFolder(
       },
       _count: {
         select: {
-          bookmarks: true,
-          children: true,
+          bookmarks: {
+            where: {
+              deleted_at: null,
+            },
+          },
+          children: {
+            where: {
+              deleted_at: null,
+            },
+          },
         },
       },
     },
@@ -238,12 +273,21 @@ export async function deleteFolder(userId: number, dataId: string) {
     where: {
       data_id: dataId,
       user_id: userId,
+      deleted_at: null,
     },
     include: {
       _count: {
         select: {
-          children: true,
-          bookmarks: true,
+          children: {
+            where: {
+              deleted_at: null,
+            },
+          },
+          bookmarks: {
+            where: {
+              deleted_at: null,
+            },
+          },
         },
       },
     },

@@ -66,6 +66,9 @@ export async function getAllBookmarks(
       },
     },
     folders: {
+      where: {
+        deleted_at: null,
+      },
       select: {
         id: true,
         title: true,
@@ -73,6 +76,11 @@ export async function getAllBookmarks(
       },
     },
     bookmark_tags: {
+      where: {
+        tags: {
+          deleted_at: null,
+        },
+      },
       include: {
         tags: true,
       },
@@ -201,8 +209,17 @@ export async function getBookmarkById(userId: number, bookmarkId: number) {
           avatar_url: true,
         },
       },
-      folders: true,
+      folders: {
+        where: {
+          deleted_at: null,
+        },
+      },
       bookmark_tags: {
+        where: {
+          tags: {
+            deleted_at: null,
+          },
+        },
         include: {
           tags: true,
         },
@@ -336,6 +353,9 @@ export async function createBookmark(
         },
       },
       folders: {
+        where: {
+          deleted_at: null,
+        },
         select: {
           id: true,
           title: true,
@@ -343,6 +363,11 @@ export async function createBookmark(
         },
       },
       bookmark_tags: {
+        where: {
+          tags: {
+            deleted_at: null,
+          },
+        },
         include: {
           tags: true,
         },
@@ -459,6 +484,9 @@ export async function updateBookmark(
         },
       },
       folders: {
+        where: {
+          deleted_at: null,
+        },
         select: {
           id: true,
           title: true,
@@ -466,6 +494,11 @@ export async function updateBookmark(
         },
       },
       bookmark_tags: {
+        where: {
+          tags: {
+            deleted_at: null,
+          },
+        },
         include: {
           tags: true,
         },

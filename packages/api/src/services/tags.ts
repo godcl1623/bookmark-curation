@@ -54,7 +54,13 @@ export async function getAllTags(
         },
         _count: {
           select: {
-            bookmark_tags: true,
+            bookmark_tags: {
+              where: {
+                bookmarks: {
+                  deleted_at: null,
+                },
+              },
+            },
           },
         },
       },
@@ -83,7 +89,13 @@ export async function getAllTags(
         },
         _count: {
           select: {
-            bookmark_tags: true,
+            bookmark_tags: {
+              where: {
+                bookmarks: {
+                  deleted_at: null,
+                },
+              },
+            },
           },
         },
       },
@@ -132,7 +144,13 @@ export async function createTag(
       },
       _count: {
         select: {
-          bookmark_tags: true,
+          bookmark_tags: {
+            where: {
+              bookmarks: {
+                deleted_at: null,
+              },
+            },
+          },
         },
       },
     },
@@ -191,7 +209,13 @@ export async function updateTag(
       },
       _count: {
         select: {
-          bookmark_tags: true,
+          bookmark_tags: {
+            where: {
+              bookmarks: {
+                deleted_at: null,
+              },
+            },
+          },
         },
       },
     },
