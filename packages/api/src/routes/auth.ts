@@ -78,9 +78,15 @@ router.get(
 
       res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, getCookieOptions());
 
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/auth/callback#access_token=${accessToken}`,
-      );
+      // 모바일 앱 감지 (Capacitor User-Agent)
+      const userAgent = req.headers["user-agent"]?.toLowerCase() || "";
+      const isMobile = userAgent.includes("capacitor");
+
+      const redirectUrl = isMobile
+        ? `linkvault://auth/callback#access_token=${accessToken}`
+        : `${process.env.FRONTEND_URL}/auth/callback#access_token=${accessToken}`;
+
+      return res.redirect(redirectUrl);
     } catch (error) {
       console.error("Google OAuth callback error:", error);
       return res.redirect(

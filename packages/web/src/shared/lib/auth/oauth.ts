@@ -6,6 +6,6 @@ export const openOAuthUrl = async (url: string) => {
   if (checkIfMobileNative()) {
     await Browser.open({ url });
   } else {
-    window.open(url, "_blank");
+    window.location.href = url;
   }
 };
