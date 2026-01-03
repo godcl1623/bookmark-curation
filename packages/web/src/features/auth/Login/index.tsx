@@ -1,8 +1,9 @@
 import Logo from "@/shared/components/molecules/Logo";
+import { openOAuthUrl } from "@/shared/lib/auth/oauth";
 
 export default function Login() {
-  const handleLogin = () => {
-    window.location.href = import.meta.env.VITE_API_URL + "/auth/google";
+  const handleLogin = async () => {
+    await openOAuthUrl(import.meta.env.VITE_API_URL + "/auth/google");
   };
 
   return (
