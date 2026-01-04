@@ -1,4 +1,5 @@
-import { App as CapApp, type PluginListenerHandle } from "@capacitor/app";
+import { App as CapApp } from "@capacitor/app";
+import type { PluginListenerHandle } from "@capacitor/core";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
