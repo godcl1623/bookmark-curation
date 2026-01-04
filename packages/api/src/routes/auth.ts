@@ -33,10 +33,16 @@ const getCookieOptions = () => {
 
 router.get(
   SERVICE_ENDPOINTS.AUTH.GOOGLE.SIGNIN.path,
-  passport.authenticate("google", {
-    session: false,
-    scope: ["profile", "email"],
-  }),
+  (req: Request, res: Response, next: any) => {
+    const isMobile = req.query.mobile === "true";
+    const state = isMobile ? "mobile" : "web";
+
+    passport.authenticate("google", {
+      session: false,
+      scope: ["profile", "email"],
+      state,
+    })(req, res, next);
+  },
 );
 
 router.get(
@@ -48,11 +54,14 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const user = req.user;
+      const state = req.query.state;
+      const isMobile = state === "mobile";
 
       if (!user || !user.email) {
-        return res.redirect(
-          `${process.env.FRONTEND_URL}/login?error=authentication_failed`,
-        );
+        const errorUrl = isMobile
+          ? `linkvault://login?error=authentication_failed`
+          : `${process.env.FRONTEND_URL}/login?error=authentication_failed`;
+        return res.redirect(errorUrl);
       }
 
       const accessToken = generateAccessToken({
@@ -78,14 +87,18 @@ router.get(
 
       res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, getCookieOptions());
 
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/auth/callback#access_token=${accessToken}`,
-      );
+      const redirectUrl = isMobile
+        ? `linkvault://auth/callback#access_token=${accessToken}`
+        : `${process.env.FRONTEND_URL}/auth/callback#access_token=${accessToken}`;
+
+      return res.redirect(redirectUrl);
     } catch (error) {
       console.error("Google OAuth callback error:", error);
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/login?error=server_error`,
-      );
+      const isMobile = req.query.state === "mobile";
+      const errorUrl = isMobile
+        ? `linkvault://login?error=server_error`
+        : `${process.env.FRONTEND_URL}/login?error=server_error`;
+      return res.redirect(errorUrl);
     }
   },
 );

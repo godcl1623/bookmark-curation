@@ -73,12 +73,6 @@ passport.use(
 
 const googleConfig = getGoogleConfig();
 
-if (process.env.NODE_ENV !== "production") {
-  console.log("🔍 Google OAuth Config:");
-  console.log("  Client ID:", googleConfig.clientID);
-  console.log("  Callback URL:", googleConfig.callbackURL);
-}
-
 passport.use(
   "google",
   new GoogleStrategy(

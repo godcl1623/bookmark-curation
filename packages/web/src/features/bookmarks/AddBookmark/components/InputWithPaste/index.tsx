@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 
 import Button from "@/shared/components/atoms/button";
 import { COMMON_STYLES } from "@/shared/consts";
+import { readClipboard } from "@/shared/lib/mobile/clipboard";
 
 interface InputProps {
   key: number | string;
@@ -80,7 +81,7 @@ const useClipboard = () => {
 
   const pasteValue = async () => {
     try {
-      const clipboardValue = await navigator.clipboard.readText();
+      const clipboardValue = await readClipboard();
       setClipboard({ value: clipboardValue, timestamp: Date.now() });
       toast.success("클립보드에서 URL을 불러왔습니다.");
     } catch (error) {
