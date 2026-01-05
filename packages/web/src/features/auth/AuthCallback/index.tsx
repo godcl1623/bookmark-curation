@@ -6,12 +6,13 @@ import { checkIfMobileNative } from "@/shared/lib/utils";
 import useAuthStore from "@/stores/auth.ts";
 
 export default function AuthCallback() {
+  console.log("[AuthCallback] Component rendered");
   useHandleCallback();
 
   return (
-    <div className="h-screen flex items-center justify-center bg-blue-50/75">
+    <div className="flex h-screen items-center justify-center bg-blue-50/75">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
         <p className="text-gray-600">로그인 처리 중...</p>
       </div>
     </div>
@@ -81,19 +82,29 @@ const useHandleCallback = () => {
 
     // Store token
     setAccessToken(token);
+    setIsLoggedOut(false);
 
-    // If this is mobile, trigger deep link to close browser and return to app
+    // If this is mobile, navigate to home
     if (isMobile && isMobileNative) {
       setIsProcessing(true);
 
       // Small delay to ensure token is persisted in Zustand
       setTimeout(() => {
-        // Trigger deep link - this will cause the app to receive appUrlOpen event
-        window.location.href = `linkvault://auth/success`;
+        console.log("[AuthCallback] Navigating to home");
+        // App Links로 앱이 포그라운드로 왔으므로, 단순히 navigate만 하면 됨
+        navigate("/", { replace: true });
       }, 100);
     } else {
       // Web flow - just navigate
       redirectToRoot(false);
     }
-  }, [hash, search, redirectToRoot, setAccessToken, isProcessing, setIsLoggedOut]);
+  }, [
+    hash,
+    search,
+    redirectToRoot,
+    setAccessToken,
+    isProcessing,
+    setIsLoggedOut,
+    navigate,
+  ]);
 };
