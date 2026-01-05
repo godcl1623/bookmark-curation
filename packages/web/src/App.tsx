@@ -39,15 +39,26 @@ const useDeepLinkListener = () => {
 
     (async () => {
       listenerHandle = await CapApp.addListener("appUrlOpen", async (data) => {
+        console.log("[appUrlOpen] Received URL:", data.url);
         const url = new URL(data.url);
 
+        // Android App Links (https://linkvault-dev.godcl.app/auth/callback?mobile=true&token=...)
+        if (
+          url.hostname === "linkvault-dev.godcl.app" ||
+          url.hostname === "linkvault.godcl.app"
+        ) {
+          if (url.pathname === "/auth/callback") {
+            console.log("[appUrlOpen] Navigating to /auth/callback with query:", url.search);
+            navigate("/auth/callback" + url.search);
+            return;
+          }
+        }
+
+        // Legacy deep link support (linkvault://auth/...)
         if (url.hostname === "auth") {
           if (url.pathname === "/callback") {
-            // Legacy deep link support (backward compatibility)
             navigate("/auth/callback" + url.hash);
           } else if (url.pathname === "/success") {
-            // New flow: browser already handled token storage
-            // Close the browser and navigate to home
             try {
               await Browser.close();
             } catch (error) {
