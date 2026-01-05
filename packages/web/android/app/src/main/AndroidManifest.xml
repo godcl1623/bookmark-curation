@@ -32,6 +32,17 @@
                 <data android:scheme="linkvault" android:host="auth"/>
             </intent-filter>
 
+            <!-- Android App Links (OAuth 콜백용) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="linkvault-dev.godcl.app"
+                    android:pathPrefix="/auth/callback" />
+            </intent-filter>
+
         </activity>
 
         <provider

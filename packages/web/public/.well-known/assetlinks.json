@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.linkvault.app",
+    "sha256_cert_fingerprints": [
+      "3C:09:7B:0C:E4:76:C5:95:2D:46:4A:11:A9:16:E3:2B:53:E4:AE:81:BB:48:57:43:78:2D:D2:C6:61:8B:64:BD"
+    ]
+  }
+}]
