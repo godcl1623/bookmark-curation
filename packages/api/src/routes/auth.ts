@@ -34,14 +34,21 @@ const getCookieOptions = () => {
 router.get(
   SERVICE_ENDPOINTS.AUTH.GOOGLE.SIGNIN.path,
   (req: Request, res: Response, next: any) => {
-    console.log("[DEBUG] Sign-in User-Agent:", req.headers["user-agent"]);
-    const isMobile = req.query.mobile === "true";
-    const state = isMobile ? "mobile" : "web";
-
     passport.authenticate("google", {
       session: false,
       scope: ["profile", "email"],
-      state,
+      state: "web",
+    })(req, res, next);
+  },
+);
+
+router.get(
+  "/auth/google/mobile",
+  (req: Request, res: Response, next: any) => {
+    passport.authenticate("google", {
+      session: false,
+      scope: ["profile", "email"],
+      state: "mobile",
     })(req, res, next);
   },
 );
@@ -55,15 +62,12 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const user = req.user;
-      const userAgent = req.headers["user-agent"]?.toLowerCase() || "";
-      const isMobile = userAgent.includes("capacitor");
-
-      console.log("[DEBUG] Callback User-Agent:", req.headers["user-agent"]);
-      console.log("[DEBUG] isMobile:", isMobile);
+      const state = req.query.state as string;
+      const isMobile = state === "mobile";
 
       if (!user || !user.email) {
         const errorUrl = isMobile
-          ? `linkvault://login?error=authentication_failed`
+          ? `${process.env.FRONTEND_URL}/login?error=authentication_failed&mobile=true`
           : `${process.env.FRONTEND_URL}/login?error=authentication_failed`;
         return res.redirect(errorUrl);
       }
@@ -92,18 +96,16 @@ router.get(
       res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, getCookieOptions());
 
       const redirectUrl = isMobile
-        ? `linkvault://auth/callback#access_token=${accessToken}`
+        ? `${process.env.FRONTEND_URL}/auth/callback?mobile=true#access_token=${accessToken}`
         : `${process.env.FRONTEND_URL}/auth/callback#access_token=${accessToken}`;
-
-      console.log("[DEBUG] Redirect URL:", redirectUrl);
 
       return res.redirect(redirectUrl);
     } catch (error) {
       console.error("Google OAuth callback error:", error);
-      const userAgent = req.headers["user-agent"]?.toLowerCase() || "";
-      const isMobile = userAgent.includes("capacitor");
+      const state = req.query.state as string;
+      const isMobile = state === "mobile";
       const errorUrl = isMobile
-        ? `linkvault://login?error=server_error`
+        ? `${process.env.FRONTEND_URL}/login?error=server_error&mobile=true`
         : `${process.env.FRONTEND_URL}/login?error=server_error`;
       return res.redirect(errorUrl);
     }
