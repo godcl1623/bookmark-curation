@@ -1,4 +1,5 @@
 import { App as CapApp } from "@capacitor/app";
+import { Browser } from "@capacitor/browser";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
@@ -37,10 +38,23 @@ const useDeepLinkListener = () => {
     let listenerHandle: PluginListenerHandle | null = null;
 
     (async () => {
-      listenerHandle = await CapApp.addListener("appUrlOpen", (data) => {
+      listenerHandle = await CapApp.addListener("appUrlOpen", async (data) => {
         const url = new URL(data.url);
-        if (url.hostname === "auth" && url.pathname === "/callback") {
-          navigate("/auth/callback" + url.hash);
+
+        if (url.hostname === "auth") {
+          if (url.pathname === "/callback") {
+            // Legacy deep link support (backward compatibility)
+            navigate("/auth/callback" + url.hash);
+          } else if (url.pathname === "/success") {
+            // New flow: browser already handled token storage
+            // Close the browser and navigate to home
+            try {
+              await Browser.close();
+            } catch (error) {
+              console.warn("Browser already closed or not open:", error);
+            }
+            navigate("/", { replace: true });
+          }
         }
       });
     })();
