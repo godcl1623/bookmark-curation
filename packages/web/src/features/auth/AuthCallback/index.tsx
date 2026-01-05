@@ -66,19 +66,25 @@ const useHandleCallback = () => {
     const isMobile = params.get("mobile") === "true";
     const isMobileNative = checkIfMobileNative();
 
-    // Validate we have a hash with access token
-    if (hash === "") return redirectToRoot();
+    // 토큰 읽기: 모바일은 query parameter, 웹은 hash
+    let token: string | null = null;
 
-    window.history.replaceState({}, "", "/auth/callback");
-
-    const hashParams = new URLSearchParams(hash.substring(1));
-
-    if (!hashParams.has("access_token")) return redirectToRoot();
-    const token = hashParams.get("access_token");
+    if (isMobile && isMobileNative) {
+      // 모바일: query parameter에서 토큰 읽기
+      token = params.get("token");
+    } else {
+      // 웹: hash에서 토큰 읽기
+      if (hash === "") return redirectToRoot();
+      const hashParams = new URLSearchParams(hash.substring(1));
+      token = hashParams.get("access_token");
+    }
 
     if (!token || !isValidToken(token)) {
       return redirectToRoot();
     }
+
+    // URL에서 토큰 제거 (보안)
+    window.history.replaceState({}, "", "/auth/callback");
 
     // Store token
     setAccessToken(token);

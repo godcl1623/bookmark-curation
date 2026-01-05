@@ -96,7 +96,7 @@ router.get(
       res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, getCookieOptions());
 
       const redirectUrl = isMobile
-        ? `${process.env.FRONTEND_URL}/auth/callback?mobile=true#access_token=${accessToken}`
+        ? `${process.env.FRONTEND_URL}/auth/callback?mobile=true&token=${accessToken}`
         : `${process.env.FRONTEND_URL}/auth/callback#access_token=${accessToken}`;
 
       console.log("[OAuth Callback] Redirecting to:", redirectUrl);
