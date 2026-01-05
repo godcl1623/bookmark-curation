@@ -99,6 +99,10 @@ router.get(
         ? `${process.env.FRONTEND_URL}/auth/callback?mobile=true#access_token=${accessToken}`
         : `${process.env.FRONTEND_URL}/auth/callback#access_token=${accessToken}`;
 
+      console.log("[OAuth Callback] Redirecting to:", redirectUrl);
+      console.log("[OAuth Callback] isMobile:", isMobile);
+      console.log("[OAuth Callback] FRONTEND_URL:", process.env.FRONTEND_URL);
+
       return res.redirect(redirectUrl);
     } catch (error) {
       console.error("Google OAuth callback error:", error);
