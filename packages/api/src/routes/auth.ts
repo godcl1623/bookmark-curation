@@ -34,6 +34,7 @@ const getCookieOptions = () => {
 router.get(
   SERVICE_ENDPOINTS.AUTH.GOOGLE.SIGNIN.path,
   (req: Request, res: Response, next: any) => {
+    console.log("[DEBUG] Sign-in User-Agent:", req.headers["user-agent"]);
     const isMobile = req.query.mobile === "true";
     const state = isMobile ? "mobile" : "web";
 
@@ -54,8 +55,11 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const user = req.user;
-      const state = req.query.state;
-      const isMobile = state === "mobile";
+      const userAgent = req.headers["user-agent"]?.toLowerCase() || "";
+      const isMobile = userAgent.includes("capacitor");
+
+      console.log("[DEBUG] Callback User-Agent:", req.headers["user-agent"]);
+      console.log("[DEBUG] isMobile:", isMobile);
 
       if (!user || !user.email) {
         const errorUrl = isMobile
@@ -91,10 +95,13 @@ router.get(
         ? `linkvault://auth/callback#access_token=${accessToken}`
         : `${process.env.FRONTEND_URL}/auth/callback#access_token=${accessToken}`;
 
+      console.log("[DEBUG] Redirect URL:", redirectUrl);
+
       return res.redirect(redirectUrl);
     } catch (error) {
       console.error("Google OAuth callback error:", error);
-      const isMobile = req.query.state === "mobile";
+      const userAgent = req.headers["user-agent"]?.toLowerCase() || "";
+      const isMobile = userAgent.includes("capacitor");
       const errorUrl = isMobile
         ? `linkvault://login?error=server_error`
         : `${process.env.FRONTEND_URL}/login?error=server_error`;
