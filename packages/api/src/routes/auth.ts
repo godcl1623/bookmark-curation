@@ -33,10 +33,24 @@ const getCookieOptions = () => {
 
 router.get(
   SERVICE_ENDPOINTS.AUTH.GOOGLE.SIGNIN.path,
-  passport.authenticate("google", {
-    session: false,
-    scope: ["profile", "email"],
-  }),
+  (req: Request, res: Response, next: any) => {
+    passport.authenticate("google", {
+      session: false,
+      scope: ["profile", "email"],
+      state: "web",
+    })(req, res, next);
+  },
+);
+
+router.get(
+  "/auth/google/mobile",
+  (req: Request, res: Response, next: any) => {
+    passport.authenticate("google", {
+      session: false,
+      scope: ["profile", "email"],
+      state: "mobile",
+    })(req, res, next);
+  },
 );
 
 router.get(
@@ -48,11 +62,14 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const user = req.user;
+      const state = req.query.state as string;
+      const isMobile = state === "mobile";
 
       if (!user || !user.email) {
-        return res.redirect(
-          `${process.env.FRONTEND_URL}/login?error=authentication_failed`,
-        );
+        const errorUrl = isMobile
+          ? `${process.env.FRONTEND_URL}/login?error=authentication_failed&mobile=true`
+          : `${process.env.FRONTEND_URL}/login?error=authentication_failed`;
+        return res.redirect(errorUrl);
       }
 
       const accessToken = generateAccessToken({
@@ -78,14 +95,19 @@ router.get(
 
       res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, getCookieOptions());
 
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/auth/callback#access_token=${accessToken}`,
-      );
+      const redirectUrl = isMobile
+        ? `${process.env.FRONTEND_URL}/auth/callback?mobile=true&token=${accessToken}`
+        : `${process.env.FRONTEND_URL}/auth/callback#access_token=${accessToken}`;
+
+      return res.redirect(redirectUrl);
     } catch (error) {
       console.error("Google OAuth callback error:", error);
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/login?error=server_error`,
-      );
+      const state = req.query.state as string;
+      const isMobile = state === "mobile";
+      const errorUrl = isMobile
+        ? `${process.env.FRONTEND_URL}/login?error=server_error&mobile=true`
+        : `${process.env.FRONTEND_URL}/login?error=server_error`;
+      return res.redirect(errorUrl);
     }
   },
 );

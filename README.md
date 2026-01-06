@@ -69,6 +69,7 @@ docker compose ps
 ```
 
 Docker Compose가 자동으로 다음을 수행합니다:
+
 - PostgreSQL 15 설치
 - `linkvault` 데이터베이스 생성
 - `linkvault_app` 사용자 생성
@@ -76,10 +77,12 @@ Docker Compose가 자동으로 다음을 수행합니다:
 - 컨테이너 자동 재시작 설정 (`restart: unless-stopped`)
 
 만약 로컬에서 실행중인 PostgreSQL과 별도로 Docker 컨테이너 실행을 희망하시는 경우, 다음 두 파일에서 DB에 할당할 포트 번호를 지정해주시기 바랍니다.
+
 - .env
 - packages/api/.env
 
 포트 번호 변경이 필요한 키는 다음 2개입니다:
+
 - `DATABASE_URL`
 - `DATABASE_PORT`
 
@@ -161,6 +164,7 @@ npm run dev:web
 ```
 
 서버가 실행되면:
+
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3002
 
@@ -188,6 +192,7 @@ npx prisma migrate reset
 이 프로젝트는 `public` 스키마 대신 `app` 스키마를 사용합니다. 모든 테이블은 `app` 스키마 내에 생성됩니다.
 
 주요 테이블:
+
 - `users`: 사용자 정보
 - `bookmarks`: 북마크 데이터
 - `folders`: 폴더 구조
@@ -214,7 +219,8 @@ docker compose up -d  # Docker Desktop이 자동 시작하지 않은 경우만
 docker exec linkvault-postgres psql -U linkvault_app -d linkvault -c "SELECT COUNT(*) FROM app.bookmarks;"
 ```
 
-**주의**: `docker compose down -v` 명령어는 볼륨까지 삭제하므로 **절대 사용하지 마세요**. 컨테이너만 정지하려면 `docker compose stop` 또는 `docker compose down`을 사용하세요.
+**주의**: `docker compose down -v` 명령어는 볼륨까지 삭제하므로 **절대 사용하지 마세요**. 컨테이너만 정지하려면 `docker compose stop` 또는
+`docker compose down`을 사용하세요.
 
 ### Docker 컨테이너 관련
 
@@ -258,8 +264,11 @@ PostgreSQL 사용자가 스키마에 대한 적절한 권한이 있는지 확인
 
 ```sql
 -- PostgreSQL에서 확인
-\c linkvault
-SELECT schema_name, schema_owner FROM information_schema.schemata WHERE schema_name = 'app';
+\c
+linkvault
+SELECT schema_name, schema_owner
+FROM information_schema.schemata
+WHERE schema_name = 'app';
 ```
 
 `schema_owner`가 `linkvault_app`이어야 합니다.
