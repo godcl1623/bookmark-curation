@@ -6,7 +6,6 @@ import { checkIfMobileNative } from "@/shared/lib/utils";
 import useAuthStore from "@/stores/auth.ts";
 
 export default function AuthCallback() {
-  console.log("[AuthCallback] Component rendered");
   useHandleCallback();
 
   return (
@@ -96,7 +95,6 @@ const useHandleCallback = () => {
 
       // Small delay to ensure token is persisted in Zustand
       setTimeout(() => {
-        console.log("[AuthCallback] Navigating to home");
         // App Links로 앱이 포그라운드로 왔으므로, 단순히 navigate만 하면 됨
         navigate("/", { replace: true });
       }, 100);
