@@ -37,9 +37,15 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Dev 환경 -->
                 <data
                     android:scheme="https"
                     android:host="linkvault-dev.godcl.app"
+                    android:pathPrefix="/auth/callback" />
+                <!-- Production 환경 -->
+                <data
+                    android:scheme="https"
+                    android:host="linkvault.godcl.app"
                     android:pathPrefix="/auth/callback" />
             </intent-filter>
 
