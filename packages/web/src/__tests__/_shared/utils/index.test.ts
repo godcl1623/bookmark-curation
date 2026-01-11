@@ -23,7 +23,7 @@ describe("### 1. Test extractFoldersProperty", () => {
 
   const generateMockFolders = (folders: number): Folder[] => {
     return Array.from({ length: folders }, (_, k) => k).map((value) => ({
-      id: value,
+      id: 1,
       title: `test-${value}`,
       color: "#000000",
       parent_id: null,
@@ -51,34 +51,52 @@ describe("### 1. Test extractFoldersProperty", () => {
   };
 
   test("##### 1-1. folders are 0", () => {
-    const folders = generateMockFolders(0);
-    const result = extractFoldersProperty(
-      folders,
-      totalKeys[getRandomInt()] as keyof Folder
-    );
-    expect(result).toHaveLength(0);
+    totalKeys.forEach((key) => {
+      const folders = generateMockFolders(0);
+      const result = extractFoldersProperty(folders, key as keyof Folder);
+      expect(result).toHaveLength(0);
+      expect(result).toSatisfy((array) =>
+        array.every((item: unknown) => typeof item === "string")
+      );
+    });
   });
 
   test("##### 1-2. only one folder", () => {
-    const folders = generateMockFolders(1);
-    const result = extractFoldersProperty(
-      folders,
-      totalKeys[getRandomInt()] as keyof Folder
-    );
-    expect(result).toHaveLength(1);
-    expect(result).toSatisfy((array) =>
-      array.every((item: unknown) => typeof item === "string")
-    );
+    totalKeys.forEach((key) => {
+      const folders = generateMockFolders(1);
+      const result = extractFoldersProperty(folders, key as keyof Folder);
+      expect(result).toHaveLength(1);
+      expect(result).toSatisfy((array) =>
+        array.every((item: unknown) => typeof item === "string")
+      );
+    });
   });
 
   test("##### 1-3. folders more than 2", () => {
     const length = getRandomInt(2, 10 ** getRandomInt(1, 5));
-    console.log("length: ", length);
-    const folders = generateMockFolders(length);
-    const result = extractFoldersProperty(folders, "title");
-    expect(result).toHaveLength(length);
-    expect(result).toSatisfy((array) =>
-      array.every((item: unknown) => typeof item === "string")
-    );
+    totalKeys.forEach((key) => {
+      const folders = generateMockFolders(length);
+      const result = extractFoldersProperty(folders, key as keyof Folder);
+      expect(result).toHaveLength(length);
+      expect(result).toSatisfy((array) =>
+        array.every((item: unknown) => typeof item === "string")
+      );
+    });
+  });
+
+  test("##### 1-4. handle object properties", () => {
+    ["parent", "users", "_count"].forEach((key) => {
+      const folders = generateMockFolders(1);
+      const result = extractFoldersProperty(folders, key as keyof Folder);
+      expect(result).toEqual([""]);
+    });
+  });
+
+  test("##### 1-5. handle numbers to strings", () => {
+    ["id", "position", "user_id"].forEach((key) => {
+      const folders = generateMockFolders(1);
+      const result = extractFoldersProperty(folders, key as keyof Folder);
+      expect(result).toEqual(["1"]);
+    });
   });
 });
