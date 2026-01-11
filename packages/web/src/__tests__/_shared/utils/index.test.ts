@@ -1,7 +1,7 @@
 import type { Folder } from "@linkvault/shared";
 import { describe, expect, test } from "vitest";
 
-import { extractFoldersProperty } from "@/shared/utils";
+import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
 
 describe("### 1. Test extractFoldersProperty", () => {
   const totalKeys = [
@@ -98,5 +98,70 @@ describe("### 1. Test extractFoldersProperty", () => {
       const result = extractFoldersProperty(folders, key as keyof Folder);
       expect(result).toEqual(["1"]);
     });
+  });
+});
+
+describe("### 2. Test generateFolderOptions", () => {
+  const titleString = "title";
+  const dataString = "data";
+  const defaultValue: [{ text: string; data_id: string | null }] = [
+    { text: "없음", data_id: null },
+  ];
+
+  const generateTestData = (str: string, length: number = 3) => {
+    return Array.from({ length }, (_, index) => `${str}-${index + 1}`);
+  };
+  const generateCheckData = (
+    textStr: string,
+    data_id_str: string,
+    length: number = 3
+  ) => {
+    return defaultValue.concat(
+      Array.from({ length }, (_, index) => ({
+        text: `${textStr}-${index + 1}`,
+        data_id: `${data_id_str}-${index + 1}`,
+      }))
+    );
+  };
+
+  test("##### 2-1. no data", () => {
+    const options = generateFolderOptions([], []);
+    expect(options).toEqual(defaultValue);
+  });
+
+  test.each([1, 10, 100, 1000, 10000])(
+    "##### 2-2. with multiple data",
+    (length) => {
+      const titles = generateTestData(titleString, length);
+      const data_ids = generateTestData(dataString, length);
+      const options = generateFolderOptions(titles, data_ids);
+      expect(options).toEqual(
+        generateCheckData(titleString, dataString, length)
+      );
+    }
+  );
+
+  test("##### 2-3. data.length > titles.length", () => {
+    const titles = generateTestData(titleString, 3);
+    const data_ids = generateTestData(dataString, 5);
+    const options = generateFolderOptions(titles, data_ids);
+    expect(options).toEqual(
+      generateCheckData(titleString, dataString, titles.length)
+    );
+  });
+
+  test("##### 2-4. titles.length > data.length", () => {
+    const titles = generateTestData(titleString, 5);
+    const data_ids = generateTestData(dataString, 3);
+    const options = generateFolderOptions(titles, data_ids);
+    expect(options).toEqual(
+      defaultValue.concat([
+        { text: "title-1", data_id: "data-1" },
+        { text: "title-2", data_id: "data-2" },
+        { text: "title-3", data_id: "data-3" },
+        { text: "title-4", data_id: undefined },
+        { text: "title-5", data_id: undefined },
+      ] as any)
+    );
   });
 });
