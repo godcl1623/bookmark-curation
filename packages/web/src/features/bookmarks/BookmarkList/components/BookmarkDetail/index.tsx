@@ -1,6 +1,7 @@
 import type { Bookmark } from "@linkvault/shared";
 import { type AxiosResponse, isAxiosError } from "axios";
 import { Calendar, CalendarCog, Edit, Share2, Trash2 } from "lucide-react";
+import { useMemo } from "react";
 import toast from "react-hot-toast";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
@@ -19,7 +20,6 @@ import { cn } from "@/shared/lib/utils";
 import deleteBookmark from "@/shared/services/bookmarks/delete-bookmark";
 import updateBookmark from "@/shared/services/bookmarks/update-bookmark";
 import type { BasicComponentProps } from "@/shared/types";
-import { useMemo } from "react";
 
 export default function BookmarkDetail({
   reject,
