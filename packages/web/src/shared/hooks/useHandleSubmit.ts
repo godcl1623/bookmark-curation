@@ -58,7 +58,7 @@ const useHandleSubmit = ({
     const strictRegex =
       /^https?:\/\/(?:[^\s:@\/]+@)?(?:localhost|[A-Za-z0-9.-]+\.[A-Za-z]{2,})(?::\d{1,5})?(?:[\\/?#][^\s]*)?$/i;
     const laxRegex =
-      /^(?:https?:\/\/)?(?:www\.)?(?:localhost|[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?::\d{1,5})?(?:[\\/?#][^\s]*)?$/i;
+      /^(?:https?:\/\/)?(?:www\.)?(?:localhost|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,})(?::\d{1,5})?(?:[\\/?#][^\s]*)?$/i;
 
     let isValidUrl = false;
     let isUrlWithScheme = false;
