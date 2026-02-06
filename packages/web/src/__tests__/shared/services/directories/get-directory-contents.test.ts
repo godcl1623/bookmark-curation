@@ -2,7 +2,7 @@ import { EXAMPLES } from "@/__tests__/__utils__";
 import getDirectoryContents from "@/shared/services/directories/get-directory-contents";
 
 describe("# get-directory-contents 테스트", () => {
-  test("## 1. 정상 호출 테스트", async () => {
+  test("## 1. 기본 호출 테스트", async () => {
     // act
     const result = await getDirectoryContents();
 

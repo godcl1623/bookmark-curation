@@ -2,7 +2,7 @@ import { EXAMPLES } from "@/__tests__/__utils__";
 import getBookmarksList from "@/shared/services/bookmarks/get-bookmarks-list";
 
 describe("# get-bookmarks-list 테스트", () => {
-  test("## 1. 정상 호출 테스트", async () => {
+  test("## 1. 기본 호출 테스트", async () => {
     // act
     const result = await getBookmarksList();
 

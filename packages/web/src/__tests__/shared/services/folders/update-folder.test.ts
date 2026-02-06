@@ -2,7 +2,7 @@ import { EXAMPLES } from "@/__tests__/__utils__";
 import updateFolder from "@/shared/services/folders/update-folder";
 
 describe("# update-folder 테스트", () => {
-  test("## 1. 정상 호출 테스트", async () => {
+  test("## 1. 기본 호출 테스트", async () => {
     // act
     const result = await updateFolder("target", {});
 
