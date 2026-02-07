@@ -25,7 +25,7 @@ describe("# get-bookmarks-list 테스트", () => {
     // assert
     expect(result).toEqual({
       ok: true,
-      data: [EXAMPLES.BOOKMARK],
+      data: [],
     });
   });
 });

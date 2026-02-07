@@ -57,9 +57,19 @@ export const handlers = [
   }),
   // get bookmarks list
   // TODO: queryParams 처리 추가 필요
-  http.get(`${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}`, () => {
-    return HttpResponse.json({ ok: true, data: [EXAMPLES.BOOKMARK] });
-  }),
+  http.get(
+    `${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}`,
+    ({ request }) => {
+      const url = new URL(request.url);
+      const search = url.searchParams.get("search");
+
+      if (search) {
+        return HttpResponse.json({ ok: true, data: [] });
+      }
+
+      return HttpResponse.json({ ok: true, data: [EXAMPLES.BOOKMARK] });
+    }
+  ),
   // patch bookmark
   http.patch(`${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}/:id`, () => {
     return HttpResponse.json({ ok: true, data: EXAMPLES.BOOKMARK });
