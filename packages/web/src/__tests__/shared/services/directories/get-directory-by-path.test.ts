@@ -33,7 +33,7 @@ describe("# get-directory-by-path 테스트", () => {
         folder: EXAMPLES.FOLDER,
         folders: [EXAMPLES.FOLDER],
         bookmarks: [EXAMPLES.BOOKMARK],
-        path: "/",
+        path: "/test/directory",
         breadcrumbs: {},
       },
     });

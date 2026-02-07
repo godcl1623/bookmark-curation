@@ -134,14 +134,17 @@ export const handlers = [
   // get directory by path
   http.get(
     `${BASE_URL}${SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path}`,
-    errorHandleWrapper(() => {
+    errorHandleWrapper(({ request }) => {
+      const url = new URL(request.url);
+      const path = url.searchParams.get("path");
+
       return HttpResponse.json({
         ok: true,
         data: {
           folder: EXAMPLES.FOLDER,
           folders: [EXAMPLES.FOLDER],
           bookmarks: [EXAMPLES.BOOKMARK],
-          path: "/",
+          path,
           breadcrumbs: {},
         },
       });
