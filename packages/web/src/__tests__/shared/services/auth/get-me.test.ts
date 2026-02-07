@@ -7,12 +7,14 @@ describe("# get-me 테스트", () => {
 
     // assert
     expect(result).toMatchObject({
-      id: 1,
-      uuid: "aaaaa",
-      email: "example@email.com",
-      display_name: "test",
-      avatar_url: "",
-      locale: "",
+      user: {
+        id: 1,
+        uuid: "aaaaa",
+        email: "example@email.com",
+        display_name: "test",
+        avatar_url: "",
+        locale: "",
+      },
     });
   });
 });

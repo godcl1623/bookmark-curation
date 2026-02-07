@@ -9,13 +9,15 @@ export const handlers = [
   /* AUTH */
   // get me
   http.get(`${BASE_URL}${SERVICE_ENDPOINTS.AUTH.ME.path}`, () => {
-    const response: HttpResponse<Me> = HttpResponse.json({
-      id: 1,
-      uuid: "aaaaa",
-      email: "example@email.com",
-      display_name: "test",
-      avatar_url: "",
-      locale: "",
+    const response: HttpResponse<{ user: Me }> = HttpResponse.json({
+      user: {
+        id: 1,
+        uuid: "aaaaa",
+        email: "example@email.com",
+        display_name: "test",
+        avatar_url: "",
+        locale: "",
+      },
     });
 
     return response;
