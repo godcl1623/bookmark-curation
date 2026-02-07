@@ -63,3 +63,5 @@ export const EXAMPLES: Examples = {
     _count: { bookmark_tags: 0 },
   },
 };
+
+export const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3002";

@@ -13,6 +13,8 @@ vi.mock("react-hot-toast", () => ({
 
 import toast from "react-hot-toast";
 
+import { BASE_URL } from "@/__tests__/__utils__";
+
 describe("# handleFavorite 테스트", () => {
   beforeAll(() => server.listen());
   afterEach(() => server.resetHandlers());
@@ -100,7 +102,7 @@ describe("# handleFavorite 테스트", () => {
     test("## 1-1. result.ok가 false", async () => {
       server.use(
         http.patch(
-          `${import.meta.env.VITE_API_URL ?? "http://localhost:3002"}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}/:id`,
+          `${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}/:id`,
           () => {
             return HttpResponse.json({ ok: false });
           }
@@ -137,12 +139,9 @@ const errorGenerator = (
   isNormalError: boolean = false
 ) => {
   server.use(
-    http.patch(
-      `${import.meta.env.VITE_API_URL ?? "http://localhost:3002"}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}/:id`,
-      () => {
-        if (isNormalError) throw new Error(message);
-        return HttpResponse.json({ message }, { status });
-      }
-    )
+    http.patch(`${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}/:id`, () => {
+      if (isNormalError) throw new Error(message);
+      return HttpResponse.json({ message }, { status });
+    })
   );
 };

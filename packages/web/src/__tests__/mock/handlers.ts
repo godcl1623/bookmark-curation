@@ -1,14 +1,14 @@
 import { type Me, SERVICE_ENDPOINTS } from "@linkvault/shared";
 import { http, HttpResponse } from "msw";
 
-import { EXAMPLES } from "../__utils__";
+import { BASE_URL, EXAMPLES } from "../__utils__";
 
-const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:3002";
+// TODO: handler 수준에서 validation 및 에러 처리 추가
 
 export const handlers = [
   /* AUTH */
   // get me
-  http.get(`${baseURL}${SERVICE_ENDPOINTS.AUTH.ME.path}`, () => {
+  http.get(`${BASE_URL}${SERVICE_ENDPOINTS.AUTH.ME.path}`, () => {
     const response: HttpResponse<Me> = HttpResponse.json({
       id: 1,
       uuid: "aaaaa",
@@ -21,13 +21,13 @@ export const handlers = [
     return response;
   }),
   // logout user
-  http.post(`${baseURL}${SERVICE_ENDPOINTS.AUTH.LOGOUT.CURRENT.path}`, () => {
+  http.post(`${BASE_URL}${SERVICE_ENDPOINTS.AUTH.LOGOUT.CURRENT.path}`, () => {
     return HttpResponse.json({
       message: "Logged out successfully",
     });
   }),
   // refresh token
-  http.post(`${baseURL}${SERVICE_ENDPOINTS.AUTH.REFRESH.path}`, () => {
+  http.post(`${BASE_URL}${SERVICE_ENDPOINTS.AUTH.REFRESH.path}`, () => {
     return HttpResponse.json({
       access_token: "token",
       uuid: "aaaaa",
@@ -36,30 +36,42 @@ export const handlers = [
 
   /* BOOKMARKS */
   // create new bookmark
-  http.post(`${baseURL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}`, () => {
-    return HttpResponse.json({ ok: true, data: EXAMPLES.BOOKMARK });
-  }),
+  http.post(
+    `${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}`,
+    async ({ request }) => {
+      const body = await request.json();
+
+      if (!body) {
+        return HttpResponse.json(
+          { ok: false, error: "body is required" },
+          { status: 400 }
+        );
+      }
+
+      return HttpResponse.json({ ok: true, data: EXAMPLES.BOOKMARK });
+    }
+  ),
   // delete bookmark
-  http.delete(`${baseURL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}/:id`, () => {
+  http.delete(`${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}/:id`, () => {
     return HttpResponse.json({ ok: true, data: EXAMPLES.BOOKMARK });
   }),
   // get bookmarks list
   // TODO: queryParams 처리 추가 필요
-  http.get(`${baseURL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}`, () => {
+  http.get(`${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}`, () => {
     return HttpResponse.json({ ok: true, data: [EXAMPLES.BOOKMARK] });
   }),
   // patch bookmark
-  http.patch(`${baseURL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}/:id`, () => {
+  http.patch(`${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}/:id`, () => {
     return HttpResponse.json({ ok: true, data: EXAMPLES.BOOKMARK });
   }),
   // update bookmark
-  http.put(`${baseURL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}/:target`, () => {
+  http.put(`${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}/:target`, () => {
     return HttpResponse.json({ ok: true, data: EXAMPLES.BOOKMARK });
   }),
 
   /* DIRECTORIES */
   // get directory by path
-  http.get(`${baseURL}${SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path}`, () => {
+  http.get(`${BASE_URL}${SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path}`, () => {
     return HttpResponse.json({
       ok: true,
       data: {
@@ -72,7 +84,7 @@ export const handlers = [
     });
   }),
   // get directory by contents
-  http.get(`${baseURL}${SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path}`, () => {
+  http.get(`${BASE_URL}${SERVICE_ENDPOINTS.DIRECTORY.CONTENTS.path}`, () => {
     return HttpResponse.json({
       ok: true,
       data: {
@@ -85,28 +97,28 @@ export const handlers = [
 
   /* FOLDERS */
   // create new folder
-  http.post(`${baseURL}${SERVICE_ENDPOINTS.FOLDERS.path}`, () => {
+  http.post(`${BASE_URL}${SERVICE_ENDPOINTS.FOLDERS.path}`, () => {
     return HttpResponse.json({
       ok: true,
       data: EXAMPLES.FOLDER,
     });
   }),
   // delete folder
-  http.delete(`${baseURL}${SERVICE_ENDPOINTS.FOLDERS.path}/:id`, () => {
+  http.delete(`${BASE_URL}${SERVICE_ENDPOINTS.FOLDERS.path}/:id`, () => {
     return HttpResponse.json({
       ok: true,
       data: EXAMPLES.FOLDER,
     });
   }),
   // get folder list
-  http.get(`${baseURL}${SERVICE_ENDPOINTS.FOLDERS.path}`, () => {
+  http.get(`${BASE_URL}${SERVICE_ENDPOINTS.FOLDERS.path}`, () => {
     return HttpResponse.json({
       ok: true,
       data: [EXAMPLES.FOLDER],
     });
   }),
   // update folder
-  http.put(`${baseURL}${SERVICE_ENDPOINTS.FOLDERS.path}/:target`, () => {
+  http.put(`${BASE_URL}${SERVICE_ENDPOINTS.FOLDERS.path}/:target`, () => {
     return HttpResponse.json({
       ok: true,
       data: EXAMPLES.FOLDER,
@@ -115,28 +127,28 @@ export const handlers = [
 
   /* TAGS */
   // create new tag
-  http.post(`${baseURL}${SERVICE_ENDPOINTS.TAGS.path}`, () => {
+  http.post(`${BASE_URL}${SERVICE_ENDPOINTS.TAGS.path}`, () => {
     return HttpResponse.json({
       ok: true,
       data: EXAMPLES.TAG,
     });
   }),
   // delete tag
-  http.delete(`${baseURL}${SERVICE_ENDPOINTS.TAGS.path}/:id`, () => {
+  http.delete(`${BASE_URL}${SERVICE_ENDPOINTS.TAGS.path}/:id`, () => {
     return HttpResponse.json({
       ok: true,
       data: EXAMPLES.TAG,
     });
   }),
   // get tags list
-  http.get(`${baseURL}${SERVICE_ENDPOINTS.TAGS.path}`, () => {
+  http.get(`${BASE_URL}${SERVICE_ENDPOINTS.TAGS.path}`, () => {
     return HttpResponse.json({
       ok: true,
       data: [EXAMPLES.TAG],
     });
   }),
   // update tag
-  http.put(`${baseURL}${SERVICE_ENDPOINTS.TAGS.path}/:target`, () => {
+  http.put(`${BASE_URL}${SERVICE_ENDPOINTS.TAGS.path}/:target`, () => {
     return HttpResponse.json({
       ok: true,
       data: EXAMPLES.TAG,
