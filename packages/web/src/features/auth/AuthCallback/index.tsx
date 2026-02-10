@@ -25,6 +25,7 @@ const useHandleCallback = () => {
   const setIsLoggedOut = useAuthStore((state) => state.setIsLoggedOut);
   const { hash, search } = useLocation();
   const navigate = useNavigate();
+  // FIXME: isProcessing 관련 플로우 재점검 및 필요시 삭제
   const [isProcessing, setIsProcessing] = useState(false);
 
   const redirectToRoot = useCallback(
