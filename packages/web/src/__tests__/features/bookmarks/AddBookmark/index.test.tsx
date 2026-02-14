@@ -1,21 +1,44 @@
+import { render, screen } from "@/__tests__/mock/utils";
+import AddBookmark from "@/features/bookmarks/AddBookmark";
+import { BOOKMARK_FORM_ELEMENTS } from "@/shared/consts";
+import useGlobalStore from "@/stores/global";
+
 describe("# AddBookmark 테스트", () => {
+  const resolve = vi.fn();
+  const reject = vi.fn();
+
+  beforeEach(() => {
+    useGlobalStore.getState().__resetStore();
+  });
+
   describe("## 1. 기본 렌더링 테스트", () => {
     test("### 1-1. 전체 폼 요소 렌더링 테스트", async () => {
       /* arrange */
+      render(<AddBookmark resolve={resolve} reject={reject} />);
 
       /* act */
+      const urlInput = screen.getByRole("textbox", {
+        name: BOOKMARK_FORM_ELEMENTS.URL,
+      });
+      const titleInput = screen.getByRole("textbox", {
+        name: BOOKMARK_FORM_ELEMENTS.TITLE,
+      });
+      const noteTextarea = screen.getByRole("textbox", {
+        name: BOOKMARK_FORM_ELEMENTS.NOTE + " (Optional)",
+      });
+      const tagInput = screen.getByRole("textbox", {
+        name: "Tags",
+      });
+      const folderButton = screen.getByRole("button", {
+        name: "없음",
+      });
 
       /* assert */
-      expect(result).toBe(expected);
-    });
-
-    test("### 1-2. 모바일/데스크톱 레이아웃 차이 테스트", async () => {
-      /* arrange */
-
-      /* act */
-
-      /* assert */
-      expect(result).toBe(expected);
+      expect(urlInput).toBeInTheDocument();
+      expect(titleInput).toBeInTheDocument();
+      expect(noteTextarea).toBeInTheDocument();
+      expect(tagInput).toBeInTheDocument();
+      expect(folderButton).toBeInTheDocument();
     });
   });
 
