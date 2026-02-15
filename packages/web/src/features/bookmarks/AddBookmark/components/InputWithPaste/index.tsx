@@ -43,6 +43,7 @@ export default function InputWithPaste({
         size={"custom"}
         variant={"ghost"}
         className={"p-1 md:p-1.5"}
+        aria-label={"paste_url"}
         onClick={pasteValue}
       >
         <ClipboardPlus className={COMMON_STYLES.ornament} />
