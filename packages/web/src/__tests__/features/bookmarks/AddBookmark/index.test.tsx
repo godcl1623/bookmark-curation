@@ -6,11 +6,13 @@ import { BOOKMARK_FORM_ELEMENTS } from "@/shared/consts";
 import useGlobalStore from "@/stores/global";
 
 const mockSuccessToast = vi.hoisted(() => vi.fn());
+const mockErrorToast = vi.hoisted(() => vi.fn());
 
 vi.mock("@/shared/lib/mobile/clipboard");
 vi.mock("react-hot-toast", () => ({
   default: {
     success: mockSuccessToast,
+    error: mockErrorToast,
   },
 }));
 
@@ -57,6 +59,8 @@ describe("# AddBookmark 테스트", () => {
       const folderButton = screen.getByRole("button", {
         name: "없음",
       });
+      const cancelButton = screen.getByRole("button", { name: "Cancel" });
+      const saveButton = screen.getByRole("button", { name: "Save Bookmark" });
 
       /* assert */
       expect(urlInput).toBeInTheDocument();
@@ -64,6 +68,8 @@ describe("# AddBookmark 테스트", () => {
       expect(noteTextarea).toBeInTheDocument();
       expect(tagInput).toBeInTheDocument();
       expect(folderButton).toBeInTheDocument();
+      expect(cancelButton).toBeInTheDocument();
+      expect(saveButton).toBeInTheDocument();
     });
   });
 
@@ -349,79 +355,94 @@ describe("# AddBookmark 테스트", () => {
     });
   });
 
-  describe("## 3. 폼 검증 테스트", () => {
-    test("### 3-1. 유효한 데이터로 폼 제출", async () => {
-      /* arrange */
+  describe("## 3. 컴포넌트 수준에서의 폼 입력 테스트", () => {
+    /* 폼 제출 로직은 useHandleSubmit.test.ts 파일에서 수행 */
 
-      /* act */
-
-      /* assert */
-      expect(result).toBe(expected);
+    beforeEach(() => {
+      useAuthStore.getState().setAccessToken("access-token");
+      const modal = document.createElement("div");
+      modal.setAttribute("id", "modal");
+      document.body.appendChild(modal);
     });
 
-    test("### 3-2. URL 누락시 에러 표시", async () => {
-      /* arrange */
-
-      /* act */
-
-      /* assert */
-      expect(result).toBe(expected);
+    afterEach(() => {
+      useAuthStore.getState().clearAuth();
+      const modal = document.getElementById("modal");
+      if (modal?.parentNode) {
+        modal?.parentNode.removeChild(modal);
+      }
+      server.resetHandlers();
     });
 
-    test("### 3-3. 제목 길이 초과", async () => {
+    test("### 3-1. 유효한 데이터 제출 → resolve 호출 + toast 메세지 표시", async () => {
       /* arrange */
+      const user = userEvent.setup();
+      render(<AddBookmark resolve={resolve} reject={reject} />);
+      await act(async () => {});
 
       /* act */
+      const urlInput = screen.getByRole("textbox", {
+        name: BOOKMARK_FORM_ELEMENTS.URL,
+      });
+      const titleInput = screen.getByRole("textbox", {
+        name: BOOKMARK_FORM_ELEMENTS.TITLE,
+      });
+      const noteTextarea = screen.getByRole("textbox", {
+        name: BOOKMARK_FORM_ELEMENTS.NOTE + " (Optional)",
+      });
+      const saveButton = screen.getByRole("button", { name: "Save Bookmark" });
+
+      await waitFor(async () => {
+        await user.clear(urlInput);
+        await user.clear(titleInput);
+        await user.clear(noteTextarea);
+      });
+
+      await waitFor(async () => {
+        await user.type(urlInput, EXAMPLE.URL);
+        await user.type(titleInput, EXAMPLE.TITLE);
+        await user.type(noteTextarea, EXAMPLE.NOTE);
+      });
+
+      await user.click(saveButton);
 
       /* assert */
-      expect(result).toBe(expected);
+      await waitFor(() => {
+        expect(resolve).toBeCalled();
+        expect(mockSuccessToast).toBeCalledWith("북마크가 추가되었습니다.");
+      });
     });
 
-    test("### 3-4. 노트 길이 초과", async () => {
+    test("### 3-2. API 실패 → toast 메세지 표시", async () => {
       /* arrange */
+      server.use(
+        http.post(`${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}`, () => {
+          return HttpResponse.json(
+            { ok: false, message: "API Error" },
+            { status: 500 }
+          );
+        })
+      );
+      const user = userEvent.setup();
+      render(<AddBookmark resolve={resolve} reject={reject} />);
+      await act(async () => {});
 
       /* act */
+      const urlInput = screen.getByRole("textbox", {
+        name: BOOKMARK_FORM_ELEMENTS.URL,
+      });
+      const saveButton = screen.getByRole("button", { name: "Save Bookmark" });
+      await user.clear(urlInput);
+      await user.type(urlInput, EXAMPLE.URL);
+      await user.click(saveButton);
 
       /* assert */
-      expect(result).toBe(expected);
-    });
-  });
-
-  describe("## 4. API 통합 테스트", () => {
-    test("### 4-1. 북마크 생성 성공", async () => {
-      /* arrange */
-
-      /* act */
-
-      /* assert */
-      expect(result).toBe(expected);
-    });
-
-    test("### 4-2. API 실패시 에러 처리", async () => {
-      /* arrange */
-
-      /* act */
-
-      /* assert */
-      expect(result).toBe(expected);
-    });
-
-    test("### 4-3. 성공/실패 후 모달 닫힘", async () => {
-      /* arrange */
-
-      /* act */
-
-      /* assert */
-      expect(result).toBe(expected);
-    });
-
-    test("### 4-4. 데이터 refetch 호출 확인", async () => {
-      /* arrange */
-
-      /* act */
-
-      /* assert */
-      expect(result).toBe(expected);
+      await waitFor(() => {
+        expect(resolve).toBeCalled();
+        expect(mockErrorToast).toBeCalledWith(
+          "북마크 추가에 실패했습니다.(500)"
+        );
+      });
     });
   });
 });
