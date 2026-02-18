@@ -40,6 +40,7 @@ export default function BasicDetailView({
             size={"icon-sm"}
             variant={"ghost"}
             onClick={handleFavorite(data_id, isFavorite, handleClick)}
+            aria-label={"favorite"}
           >
             <Star
               className={cn(
@@ -51,7 +52,7 @@ export default function BasicDetailView({
         </div>
       </header>
       <div className={"flex-col-center-center gap-2"}>
-        <p className={"flex-center w-full gap-2"}>
+        <p className={"flex-center w-full gap-2"} aria-label={"domain"}>
           <Link className={"size-4"} />
           <span className={"mb-1"}>{domain}</span>
         </p>
@@ -68,7 +69,9 @@ export default function BasicDetailView({
       </div>
       <div>
         <h3 className={"text-base"}>Description</h3>
-        <p className={"text-sm"}>{description}</p>
+        <p className={"text-sm"} aria-label={"description"}>
+          {description}
+        </p>
       </div>
       <div>
         <h3
@@ -78,7 +81,7 @@ export default function BasicDetailView({
         >
           Tags
         </h3>
-        <ul className={"flex-center gap-2"}>
+        <ul className={"flex-center gap-2"} aria-label={"tags"}>
           {tags.map((tag) => (
             <li key={`detail_tag_${tag.id}`}>
               <TagItem tag={tag.name} />

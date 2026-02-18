@@ -218,6 +218,10 @@ function DateInfo({ created_at, updated_at }: DateInfoProps) {
     ];
   }, [created_at, updated_at]);
 
+  const formatLabels = (label: string) => {
+    return label.split(":")[0].toLowerCase();
+  };
+
   return (
     <div
       className={
@@ -227,7 +231,7 @@ function DateInfo({ created_at, updated_at }: DateInfoProps) {
       {dataSet.map(({ label, icon, value }) => (
         <div className={"flex-center gap-2"} key={label}>
           <div className={"rounded-lg bg-neutral-100 p-1 md:p-2"}>{icon}</div>
-          <div>
+          <div aria-label={`date-${formatLabels(label)}`}>
             <h3 className={"text-xs font-semibold"}>{label}</h3>
             <p className={"text-sm font-bold text-black md:text-lg"}>
               {value ? value.split("T")[0] : "-"}
