@@ -163,6 +163,10 @@ describe("description", () => {
       });
     });
 
+    afterAll(() => {
+      useEditMock.mockReturnValue([false, vi.fn()]);
+    });
+
     test("## 2-1. 제목 입력", async () => {
       /* arrange */
       const user = userEvent.setup();
@@ -478,6 +482,7 @@ describe("description", () => {
 
   test("# 3. 북마크 삭제 테스트", async () => {
     /* arrange */
+    const user = userEvent.setup();
     render(
       <BookmarkDetail
         reject={mockReject}
@@ -488,8 +493,14 @@ describe("description", () => {
     );
 
     /* act */
+    const deleteButton = screen.getByRole("button", { name: "Delete" });
+    await user.click(deleteButton);
 
     /* assert */
-    expect(result).toBe(expected);
+    expect(successToastMock).toHaveBeenCalledWith(
+      "북마크를 성공적으로 삭제했습니다."
+    );
+    expect(mockRefetch).toHaveBeenCalled();
+    expect(mockResolve).toHaveBeenCalled();
   });
 });
