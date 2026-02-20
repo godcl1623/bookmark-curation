@@ -231,10 +231,7 @@ export const handlers = [
   // get tags list
   http.get(
     `${BASE_URL}${SERVICE_ENDPOINTS.TAGS.path}`,
-    errorHandleWrapper(({ request }) => {
-      const url = new URL(request.url);
-      const search = url.searchParams.get("search");
-
+    errorHandleWrapper(() => {
       return HttpResponse.json({
         ok: true,
         data: [EXAMPLES.TAG],
