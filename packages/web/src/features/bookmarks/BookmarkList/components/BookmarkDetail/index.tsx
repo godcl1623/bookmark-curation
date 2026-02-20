@@ -1,6 +1,7 @@
 import type { Bookmark } from "@linkvault/shared";
 import { type AxiosResponse, isAxiosError } from "axios";
 import { Calendar, CalendarCog, Edit, Share2, Trash2 } from "lucide-react";
+import { useMemo } from "react";
 import toast from "react-hot-toast";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
@@ -19,7 +20,6 @@ import { cn } from "@/shared/lib/utils";
 import deleteBookmark from "@/shared/services/bookmarks/delete-bookmark";
 import updateBookmark from "@/shared/services/bookmarks/update-bookmark";
 import type { BasicComponentProps } from "@/shared/types";
-import { useMemo } from "react";
 
 export default function BookmarkDetail({
   reject,
@@ -218,6 +218,10 @@ function DateInfo({ created_at, updated_at }: DateInfoProps) {
     ];
   }, [created_at, updated_at]);
 
+  const formatLabels = (label: string) => {
+    return label.split(":")[0].toLowerCase();
+  };
+
   return (
     <div
       className={
@@ -227,7 +231,7 @@ function DateInfo({ created_at, updated_at }: DateInfoProps) {
       {dataSet.map(({ label, icon, value }) => (
         <div className={"flex-center gap-2"} key={label}>
           <div className={"rounded-lg bg-neutral-100 p-1 md:p-2"}>{icon}</div>
-          <div>
+          <div aria-label={`date-${formatLabels(label)}`}>
             <h3 className={"text-xs font-semibold"}>{label}</h3>
             <p className={"text-sm font-bold text-black md:text-lg"}>
               {value ? value.split("T")[0] : "-"}

@@ -10,6 +10,8 @@ const handleFavorite =
       if (result.ok) {
         toast.success(prev ? MESSAGES.SUCCESS.UNSET : MESSAGES.SUCCESS.SET);
         successCallback?.();
+      } else {
+        throw new Error(MESSAGES.ERROR);
       }
     } catch (error) {
       if (isAxiosError(error)) {

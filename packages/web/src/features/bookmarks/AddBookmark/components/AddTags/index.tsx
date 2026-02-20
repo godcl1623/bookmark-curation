@@ -54,7 +54,10 @@ export default function AddTags({ input, initialList = [] }: AddTagsProps) {
             })}
         </LabeledElement>
       </div>
-      <ul className={"flex w-full flex-wrap gap-2"}>
+      <ul
+        className={"flex w-full flex-wrap gap-2"}
+        aria-label={"added_tags_list"}
+      >
         {tags.map((tag) => (
           <li key={`tag-added-${tag.id}`} data-id={tag.id}>
             <TagItem
