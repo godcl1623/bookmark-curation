@@ -2,6 +2,19 @@
 
 디바이스 환경에 구애받지 않고 북마크를 저장, 관리하는 서비스입니다.
 
+## 목차
+
+- [기술 스택](#기술-스택)
+- [프로젝트 구조](#프로젝트-구조)
+- [개발환경 세팅](#개발환경-세팅)
+- [유용한 명령어](#유용한-명령어)
+- [테스트](#테스트)
+- [데이터베이스 스키마](#데이터베이스-스키마)
+- [트러블슈팅](#트러블슈팅)
+- [라이선스](#라이선스)
+
+---
+
 ## 기술 스택
 
 - **Frontend**: React 19 + Vite + TailwindCSS
@@ -10,9 +23,13 @@
 - **ORM**: Prisma
 - **Monorepo**: npm workspaces
 
+[목차](#목차)
+
+---
+
 ## 프로젝트 구조
 
-```
+```plain text
 bookmark-curation/
 ├── packages/
 │   ├── api/          # Express.js 백엔드 서버
@@ -26,6 +43,10 @@ bookmark-curation/
 ├── docker-compose.yml
 └── package.json
 ```
+
+[목차](#목차)
+
+---
 
 ## 개발환경 세팅
 
@@ -168,6 +189,10 @@ npm run dev:web
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3002
 
+[목차](#목차)
+
+---
+
 ## 유용한 명령어
 
 ```bash
@@ -187,6 +212,58 @@ npx prisma migrate dev --name description_of_changes
 npx prisma migrate reset
 ```
 
+[목차](#목차)
+
+---
+
+## 테스트
+
+프론트엔드 테스트는 Vitest와 React Testing Library를 사용합니다.
+
+### 테스트 도구
+
+- **테스트 프레임워크**: Vitest 4.0
+- **테스트 라이브러리**: @testing-library/react, @testing-library/jest-dom
+- **API 모킹**: MSW (Mock Service Worker)
+- **테스트 환경**: jsdom
+
+### 테스트 실행
+
+```bash
+# 웹 패키지로 이동
+cd packages/web
+
+# 모든 테스트 실행
+npm test
+
+# 워치 모드 (파일 변경 감지)
+npm run test:watch
+
+# UI 모드 (브라우저에서 테스트 결과 확인)
+npm run test:ui
+
+# 커버리지 리포트 생성
+npm run test:coverage
+```
+
+### 테스트 파일 구조
+
+```plaintext
+packages/web/src/__tests__/
+├── features/           # 기능별 통합 테스트
+│   ├── auth/          # 인증 관련
+│   └── bookmarks/     # 북마크 관련
+├── shared/
+│   ├── components/    # 컴포넌트 테스트
+│   ├── hooks/         # 커스텀 훅 테스트
+│   ├── services/      # API 서비스 테스트
+│   └── utils/         # 유틸리티 함수 테스트
+```
+
+[목차](#목차)
+
+---
+
 ## 데이터베이스 스키마
 
 이 프로젝트는 `public` 스키마 대신 `app` 스키마를 사용합니다. 모든 테이블은 `app` 스키마 내에 생성됩니다.
@@ -200,6 +277,10 @@ npx prisma migrate reset
 - `bookmark_tags`: 북마크-태그 관계
 - `sessions`: 사용자 세션
 - `media`: 북마크 미디어 (이미지 등)
+
+[목차](#목차)
+
+---
 
 ## 트러블슈팅
 
@@ -273,6 +354,12 @@ WHERE schema_name = 'app';
 
 `schema_owner`가 `linkvault_app`이어야 합니다.
 
+[목차](#목차)
+
+---
+
 ## 라이선스
 
 Private
+
+[목차](#목차)
