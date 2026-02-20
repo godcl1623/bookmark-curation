@@ -79,6 +79,8 @@ export default function AddBookmark({
           <Button
             variant={"ghost"}
             className={"text-neutral-500"}
+            id={"close_add_bookmark_modal"}
+            aria-label={"모달 닫기"}
             onClick={reject}
           >
             <X className={isMobile ? "size-5" : "size-6"} />

@@ -59,16 +59,18 @@ export default function SearchList({
         left: 0,
         width: wrapperWidth,
       }}
+      aria-label={"searched_tags_list"}
     >
       {tags && tags.length > 0 ? (
         tags.map((tag) => (
-          <li key={`tag-${tag.id}`}>
+          <li key={`tag-${tag.id}`} aria-label={`searched_items_${tag.id}`}>
             <Button
               type={"button"}
               variant={"ghost"}
               size={"custom"}
               className={"w-full justify-start px-4 py-2"}
               onClick={() => handleClickTag(tag)}
+              aria-label={`tag_${tag.name}`}
             >
               {tag.name}
             </Button>

@@ -28,6 +28,7 @@ export default function Option({
         "absolute flex max-h-[208px] min-w-max flex-col gap-2 overflow-y-auto rounded-lg bg-neutral-50 p-2 text-neutral-500 shadow-xl"
       }
       style={{ top: buttonTop, left: buttonLeft, width: buttonWidth }}
+      aria-label={"modal-option"}
     >
       {values.map((value, index) => (
         <li key={`option_${index}_${value}`}>

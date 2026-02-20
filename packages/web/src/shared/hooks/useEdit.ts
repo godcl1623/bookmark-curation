@@ -5,7 +5,7 @@ const useEdit = () => {
 
   const changeEditMode = (value?: boolean) => () => {
     if (value != null) setIsEdit(value);
-    setIsEdit(!isEdit);
+    else setIsEdit((prev) => !prev);
   };
 
   return [isEdit, changeEditMode] as const;
