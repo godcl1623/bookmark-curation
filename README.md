@@ -29,17 +29,45 @@
 
 ## 프로젝트 구조
 
-```plain text
+```plaintext
 bookmark-curation/
 ├── packages/
-│   ├── api/          # Express.js 백엔드 서버
-│   ├── web/          # React 프론트엔드
-│   └── shared/       # 공유 코드
+│   ├── api/                    # Express.js 백엔드 서버
+│   │   └── src/
+│   │       ├── config/        # 설정 (Passport 등)
+│   │       ├── lib/           # 핵심 라이브러리 (JWT, 암호화, Prisma)
+│   │       ├── middleware/    # Express 미들웨어
+│   │       ├── routes/        # API 라우트
+│   │       ├── services/      # 비즈니스 로직
+│   │       └── types/         # 타입 정의
+│   │
+│   ├── web/                    # React 프론트엔드
+│   │   └── src/
+│   │       ├── app/           # 앱 진입점 및 전역 설정
+│   │       │   ├── Routes/    # 라우팅 설정
+│   │       │   └── providers/ # 전역 Provider (Modal, Query)
+│   │       ├── features/      # 도메인별 기능 모듈
+│   │       │   ├── auth/      # 인증
+│   │       │   ├── bookmarks/ # 북마크 관리
+│   │       │   └── search/    # 검색
+│   │       ├── shared/        # 공통 모듈
+│   │       │   ├── components/ # UI 컴포넌트 (Atomic Design)
+│   │       │   ├── hooks/     # 커스텀 훅
+│   │       │   ├── services/  # API 서비스 레이어
+│   │       │   ├── lib/       # 유틸리티 함수
+│   │       │   └── types/     # 타입 정의
+│   │       └── stores/        # Zustand 전역 상태
+│   │
+│   └── shared/                 # 공유 타입 및 유틸리티
+│       └── src/
+│           ├── services/      # API 엔드포인트 정의
+│           └── types/         # 프론트엔드-백엔드 공통 타입
+│
 ├── prisma/
-│   ├── schema.prisma # 데이터베이스 스키마
-│   ├── seed.ts       # 시드 데이터
-│   ├── init.sql      # PostgreSQL 초기화 스크립트
-│   └── migrations/   # 마이그레이션 히스토리
+│   ├── schema.prisma          # 데이터베이스 스키마
+│   ├── seed.ts                # 시드 데이터
+│   ├── init.sql               # PostgreSQL 초기화 스크립트
+│   └── migrations/            # 마이그레이션 히스토리
 ├── docker-compose.yml
 └── package.json
 ```
