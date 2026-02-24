@@ -11,9 +11,9 @@ import ControlledTextArea from "@/shared/components/molecules/ControlledTextArea
 import LabeledElement from "@/shared/components/molecules/LabeledElement";
 import { Card, CardHeader } from "@/shared/components/organisms/card";
 import { BOOKMARK_FORM_ELEMENTS, COMMON_STYLES } from "@/shared/consts";
-import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 import useFolderList from "@/shared/hooks/useFolderList";
 import useHandleSubmit from "@/shared/hooks/useHandleSubmit";
+import { useInvalidateDirectories } from "@/shared/hooks/useInvalidateDirectories";
 import { cn } from "@/shared/lib/utils";
 import createNewBookmark from "@/shared/services/bookmarks/create-new-bookmark";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
@@ -28,7 +28,7 @@ export default function AddBookmark({
 }: DefaultModalChildrenProps) {
   const isMobile = useGlobalStore((state) => state.isMobile);
   const { data: folders } = useFolderList();
-  const { refetch } = useDirectoriesData("/");
+  const invalidateDirectories = useInvalidateDirectories("directories");
   const { urlErrorMessage, titleErrorMessage, noteErrorMessage, handleSubmit } =
     useHandleSubmit({
       onSubmit: async (data) => {
@@ -59,7 +59,7 @@ export default function AddBookmark({
   );
 
   const successCallback = () => {
-    refetch();
+    invalidateDirectories();
     resolve();
   };
 
