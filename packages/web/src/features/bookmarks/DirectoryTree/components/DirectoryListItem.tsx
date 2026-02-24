@@ -22,7 +22,7 @@ export default function DirectoryListItem({
   const targetUrl = currentDir === "/" ? `/${title}` : `${currentDir}/${title}`;
   const isOpen = useGlobalStore((state) => state.openIds.has(data_id));
   const toggleOpen = useGlobalStore((state) => state.toggleOpen);
-  const loadedDirectory = useDirectoriesData(targetUrl, isOpen);
+  const loadedDirectory = useDirectoriesData(encodeURI(targetUrl), isOpen);
   const { openModal } = useModal();
 
   if (!loadedDirectory) return null;
