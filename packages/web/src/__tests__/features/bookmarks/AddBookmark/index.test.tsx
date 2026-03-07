@@ -17,11 +17,13 @@ vi.mock("react-hot-toast", () => ({
 }));
 
 import { SERVICE_ENDPOINTS } from "@linkvault/shared";
+import { QueryClient } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 
-import { BASE_URL } from "@/__tests__/__utils__";
+import { BASE_URL, EXAMPLES } from "@/__tests__/__utils__";
 import { server } from "@/__tests__/mock/node";
 import AddTags from "@/features/bookmarks/AddBookmark/components/AddTags";
+import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 import { readClipboard } from "@/shared/lib/mobile/clipboard";
 import useAuthStore from "@/stores/auth";
 
@@ -442,6 +444,74 @@ describe("# AddBookmark 테스트", () => {
         expect(mockErrorToast).toBeCalledWith(
           "북마크 추가에 실패했습니다.(500)"
         );
+      });
+    });
+
+    test("### 3-3. 유효한 데이터 제출 -> 새 데이터로 갱신", async () => {
+      /* arrange */
+      // 초기 데이터: 북마크 없음
+      server.use(
+        http.get(`${BASE_URL}/directories/by_path`, () =>
+          HttpResponse.json({
+            data: { folders: [], bookmarks: [], path: "/" },
+          })
+        )
+      );
+
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+      });
+      const user = userEvent.setup();
+
+      // useDirectoriesData를 구독하는 단순 표시 컴포넌트
+      function DataDisplay() {
+        const { data } = useDirectoriesData("/");
+        return (
+          <ul>
+            {data?.bookmarks?.map((bookmark) => (
+              <li key={bookmark.data_id}>{bookmark.title}</li>
+            ))}
+          </ul>
+        );
+      }
+
+      render(
+        <>
+          <DataDisplay />
+          <AddBookmark resolve={resolve} reject={reject} />
+        </>,
+        { queryClient }
+      );
+      await act(async () => {});
+
+      /* assert - 초기 렌더링: 북마크 없음 */
+      expect(
+        screen.queryByText(EXAMPLES.BOOKMARK.title)
+      ).not.toBeInTheDocument();
+
+      /* arrange - MSW를 새 데이터로 교체 (북마크 추가됐다고 가정) */
+      server.use(
+        http.get(`${BASE_URL}/directories/by_path`, () =>
+          HttpResponse.json({
+            data: { folders: [], bookmarks: [EXAMPLES.BOOKMARK], path: "/" },
+          })
+        )
+      );
+
+      /* act - 폼 제출 */
+      const urlInput = screen.getByRole("textbox", {
+        name: BOOKMARK_FORM_ELEMENTS.URL,
+      });
+      const titleInput = screen.getByRole("textbox", {
+        name: BOOKMARK_FORM_ELEMENTS.TITLE,
+      });
+      await user.type(urlInput, EXAMPLE.URL);
+      await user.type(titleInput, EXAMPLE.TITLE);
+      await user.click(screen.getByRole("button", { name: "Save Bookmark" }));
+
+      /* assert - 폼 제출 후: 새 북마크가 DataDisplay에 표시됨 */
+      await waitFor(() => {
+        expect(screen.getByText(EXAMPLES.BOOKMARK.title)).toBeInTheDocument();
       });
     });
   });
