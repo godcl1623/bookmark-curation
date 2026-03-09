@@ -6,29 +6,41 @@ import {
   type RenderOptions,
 } from "@testing-library/react";
 import { type ReactNode, useState } from "react";
+import { MemoryRouter } from "react-router";
 
 import ModalProvider from "@/app/providers/ModalProvider";
 
+interface TestOptions {
+  queryClient?: QueryClient;
+  initialPath?: string;
+}
+
 const renderWithProviders = (
   ui: ReactNode,
-  options: RenderOptions & { queryClient?: QueryClient } = {}
+  options: RenderOptions & TestOptions = {}
 ) =>
   render(ui, {
     wrapper: ({ children }) => (
-      <TestProvider queryClient={options.queryClient}>{children}</TestProvider>
+      <TestProvider
+        queryClient={options.queryClient}
+        initialPath={options.initialPath}
+      >
+        {children}
+      </TestProvider>
     ),
     ...options,
   });
 
 const renderHookWithProviders = <Result, Props>(
   callback: (initialProps: Props) => Result,
-  renderHookOptions: RenderHookOptions<Props> & {
-    queryClient?: QueryClient;
-  } = {}
+  renderHookOptions: RenderHookOptions<Props> & TestOptions = {}
 ) =>
   renderHook(callback, {
     wrapper: ({ children }) => (
-      <TestProvider queryClient={renderHookOptions.queryClient}>
+      <TestProvider
+        queryClient={renderHookOptions.queryClient}
+        initialPath={renderHookOptions.initialPath}
+      >
         {children}
       </TestProvider>
     ),
@@ -53,15 +65,17 @@ const createTestQueryClient = () => {
 function TestProvider({
   children,
   queryClient,
-}: {
+  initialPath = "/",
+}: TestOptions & {
   children: ReactNode;
-  queryClient?: QueryClient;
 }) {
   const [queryClientInstance] = useState(queryClient ?? createTestQueryClient);
 
   return (
     <QueryClientProvider client={queryClientInstance}>
-      <ModalProvider>{children}</ModalProvider>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <ModalProvider>{children}</ModalProvider>
+      </MemoryRouter>
     </QueryClientProvider>
   );
 }
