@@ -515,4 +515,56 @@ describe("# AddBookmark 테스트", () => {
       });
     });
   });
+
+  describe("## 4. 갱신 데이터 렌더링 테스트", () => {
+    describe("### 4-1. 현재 루트에 있는 상태", () => {
+      test("#### 4-1-1. 루트에 폴더 추가", async () => {
+        /* arrange */
+
+        /* act */
+
+        /* assert */
+        expect(result).toBe(expected);
+      });
+
+      test("#### 4-1-2. 서브 폴더에 새 폴더 추가(해당 폴더 트리 펼쳐진 상태)", async () => {
+        // 트리가 펼쳐지지 않은 경우 갱신될 대상이 없으므로 테스트 생략
+        /* arrange */
+
+        /* act */
+
+        /* assert */
+        expect(result).toBe(expected);
+      });
+    });
+
+    describe("### 4-2. 현재 서브 폴더에 있는 상태", () => {
+      test("#### 4-2-1. 루트에 폴더 추가", async () => {
+        /* arrange */
+
+        /* act */
+
+        /* assert */
+        expect(result).toBe(expected);
+      });
+
+      test("#### 4-2-2. 현재 서브 폴더에 새 폴더 추가", async () => {
+        /* arrange */
+
+        /* act */
+
+        /* assert */
+        expect(result).toBe(expected);
+      });
+
+      test("#### 4-2-3. 다른 서브 폴더에 새 폴더 추가(해당 폴더 트리 펼쳐진 상태)", async () => {
+        /* arrange */
+
+        /* act */
+
+        /* assert */
+        expect(result).toBe(expected);
+      });
+    });
+  });
 });
