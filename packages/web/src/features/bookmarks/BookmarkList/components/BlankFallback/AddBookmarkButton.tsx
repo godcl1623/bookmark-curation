@@ -18,6 +18,7 @@ export default function AddBookmarkButton() {
       variant={"blank"}
       className={"bg-blue-500 text-white hover:bg-blue-700"}
       onClick={handleClick}
+      aria-label={"add_bookmark"}
     >
       Add Bookmark
     </Button>

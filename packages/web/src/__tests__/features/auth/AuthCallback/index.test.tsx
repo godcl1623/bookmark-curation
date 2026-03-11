@@ -10,10 +10,15 @@ const mockLocationState = vi.hoisted(() => ({ hash: "", search: "" }));
 const mockReplaceState = vi.hoisted(() => vi.fn());
 
 // 2. react-router 모킹
-vi.mock("react-router", () => ({
-  useNavigate: () => mockNavigate,
-  useLocation: () => mockLocationState,
-}));
+vi.mock("react-router", async (importOriginal) => {
+  const actualModule = await importOriginal<typeof import("react-router")>();
+
+  return {
+    ...actualModule,
+    useNavigate: () => mockNavigate,
+    useLocation: () => mockLocationState,
+  };
+});
 
 // 3. react-hot-toast 모킹
 vi.mock("react-hot-toast", () => ({
