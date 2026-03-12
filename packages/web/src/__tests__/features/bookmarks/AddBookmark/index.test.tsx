@@ -646,11 +646,64 @@ describe("# AddBookmark 테스트", () => {
       test("#### 4-1-2. 서브 폴더에 새 북마크 추가(해당 폴더 트리 펼쳐진 상태)", async () => {
         // 트리가 펼쳐지지 않은 경우 갱신될 대상이 없으므로 테스트 생략
         /* arrange */
+        let bookmarkAdded = false;
+        server.use(
+          http.post(
+            `${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}`,
+            async () => {
+              bookmarkAdded = true;
+              return HttpResponse.json({ ok: true, data: EXAMPLES.BOOKMARK });
+            }
+          ),
+          http.get(
+            `${BASE_URL}${SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path}`,
+            () => {
+              return HttpResponse.json({
+                ok: true,
+                data: {
+                  folder: null,
+                  folders: [],
+                  bookmarks: bookmarkAdded ? [EXAMPLES.BOOKMARK] : [],
+                  path: "/",
+                  breadcrumbs: {},
+                },
+              });
+            }
+          )
+        );
+        const queryClient = new QueryClient({
+          defaultOptions: { queries: { retry: false } },
+        });
+        const spy = vi.spyOn(queryClient, "invalidateQueries");
         const user = userEvent.setup();
-        render(<AddBookmark resolve={resolve} reject={reject} />);
+        render(
+          <>
+            <ExplorerView />
+            <DirectoryTree />
+          </>,
+          { queryClient }
+        );
         await act(async () => {});
 
-        /* act */
+        /* 1. 디렉터리, 탐색기 빈 목록 렌더링 확인 */
+        await waitFor(() => {
+          // 1. 디렉터리 트리
+          const treeList = screen.getByRole("list", { name: "directory_list" });
+          expect(treeList).toBeInTheDocument();
+          expect(treeList.children).toHaveLength(0);
+
+          // 2. 탐색기
+          const fallbackHeader = screen.getByText("No bookmarks yet");
+          expect(fallbackHeader).toBeInTheDocument();
+        });
+
+        /* 2. 북마크 추가 모달 표시 및 저장 */
+        const addBookmarkButton = screen.getByRole("button", {
+          name: "add_bookmark",
+        });
+        expect(addBookmarkButton).toBeInTheDocument();
+        await user.click(addBookmarkButton);
+
         const urlInput = screen.getByRole("textbox", {
           name: BOOKMARK_FORM_ELEMENTS.URL,
         });
@@ -676,11 +729,22 @@ describe("# AddBookmark 테스트", () => {
           await user.type(noteTextarea, EXAMPLE.NOTE);
         });
 
+        /* 3. 저장 → POST 핸들러가 bookmarkAdded = true로 설정 → invalidateDirectories() → refetch 시 새 데이터 반환 */
         await user.click(saveButton);
 
-        /* assert */
-        // expect(result).toBe(expected);
-        await act(async () => {});
+        /* 4. UI 갱신 확인 */
+        await waitFor(() => {
+          // 1. 디렉터리 트리
+          const treeList = screen.getByRole("list", { name: "directory_list" });
+          expect(treeList).toBeInTheDocument();
+          expect(treeList.children).toHaveLength(1);
+
+          // 2. 탐색기
+          const fallbackHeader = screen.queryByText("No bookmarks yet");
+          expect(fallbackHeader).not.toBeInTheDocument();
+        });
+
+        spy.mockRestore();
       });
     });
 
