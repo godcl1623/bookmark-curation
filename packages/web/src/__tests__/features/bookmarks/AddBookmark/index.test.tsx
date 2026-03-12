@@ -652,19 +652,44 @@ describe("# AddBookmark 테스트", () => {
             `${BASE_URL}${SERVICE_ENDPOINTS.BOOKMARKS.ALL.path}`,
             async () => {
               bookmarkAdded = true;
-              return HttpResponse.json({ ok: true, data: EXAMPLES.BOOKMARK });
+              return HttpResponse.json({
+                ok: true,
+                data: {
+                  ...EXAMPLES.BOOKMARK,
+                  parent: "folder",
+                  parent_id: 1,
+                },
+              });
             }
           ),
           http.get(
             `${BASE_URL}${SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path}`,
-            () => {
+            ({ request }) => {
+              const url = new URL(request.url);
+              const path = url.searchParams.get("path") ?? "/";
+
+              if (path === "/" || path === "") {
+                // 루트: 북마크 추가 후 서브폴더가 나타남
+                return HttpResponse.json({
+                  ok: true,
+                  data: {
+                    folder: null,
+                    folders: bookmarkAdded ? [EXAMPLES.FOLDER] : [],
+                    bookmarks: [],
+                    path: "/",
+                    breadcrumbs: {},
+                  },
+                });
+              }
+
+              // 서브폴더 경로 (/folder 등): 북마크 추가 후 해당 북마크가 나타남
               return HttpResponse.json({
                 ok: true,
                 data: {
-                  folder: null,
+                  folder: EXAMPLES.FOLDER,
                   folders: [],
                   bookmarks: bookmarkAdded ? [EXAMPLES.BOOKMARK] : [],
-                  path: "/",
+                  path,
                   breadcrumbs: {},
                 },
               });
@@ -685,7 +710,7 @@ describe("# AddBookmark 테스트", () => {
         );
         await act(async () => {});
 
-        /* 1. 디렉터리, 탐색기 빈 목록 렌더링 확인 */
+        /* 1. 초기 상태: 루트에 폴더/북마크 없음 */
         await waitFor(() => {
           // 1. 디렉터리 트리
           const treeList = screen.getByRole("list", { name: "directory_list" });
@@ -697,7 +722,7 @@ describe("# AddBookmark 테스트", () => {
           expect(fallbackHeader).toBeInTheDocument();
         });
 
-        /* 2. 북마크 추가 모달 표시 및 저장 */
+        /* 2. 북마크 추가 모달 표시 및 입력 */
         const addBookmarkButton = screen.getByRole("button", {
           name: "add_bookmark",
         });
@@ -713,10 +738,14 @@ describe("# AddBookmark 테스트", () => {
         const noteTextarea = screen.getByRole("textbox", {
           name: BOOKMARK_FORM_ELEMENTS.NOTE + " (Optional)",
         });
+        const folderSelect = screen.getByRole("button", {
+          name: "없음",
+        });
         const saveButton = screen.getByRole("button", {
           name: "Save Bookmark",
         });
 
+        // input & textarea 입력
         await waitFor(async () => {
           await user.clear(urlInput);
           await user.clear(titleInput);
@@ -729,19 +758,51 @@ describe("# AddBookmark 테스트", () => {
           await user.type(noteTextarea, EXAMPLE.NOTE);
         });
 
+        // 폴더 선택
+        await user.click(folderSelect);
+        await waitFor(async () => {
+          const options = screen.getByRole("list", { name: "modal-option" });
+          expect(options).toBeInTheDocument();
+
+          const targetButton = screen.getByRole("button", { name: "folder" });
+          expect(targetButton).toBeInTheDocument();
+
+          await user.click(targetButton);
+          expect(options).not.toBeInTheDocument();
+        });
+
         /* 3. 저장 → POST 핸들러가 bookmarkAdded = true로 설정 → invalidateDirectories() → refetch 시 새 데이터 반환 */
         await user.click(saveButton);
 
         /* 4. UI 갱신 확인 */
         await waitFor(() => {
-          // 1. 디렉터리 트리
-          const treeList = screen.getByRole("list", { name: "directory_list" });
-          expect(treeList).toBeInTheDocument();
-          expect(treeList.children).toHaveLength(1);
-
-          // 2. 탐색기
+          // 탐색기: "No bookmarks yet" 사라지고 서브폴더 버튼 표시
           const fallbackHeader = screen.queryByText("No bookmarks yet");
           expect(fallbackHeader).not.toBeInTheDocument();
+
+          // 디렉터리 트리: 루트 목록에 서브폴더 1개 표시
+          const treeList = screen.getByRole("list", { name: "directory_list" });
+          expect(treeList.children).toHaveLength(1);
+        });
+
+        // ExplorerView에서 서브폴더 버튼이 표시됨
+        const folderButtons = screen.getAllByRole("button", { name: "folder" });
+        expect(folderButtons.length).toBeGreaterThanOrEqual(1);
+
+        /* 5. 디렉터리 트리에서 서브폴더 펼치기 → 내부 북마크 확인 */
+        const treeList = screen.getByRole("list", { name: "directory_list" });
+        const treeButtons = within(treeList).getAllByRole("button");
+        // 마지막 버튼이 chevron (펼치기/접기) 버튼
+        await user.click(treeButtons[treeButtons.length - 1]);
+
+        await waitFor(() => {
+          const allTreeLists = screen.getAllByRole("list", {
+            name: "directory_list",
+          });
+          // 루트 리스트 + 폴더 내부 중첩 리스트 = 2개
+          expect(allTreeLists).toHaveLength(2);
+          // 폴더 내부 목록에 새 북마크가 1개 표시됨
+          expect(allTreeLists[1].children).toHaveLength(1);
         });
 
         spy.mockRestore();
