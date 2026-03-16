@@ -6,21 +6,44 @@ import {
   type RenderOptions,
 } from "@testing-library/react";
 import { type ReactNode, useState } from "react";
+import { MemoryRouter } from "react-router";
 
 import ModalProvider from "@/app/providers/ModalProvider";
 
-const renderWithProviders = (ui: ReactNode, options: RenderOptions = {}) =>
+interface TestOptions {
+  queryClient?: QueryClient;
+  initialPath?: string;
+}
+
+const renderWithProviders = (
+  ui: ReactNode,
+  options: RenderOptions & TestOptions = {}
+) =>
   render(ui, {
-    wrapper: ({ children }) => <TestProvider>{children}</TestProvider>,
+    wrapper: ({ children }) => (
+      <TestProvider
+        queryClient={options.queryClient}
+        initialPath={options.initialPath}
+      >
+        {children}
+      </TestProvider>
+    ),
     ...options,
   });
 
 const renderHookWithProviders = <Result, Props>(
   callback: (initialProps: Props) => Result,
-  renderHookOptions: RenderHookOptions<Props> = {}
+  renderHookOptions: RenderHookOptions<Props> & TestOptions = {}
 ) =>
   renderHook(callback, {
-    wrapper: ({ children }) => <TestProvider>{children}</TestProvider>,
+    wrapper: ({ children }) => (
+      <TestProvider
+        queryClient={renderHookOptions.queryClient}
+        initialPath={renderHookOptions.initialPath}
+      >
+        {children}
+      </TestProvider>
+    ),
     ...renderHookOptions,
   });
 
@@ -32,7 +55,6 @@ const createTestQueryClient = () => {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 0,
         gcTime: 0,
         retry: 0,
       },
@@ -40,12 +62,20 @@ const createTestQueryClient = () => {
   });
 };
 
-function TestProvider({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(createTestQueryClient);
+function TestProvider({
+  children,
+  queryClient,
+  initialPath = "/",
+}: TestOptions & {
+  children: ReactNode;
+}) {
+  const [queryClientInstance] = useState(queryClient ?? createTestQueryClient);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ModalProvider>{children}</ModalProvider>
+    <QueryClientProvider client={queryClientInstance}>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <ModalProvider>{children}</ModalProvider>
+      </MemoryRouter>
     </QueryClientProvider>
   );
 }

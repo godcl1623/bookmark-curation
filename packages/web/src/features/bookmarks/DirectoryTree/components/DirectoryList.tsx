@@ -12,7 +12,7 @@ export default function DirectoryList({
   currentDir = "/",
 }: DirectoryListProps) {
   return (
-    <ul className={"flex flex-col gap-2"}>
+    <ul className={"flex flex-col gap-2"} aria-label={"directory_list"}>
       {directoryList?.map((folder) => {
         return (
           <li key={folder.data_id}>

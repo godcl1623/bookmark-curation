@@ -8,8 +8,8 @@ import AddonWrapper from "@/features/bookmarks/Header/components/common/DataAddF
 import { FOLDERS_FORM_ELEMENTS } from "@/features/bookmarks/Header/consts";
 import ControlledSelect from "@/shared/components/molecules/ControlledSelect";
 import { FOLDER_COLORS } from "@/shared/consts";
-import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 import useFolderList from "@/shared/hooks/useFolderList";
+import { useInvalidateDirectories } from "@/shared/hooks/useInvalidateDirectories";
 import createNewFolder from "@/shared/services/folders/create-new-folder";
 import { extractFoldersProperty, generateFolderOptions } from "@/shared/utils";
 
@@ -21,11 +21,11 @@ export default function AddFolder() {
     isRefetching,
     refetch: refetchFolders,
   } = useFolderList();
-  const { refetch: refetchDirectories } = useDirectoriesData("/");
+  const invalidateDirectories = useInvalidateDirectories("directories");
 
   const refetchData = () => {
     refetchFolders();
-    refetchDirectories();
+    invalidateDirectories();
   };
 
   return (
