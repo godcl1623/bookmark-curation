@@ -26,7 +26,7 @@ export default function TagItem({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-full bg-blue-100 text-blue-700",
+        "flex min-w-max items-center gap-2 rounded-full bg-blue-100 text-blue-700",
         SIZES[size]
       )}
     >
