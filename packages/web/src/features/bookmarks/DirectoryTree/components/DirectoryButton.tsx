@@ -11,6 +11,7 @@ interface DirectoryButtonProps {
   isOpen?: boolean;
   dataType?: DataType;
   url?: string;
+  hierarchy?: number;
 }
 
 export default function DirectoryButton({
@@ -20,6 +21,7 @@ export default function DirectoryButton({
   children,
   onClick,
   color,
+  hierarchy = 0,
 }: DirectoryButtonProps & ComponentProps<"button">) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -27,7 +29,6 @@ export default function DirectoryButton({
     () => (dataType === "bookmark" ? <File /> : <Folder />),
     [dataType]
   );
-  const hierarchy = url == null ? 0 : url.split("/").length - 1;
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     if (!isOpen && onClick) {

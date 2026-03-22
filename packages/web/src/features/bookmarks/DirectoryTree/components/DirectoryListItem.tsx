@@ -4,6 +4,7 @@ import { useModal } from "@/app/providers/ModalProvider/context";
 import BookmarkDetail from "@/features/bookmarks/BookmarkList/components/BookmarkDetail";
 import DirectoryButton from "@/features/bookmarks/DirectoryTree/components/DirectoryButton";
 import DirectoryList from "@/features/bookmarks/DirectoryTree/components/DirectoryList";
+import Skeleton from "@/shared/components/molecules/Skeleton";
 import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
 import useGlobalStore from "@/stores/global";
 
@@ -29,6 +30,7 @@ export default function DirectoryListItem({
   const isLoading = loadedDirectory?.isLoading ?? false;
   const isError = loadedDirectory?.isError ?? false;
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
+  const hierarchy = targetUrl == null ? 0 : targetUrl.split("/").length - 1;
 
   const handleClick = () => {
     if (type === "folder") {
@@ -51,6 +53,7 @@ export default function DirectoryListItem({
         onClick={handleClick}
         url={targetUrl}
         color={color}
+        hierarchy={hierarchy}
       >
         {title}
       </DirectoryButton>
@@ -58,6 +61,13 @@ export default function DirectoryListItem({
         <DirectoryList
           directoryList={[...(folders ?? []), ...(bookmarks ?? [])]}
           currentDir={targetUrl}
+        />
+      )}
+      {isLoading && (
+        <Skeleton
+          height={40}
+          indent={hierarchy + 1}
+          className={"mt-0.5 mb-2"}
         />
       )}
     </>
