@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+
+import { autoA11yTest } from "@/shared/lib/utils";
 import useGlobalStore from "@/stores/global.ts";
 
 import BookmarkList from "./features/bookmarks/BookmarkList";
@@ -7,6 +10,8 @@ import ClientViewLayout from "./shared/components/layouts/client";
 
 function App() {
   const isMobile = useGlobalStore((state) => state.isMobile);
+
+  useA11yTest();
 
   return (
     <>
@@ -20,3 +25,9 @@ function App() {
 }
 
 export default App;
+
+const useA11yTest = () => {
+  useEffect(() => {
+    void autoA11yTest();
+  }, []);
+};
