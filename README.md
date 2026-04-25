@@ -195,8 +195,8 @@ cp packages/api/.env.example packages/api/.env
 # Prisma 클라이언트 생성
 npx prisma generate
 
-# 마이그레이션 실행 (데이터베이스 스키마 생성)
-npx prisma migrate deploy
+# 마이그레이션 이력 등록 (init.sql로 스키마가 이미 생성된 경우)
+bash scripts/setup-dev.sh
 
 # 시드 데이터 추가 (선택사항)
 npm run prisma:seed --workspace=@linkvault/api
@@ -350,7 +350,7 @@ docker compose down
 docker compose down -v
 docker compose up -d
 npx prisma generate
-npx prisma migrate deploy
+bash scripts/setup-dev.sh
 npm run prisma:seed --workspace=@linkvault/api
 ```
 
