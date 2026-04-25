@@ -13,9 +13,9 @@ services:
       - "${DATABASE_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./prisma/init.sql:/docker-entrypoint-initdb.d/init.sql:Z
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U linkvault_app -d linkvault"]
+      test: [ "CMD-SHELL", "pg_isready -U linkvault_app -d linkvault" ]
       interval: 10s
       timeout: 5s
       retries: 5
