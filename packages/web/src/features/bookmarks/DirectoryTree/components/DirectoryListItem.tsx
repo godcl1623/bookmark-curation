@@ -21,8 +21,11 @@ export default function DirectoryListItem({
   ...props
 }: DirectoryListItemProps) {
   const targetUrl = currentDir === "/" ? `/${title}` : `${currentDir}/${title}`;
+  // TODO: 삭제 대상
   const isOpen = useGlobalStore((state) => state.openIds.has(data_id));
   const toggleOpen = useGlobalStore((state) => state.toggleOpen);
+  // TODO: 바뀔 로직
+  const _toggleOpen = useGlobalStore((state) => state._toggleOpen);
   const loadedDirectory = useDirectoriesData(encodeURI(targetUrl), isOpen);
   const { openModal } = useModal();
 
@@ -35,6 +38,7 @@ export default function DirectoryListItem({
   const handleClick = () => {
     if (type === "folder") {
       toggleOpen(data_id);
+      _toggleOpen(data_id, targetUrl);
     } else {
       openModal(BookmarkDetail, {
         data_id,
