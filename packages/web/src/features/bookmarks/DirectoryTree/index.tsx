@@ -1,5 +1,8 @@
+import { useEffect } from "react";
+
 import Button from "@/shared/components/atoms/button";
 import Skeleton from "@/shared/components/molecules/Skeleton";
+import { useDirectoriesData as useDirectoriesData2 } from "@/shared/hooks/_useDirectoriesData";
 import useAuth from "@/shared/hooks/useAuth.ts";
 import type { BasicComponentProps } from "@/shared/types";
 
@@ -7,8 +10,7 @@ import useDirectoriesData from "../../../shared/hooks/useDirectoriesData";
 import DirectoryList from "./components/DirectoryList";
 
 export default function DirectoryTree() {
-  const loadedDirectory = useDirectoriesData("/");
-  const { folders, bookmarks } = loadedDirectory?.data ?? {};
+  const { loadedDirectory, folders, bookmarks } = useFlatDirectory();
   const { user } = useAuth();
 
   return (
@@ -59,3 +61,17 @@ function DefaultFilterButton({ children }: BasicComponentProps) {
     </Button>
   );
 }
+
+const useFlatDirectory = () => {
+  // TODO: useDirectoriesData2로 대체
+  const loadedDirectory = useDirectoriesData("/");
+  const foo = useDirectoriesData2();
+  const { folders, bookmarks } = loadedDirectory?.data ?? {};
+
+  // TODO: 임시 effect 삭제
+  useEffect(() => {
+    console.log(foo);
+  }, [foo]);
+
+  return { loadedDirectory, folders, bookmarks };
+};
