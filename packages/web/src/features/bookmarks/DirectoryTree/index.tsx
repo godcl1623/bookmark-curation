@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import type { Bookmark, Folder } from "@linkvault/shared";
+import { useEffect, useMemo } from "react";
 
 import Button from "@/shared/components/atoms/button";
 import Skeleton from "@/shared/components/molecules/Skeleton";
@@ -65,13 +66,47 @@ function DefaultFilterButton({ children }: BasicComponentProps) {
 const useFlatDirectory = () => {
   // TODO: useDirectoriesData2로 대체
   const loadedDirectory = useDirectoriesData("/");
-  const foo = useDirectoriesData2();
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
+  const { data: directories } = useDirectoriesData2();
+  const flattendDirectory = useMemo(() => {
+    return directories
+      .filter((directory) => directory != null)
+      .map((directory) => {
+        const level = directory.breadcrumbs.length;
+        if (level === 0) {
+          return directory;
+        } else {
+          return {
+            ...directory,
+            bookmarks: directory.bookmarks.map((bookmark) => ({
+              ...bookmark,
+              position: level,
+            })),
+            folders: directory.folders.map((folder) => ({
+              ...folder,
+              position: level,
+            })),
+          };
+        }
+      })
+      .reduce(
+        (results, currentDirectory) => {
+          const result = [
+            ...results,
+            ...currentDirectory.folders,
+            ...currentDirectory.bookmarks,
+          ];
+          console.log("result: ", result);
+          return result;
+        },
+        [] as (Folder | Bookmark)[]
+      );
+  }, [directories]);
 
   // TODO: 임시 effect 삭제
   useEffect(() => {
-    console.log(foo);
-  }, [foo]);
+    console.log(flattendDirectory);
+  }, [flattendDirectory]);
 
   return { loadedDirectory, folders, bookmarks };
 };
