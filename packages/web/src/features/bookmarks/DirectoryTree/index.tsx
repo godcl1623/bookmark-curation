@@ -1,5 +1,5 @@
-import type { Bookmark, Folder } from "@linkvault/shared/types";
-import { useEffect, useMemo } from "react";
+import type { Bookmark, Directory, Folder } from "@linkvault/shared";
+import { useMemo } from "react";
 
 import Button from "@/shared/components/atoms/button";
 import Skeleton from "@/shared/components/molecules/Skeleton";
@@ -69,53 +69,39 @@ const useFlatDirectory = () => {
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
   const { data: directories } = useDirectoriesData2();
   const flattendDirectory = useMemo(() => {
-    return directories
-      .filter((directory) => directory != null)
-      .map((directory) => {
-        const level = directory.breadcrumbs.length;
-        return {
-          ...directory,
-          bookmarks: directory.bookmarks.map((bookmark) => ({
-            ...bookmark,
-            position: level,
-          })),
-          folders: directory.folders.map((folder) => ({
-            ...folder,
-            position: level,
-          })),
-        };
-      })
-      .reduce(
-        (results, currentDirectory, currentIndex) => {
-          const upperFolders = results.filter(
-            (result) => result.type === "folder"
-          );
-          const upperBookmarks = results.filter(
-            (result) => result.type === "bookmark"
-          );
-          const folderChunks = upperFolders
-            .map((folder) => {
-              const subFolders = currentDirectory.folders.filter(
-                (subFolder) => subFolder.parent_id === folder.id
-              );
-              const subBookmarks = currentDirectory.bookmarks.filter(
-                (subBookmark) => subBookmark.folder_id === folder.id
-              );
-              return [folder, ...subFolders, ...subBookmarks];
-            })
-            .flat();
-          return currentIndex === 0
-            ? [...currentDirectory.folders, ...currentDirectory.bookmarks]
-            : [...folderChunks, ...upperBookmarks];
-        },
-        [] as (Folder | Bookmark)[]
-      );
+    const validDirectories = directories.filter(
+      (directory) => directory != null
+    );
+    if (validDirectories.length === 0) return [];
+
+    const rootDir = validDirectories.find(
+      (directory) => directory.breadcrumbs.length === 0
+    );
+    if (rootDir == null) return [];
+
+    const directoryByFolderId = new Map(
+      validDirectories
+        .filter((directory) => directory.folder != null)
+        .map((directory) => [directory.folder.id, directory])
+    );
+
+    const result: (Folder | Bookmark)[] = [];
+
+    const traverse = (directory: Directory) => {
+      const level = directory.breadcrumbs.length;
+      for (const folder of directory.folders) {
+        result.push({ ...folder, position: level });
+        const childDir = directoryByFolderId.get(folder.id);
+        if (childDir != null) traverse(childDir);
+      }
+      for (const bookmark of directory.bookmarks) {
+        result.push({ ...bookmark, position: level });
+      }
+    };
+
+    traverse(rootDir);
+    return result;
   }, [directories]);
 
-  // TODO: 임시 effect 삭제
-  useEffect(() => {
-    console.log(flattendDirectory);
-  }, [flattendDirectory]);
-
-  return { loadedDirectory, folders, bookmarks };
+  return { loadedDirectory, flattendDirectory, folders, bookmarks };
 };
