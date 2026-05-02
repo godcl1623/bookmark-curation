@@ -1,51 +1,64 @@
-import type { Folder as FolderType } from "@linkvault/shared";
+import type { Bookmark, Folder } from "@linkvault/shared";
+import { useMemo } from "react";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
+import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types.ts";
 import BookmarkDetail from "@/features/bookmarks/BookmarkList/components/BookmarkDetail";
 import DirectoryButton from "@/features/bookmarks/DirectoryTree/components/DirectoryButton";
-import DirectoryList from "@/features/bookmarks/DirectoryTree/components/DirectoryList";
-import Skeleton from "@/shared/components/molecules/Skeleton";
-import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
+import Skeleton from "@/shared/components/molecules/Skeleton.tsx";
+import useDirectoriesData from "@/shared/hooks/useDirectoriesData.ts";
 import useGlobalStore from "@/stores/global";
 
-interface DirectoryListItemProps extends FolderType {
-  currentDir?: string;
-}
+type DirectoryListItemProps = (Bookmark | Folder) & {
+  isTotalLoading?: boolean;
+};
 
 export default function DirectoryListItem({
   type,
   data_id,
   title,
-  currentDir = "/",
+  isTotalLoading = false,
   color,
   ...props
 }: DirectoryListItemProps) {
-  const targetUrl = currentDir === "/" ? `/${title}` : `${currentDir}/${title}`;
-  // TODO: 삭제 대상
-  const isOpen = useGlobalStore((state) => state.openIds.has(data_id));
-  const toggleOpen = useGlobalStore((state) => state.toggleOpen);
-  // TODO: 바뀔 로직
-  const _toggleOpen = useGlobalStore((state) => state._toggleOpen);
+  const parentId = type === "folder" ? props.parent_id : props.folder_id;
+  const toggleOpen = useGlobalStore((state) => state._toggleOpen);
+  const openPaths = useGlobalStore((state) => state.openPaths);
+
+  const isOpen = useMemo(
+    () =>
+      type === "folder" ? Object.hasOwn(openPaths, String(props.id)) : false,
+    [openPaths, props.id, type]
+  );
+  const isLastCalled = useMemo(
+    () =>
+      type === "folder" && Object.keys(openPaths).pop() === String(props.id),
+    [openPaths, props.id, type]
+  );
+  const targetUrl = useMemo(() => {
+    const defaultUrl = `/${title}`;
+    if (parentId == null) return defaultUrl;
+    else {
+      const parentUrl = openPaths[String(parentId)];
+      return parentUrl ? `${parentUrl}${defaultUrl}` : defaultUrl;
+    }
+  }, [title, openPaths, parentId]);
+
   const loadedDirectory = useDirectoriesData(encodeURI(targetUrl), isOpen);
   const { openModal } = useModal();
 
-  if (!loadedDirectory) return null;
   const isLoading = loadedDirectory?.isLoading ?? false;
-  const isError = loadedDirectory?.isError ?? false;
-  const { folders, bookmarks } = loadedDirectory?.data ?? {};
-  const hierarchy = targetUrl == null ? 0 : targetUrl.split("/").length - 1;
 
   const handleClick = () => {
     if (type === "folder") {
-      toggleOpen(data_id);
-      _toggleOpen(data_id, targetUrl);
+      toggleOpen(String(props.id), targetUrl);
     } else {
       openModal(BookmarkDetail, {
         data_id,
         title,
         color,
         ...props,
-      } as any);
+      } as Bookmark & DefaultModalChildrenProps);
     }
   };
 
@@ -57,20 +70,14 @@ export default function DirectoryListItem({
         onClick={handleClick}
         url={targetUrl}
         color={color}
-        hierarchy={hierarchy}
+        hierarchy={props.position}
       >
         {title}
       </DirectoryButton>
-      {isOpen && !isLoading && !isError && (
-        <DirectoryList
-          directoryList={[...(folders ?? []), ...(bookmarks ?? [])]}
-          currentDir={targetUrl}
-        />
-      )}
-      {isLoading && (
+      {isLastCalled && (isTotalLoading || isLoading) && (
         <Skeleton
           height={40}
-          indent={hierarchy + 1}
+          indent={props.position + 1}
           className={"mt-0.5 mb-2"}
         />
       )}

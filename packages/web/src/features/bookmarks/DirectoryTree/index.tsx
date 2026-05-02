@@ -7,11 +7,10 @@ import { useDirectoriesData as useDirectoriesData2 } from "@/shared/hooks/_useDi
 import useAuth from "@/shared/hooks/useAuth.ts";
 import type { BasicComponentProps } from "@/shared/types";
 
-import useDirectoriesData from "../../../shared/hooks/useDirectoriesData";
 import DirectoryList from "./components/DirectoryList";
 
 export default function DirectoryTree() {
-  const { loadedDirectory, folders, bookmarks } = useFlatDirectory();
+  const { flattenedDirectory, isLoading } = useFlatDirectory();
   const { user } = useAuth();
 
   return (
@@ -20,23 +19,21 @@ export default function DirectoryTree() {
         "flex w-[15%] min-w-[200px] flex-col gap-5 overflow-y-auto bg-white p-5"
       }
     >
-      {loadedDirectory?.isLoading ? (
-        <Skeleton height={35} />
+      {user == null ? (
+        <Skeleton height={32} />
       ) : (
-        user != null && (
-          <div
-            className={
-              "rounded-lg bg-blue-400 py-1.5 text-center text-sm font-bold text-white"
-            }
-          >
-            {user?.email}
-          </div>
-        )
+        <div
+          className={
+            "rounded-lg bg-blue-400 py-1.5 text-center text-sm font-bold text-white"
+          }
+        >
+          {user?.email}
+        </div>
       )}
       <DefaultFilterButton>All</DefaultFilterButton>
       <DefaultFilterButton>Favorites</DefaultFilterButton>
       <nav>
-        {loadedDirectory?.isLoading ? (
+        {flattenedDirectory.length === 0 ? (
           Array.from({ length: 3 }, (_, k) => k).map((value) => (
             <Skeleton
               key={`skeleton-${value}`}
@@ -46,8 +43,8 @@ export default function DirectoryTree() {
           ))
         ) : (
           <DirectoryList
-            currentDir={"/"}
-            directoryList={[...(folders ?? []), ...(bookmarks ?? [])]}
+            directoryList={flattenedDirectory}
+            isTotalLoading={isLoading}
           />
         )}
       </nav>
@@ -64,11 +61,8 @@ function DefaultFilterButton({ children }: BasicComponentProps) {
 }
 
 const useFlatDirectory = () => {
-  // TODO: useDirectoriesData2로 대체
-  const loadedDirectory = useDirectoriesData("/");
-  const { folders, bookmarks } = loadedDirectory?.data ?? {};
-  const { data: directories } = useDirectoriesData2();
-  const flattendDirectory = useMemo(() => {
+  const { data: directories, isLoading } = useDirectoriesData2();
+  const flattenedDirectory = useMemo(() => {
     const validDirectories = directories.filter(
       (directory) => directory != null
     );
@@ -103,5 +97,5 @@ const useFlatDirectory = () => {
     return result;
   }, [directories]);
 
-  return { loadedDirectory, flattendDirectory, folders, bookmarks };
+  return { flattenedDirectory, isLoading };
 };
