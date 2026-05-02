@@ -1,4 +1,4 @@
-import type { Bookmark, Folder } from "@linkvault/shared";
+import type { Bookmark, Folder } from "@linkvault/shared/types";
 import { useEffect, useMemo } from "react";
 
 import Button from "@/shared/components/atoms/button";
@@ -73,31 +73,40 @@ const useFlatDirectory = () => {
       .filter((directory) => directory != null)
       .map((directory) => {
         const level = directory.breadcrumbs.length;
-        if (level === 0) {
-          return directory;
-        } else {
-          return {
-            ...directory,
-            bookmarks: directory.bookmarks.map((bookmark) => ({
-              ...bookmark,
-              position: level,
-            })),
-            folders: directory.folders.map((folder) => ({
-              ...folder,
-              position: level,
-            })),
-          };
-        }
+        return {
+          ...directory,
+          bookmarks: directory.bookmarks.map((bookmark) => ({
+            ...bookmark,
+            position: level,
+          })),
+          folders: directory.folders.map((folder) => ({
+            ...folder,
+            position: level,
+          })),
+        };
       })
       .reduce(
-        (results, currentDirectory) => {
-          const result = [
-            ...results,
-            ...currentDirectory.folders,
-            ...currentDirectory.bookmarks,
-          ];
-          console.log("result: ", result);
-          return result;
+        (results, currentDirectory, currentIndex) => {
+          const upperFolders = results.filter(
+            (result) => result.type === "folder"
+          );
+          const upperBookmarks = results.filter(
+            (result) => result.type === "bookmark"
+          );
+          const folderChunks = upperFolders
+            .map((folder) => {
+              const subFolders = currentDirectory.folders.filter(
+                (subFolder) => subFolder.parent_id === folder.id
+              );
+              const subBookmarks = currentDirectory.bookmarks.filter(
+                (subBookmark) => subBookmark.folder_id === folder.id
+              );
+              return [folder, ...subFolders, ...subBookmarks];
+            })
+            .flat();
+          return currentIndex === 0
+            ? [...currentDirectory.folders, ...currentDirectory.bookmarks]
+            : [...folderChunks, ...upperBookmarks];
         },
         [] as (Folder | Bookmark)[]
       );
