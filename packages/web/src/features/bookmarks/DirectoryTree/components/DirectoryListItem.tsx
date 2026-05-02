@@ -26,20 +26,20 @@ export default function DirectoryListItem({
   const openPaths = useGlobalStore((state) => state.openPaths);
 
   const isOpen = useMemo(
-    () =>
-      type === "folder" ? Object.hasOwn(openPaths, String(props.id)) : false,
+    () => (type === "folder" ? openPaths.has(String(props.id)) : false),
     [openPaths, props.id, type]
   );
   const isLastCalled = useMemo(
     () =>
-      type === "folder" && Object.keys(openPaths).pop() === String(props.id),
+      type === "folder" &&
+      Array.from(openPaths.keys()).pop() === String(props.id),
     [openPaths, props.id, type]
   );
   const targetUrl = useMemo(() => {
     const defaultUrl = `/${title}`;
     if (parentId == null) return defaultUrl;
     else {
-      const parentUrl = openPaths[String(parentId)];
+      const parentUrl = openPaths.get(String(parentId));
       return parentUrl ? `${parentUrl}${defaultUrl}` : defaultUrl;
     }
   }, [title, openPaths, parentId]);

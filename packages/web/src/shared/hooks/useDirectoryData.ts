@@ -48,7 +48,7 @@ export const useDirectoriesData = (
   const accessToken = useAuthStore((state) => state.accessToken);
   const isLoad = shouldLoad && accessToken != null;
   const queryList = useMemo(
-    () => ["/"].concat(Object.values(openPaths)),
+    () => ["/"].concat(Array.from(openPaths.values())),
     [openPaths]
   );
 

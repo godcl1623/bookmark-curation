@@ -1,9 +1,7 @@
 import { create } from "zustand";
 
-// TODO: openIds 관련 코드 전부 삭제
-
 interface GlobalStore {
-  openPaths: Record<string, string>;
+  openPaths: Map<string, string>;
   slugToId: Record<string, string>;
   currentView: "card" | "list";
   isMobile: boolean;
@@ -20,21 +18,21 @@ interface GlobalActions {
 }
 
 const useGlobalStore = create<GlobalStore & GlobalActions>((set) => ({
-  openPaths: {},
+  openPaths: new Map(),
   slugToId: {},
   currentView: "card",
   isMobile: false,
   isTablet: false,
   toggleOpen: (id, dirPath) =>
     set((state) => {
-      const next = { ...state.openPaths };
-      if (next[id]) {
-        Object.keys(next).forEach((key) => {
-          if (next[key] === dirPath || next[key].startsWith(dirPath + "/"))
-            delete next[key];
+      const next = new Map(state.openPaths);
+      if (next.get(id)) {
+        next.forEach((value, key) => {
+          if (value === dirPath || value.startsWith(dirPath + "/"))
+            next.delete(key);
         });
       } else {
-        next[id] = dirPath;
+        next.set(id, dirPath);
       }
       return { openPaths: next };
     }),
@@ -52,7 +50,7 @@ const useGlobalStore = create<GlobalStore & GlobalActions>((set) => ({
   setIsTablet: (isTablet) => set({ isTablet }),
   __resetStore: () =>
     set({
-      openPaths: {},
+      openPaths: new Map(),
       slugToId: {},
       currentView: "card",
       isMobile: false,

@@ -39,8 +39,9 @@ const usePrefetchDirectories = () => {
     const { breadcrumbs } = response.data;
     if (breadcrumbs.length > 0) {
       breadcrumbs.forEach(({ id }) => {
-        if (!Object.hasOwn(openPaths, String(id)))
+        if (!openPaths.has(String(id))) {
           toggleOpen(String(id), decodeURI(pathname));
+        }
       });
     }
   }, [response, toggleOpen, openPaths, pathname]);
