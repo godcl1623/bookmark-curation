@@ -3,8 +3,8 @@ import { useMemo } from "react";
 
 import Button from "@/shared/components/atoms/button";
 import Skeleton from "@/shared/components/molecules/Skeleton";
-import { useDirectoriesData as useDirectoriesData2 } from "@/shared/hooks/_useDirectoriesData";
 import useAuth from "@/shared/hooks/useAuth.ts";
+import { useDirectoriesData } from "@/shared/hooks/useDirectoryData.ts";
 import type { BasicComponentProps } from "@/shared/types";
 
 import DirectoryList from "./components/DirectoryList";
@@ -61,7 +61,7 @@ function DefaultFilterButton({ children }: BasicComponentProps) {
 }
 
 const useFlatDirectory = () => {
-  const { data: directories, isLoading } = useDirectoriesData2();
+  const { data: directories, isLoading } = useDirectoriesData();
   const flattenedDirectory = useMemo(() => {
     const validDirectories = directories.filter(
       (directory) => directory != null

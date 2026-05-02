@@ -2,11 +2,11 @@ import type { Bookmark, Folder } from "@linkvault/shared";
 import { useMemo } from "react";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
-import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types.ts";
+import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
 import BookmarkDetail from "@/features/bookmarks/BookmarkList/components/BookmarkDetail";
 import DirectoryButton from "@/features/bookmarks/DirectoryTree/components/DirectoryButton";
-import Skeleton from "@/shared/components/molecules/Skeleton.tsx";
-import useDirectoriesData from "@/shared/hooks/useDirectoriesData.ts";
+import Skeleton from "@/shared/components/molecules/Skeleton";
+import { useDirectoryData } from "@/shared/hooks/useDirectoryData";
 import useGlobalStore from "@/stores/global";
 
 type DirectoryListItemProps = (Bookmark | Folder) & {
@@ -44,7 +44,7 @@ export default function DirectoryListItem({
     }
   }, [title, openPaths, parentId]);
 
-  const loadedDirectory = useDirectoriesData(encodeURI(targetUrl), isOpen);
+  const loadedDirectory = useDirectoryData(encodeURI(targetUrl), isOpen);
   const { openModal } = useModal();
 
   const isLoading = loadedDirectory?.isLoading ?? false;

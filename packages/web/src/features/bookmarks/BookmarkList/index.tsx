@@ -2,10 +2,10 @@ import { ChevronRight, LayoutGrid, LayoutList } from "lucide-react";
 import { NavLink, useLocation } from "react-router";
 
 import ExplorerView from "@/features/bookmarks/BookmarkList/components/ExplorerView";
-import OptionButton from "@/shared/components/molecules/OptionButton.tsx";
+import OptionButton from "@/shared/components/molecules/OptionButton";
 import Skeleton from "@/shared/components/molecules/Skeleton";
 import { COMMON_STYLES } from "@/shared/consts";
-import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
+import { useDirectoryData } from "@/shared/hooks/useDirectoryData";
 import { cn } from "@/shared/lib/utils";
 import useGlobalStore from "@/stores/global";
 
@@ -14,7 +14,7 @@ export default function BookmarkList() {
   const isMobile = useGlobalStore((state) => state.isMobile);
   const setCurrentView = useGlobalStore((state) => state.setCurrentView);
   const { pathname } = useLocation();
-  const loadedDirectory = useDirectoriesData(pathname ?? "/");
+  const loadedDirectory = useDirectoryData(pathname ?? "/");
 
   const { breadcrumbs } = loadedDirectory?.data ?? {};
   const smallIconStyle = isMobile ? STYLES.iconSm : STYLES.iconMd;

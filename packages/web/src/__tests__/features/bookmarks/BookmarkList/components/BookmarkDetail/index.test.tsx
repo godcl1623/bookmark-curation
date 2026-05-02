@@ -343,6 +343,7 @@ describe("description", () => {
               is_private: false,
               type: "bookmark",
               folders: null,
+              folder_id: null,
               click_count: 0,
               created_at: "",
               deleted_at: "",

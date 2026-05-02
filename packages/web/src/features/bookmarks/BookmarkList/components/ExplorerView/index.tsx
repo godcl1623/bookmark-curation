@@ -4,14 +4,14 @@ import { useLocation } from "react-router";
 import BlankFallback from "@/features/bookmarks/BookmarkList/components/BlankFallback";
 import BookmarkCard from "@/features/bookmarks/BookmarkList/components/BookmarkCard";
 import FolderButton from "@/features/bookmarks/BookmarkList/components/FolderButton";
-import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
+import { useDirectoryData } from "@/shared/hooks/useDirectoryData";
 import { cn } from "@/shared/lib/utils";
 import useGlobalStore from "@/stores/global";
 
 export default function ExplorerView() {
   const currentView = useGlobalStore((state) => state.currentView);
   const { pathname } = useLocation();
-  const loadedDirectory = useDirectoriesData(pathname ?? "/");
+  const loadedDirectory = useDirectoryData(pathname ?? "/");
 
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
   const isListView = currentView === "list";

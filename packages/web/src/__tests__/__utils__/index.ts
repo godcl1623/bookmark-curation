@@ -16,6 +16,7 @@ export const EXAMPLES: Examples = {
     parent_id: null,
     domain: "",
     favicon_url: "",
+    folder_id: null,
     preview_image: "",
     is_favorite: false,
     is_archived: false,
