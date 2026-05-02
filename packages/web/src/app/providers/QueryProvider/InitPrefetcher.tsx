@@ -24,7 +24,7 @@ export default function InitPrefetcher({ children }: BasicComponentProps) {
 
 const usePrefetchDirectories = () => {
   const toggleOpen = useGlobalStore((state) => state.toggleOpen);
-  const openIds = useGlobalStore((state) => state.openIds);
+  const openPaths = useGlobalStore((state) => state.openPaths);
   const accessToken = useAuthStore((state) => state.accessToken);
   const { pathname } = useLocation();
 
@@ -38,11 +38,12 @@ const usePrefetchDirectories = () => {
     if (response?.data == null) return;
     const { breadcrumbs } = response.data;
     if (breadcrumbs.length > 0) {
-      breadcrumbs.forEach(({ data_id }) => {
-        if (!openIds.has(data_id)) toggleOpen(data_id);
+      breadcrumbs.forEach(({ id }) => {
+        if (!Object.hasOwn(openPaths, String(id)))
+          toggleOpen(String(id), decodeURI(pathname));
       });
     }
-  }, [response, toggleOpen, openIds]);
+  }, [response, toggleOpen, openPaths, pathname]);
 
   useGlobalLayout();
 };

@@ -22,7 +22,7 @@ export default function DirectoryListItem({
   ...props
 }: DirectoryListItemProps) {
   const parentId = type === "folder" ? props.parent_id : props.folder_id;
-  const toggleOpen = useGlobalStore((state) => state._toggleOpen);
+  const toggleOpen = useGlobalStore((state) => state.toggleOpen);
   const openPaths = useGlobalStore((state) => state.openPaths);
 
   const isOpen = useMemo(
