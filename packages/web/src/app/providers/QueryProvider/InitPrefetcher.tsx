@@ -2,9 +2,10 @@ import type { Directory } from "@linkvault/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
-import { useLocation, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 import useAuth from "@/shared/hooks/useAuth.ts";
+import { useDirectoryPath } from "@/shared/hooks/useDirectoryPath";
 import useFolderList from "@/shared/hooks/useFolderList";
 import refreshToken from "@/shared/services/auth/refresh-token";
 import getDirectoryByPath from "@/shared/services/directories/get-directory-by-path";
@@ -26,11 +27,11 @@ const usePrefetchDirectories = () => {
   const toggleOpen = useGlobalStore((state) => state.toggleOpen);
   const openPaths = useGlobalStore((state) => state.openPaths);
   const accessToken = useAuthStore((state) => state.accessToken);
-  const { pathname } = useLocation();
+  const dirPath = useDirectoryPath();
 
   const { data: response } = useQuery<{ ok: boolean; data: Directory } | null>({
-    queryKey: DIRECTORY_QUERY_KEY.BY_PATH(pathname),
-    queryFn: () => (pathname != null ? getDirectoryByPath(pathname) : null),
+    queryKey: DIRECTORY_QUERY_KEY.BY_PATH(dirPath),
+    queryFn: () => (dirPath != null ? getDirectoryByPath(dirPath) : null),
     enabled: accessToken != null,
   });
 
@@ -40,11 +41,11 @@ const usePrefetchDirectories = () => {
     if (breadcrumbs.length > 0) {
       breadcrumbs.forEach(({ id }) => {
         if (!openPaths.has(String(id))) {
-          toggleOpen(String(id), decodeURI(pathname));
+          toggleOpen(String(id), decodeURI(dirPath));
         }
       });
     }
-  }, [response, toggleOpen, openPaths, pathname]);
+  }, [response, toggleOpen, openPaths, dirPath]);
 
   useGlobalLayout();
 };
@@ -90,7 +91,7 @@ const useCheckAuthentication = () => {
           if (!isLoggedOut) {
             toast.error("세션이 만료되었습니다. 다시 로그인해주세요.");
           }
-          navigate("/login");
+          navigate("/");
           console.error(error);
         });
     }

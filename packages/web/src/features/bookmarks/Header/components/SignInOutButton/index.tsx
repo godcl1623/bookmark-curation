@@ -24,7 +24,7 @@ export default function SignInOutButton() {
       setIsLoggedOut(true);
       clearAuth();
       queryClient.clear();
-      navigate("/login");
+      navigate("/");
       toast.success("로그아웃 되었습니다.");
     } catch (error) {
       if (error instanceof Error) {

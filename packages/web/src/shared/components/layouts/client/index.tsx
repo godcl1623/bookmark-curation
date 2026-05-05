@@ -1,12 +1,11 @@
-import { useLocation } from "react-router";
-
 import AddBookmarkButton from "@/features/bookmarks/BookmarkList/components/BlankFallback/AddBookmarkButton";
 import { useDirectoryData } from "@/shared/hooks/useDirectoryData";
+import { useDirectoryPath } from "@/shared/hooks/useDirectoryPath";
 import type { BasicComponentProps } from "@/shared/types";
 
 export default function ClientViewLayout({ children }: BasicComponentProps) {
-  const { pathname } = useLocation();
-  const loadedDirectory = useDirectoryData(pathname ?? "/");
+  const dirPath = useDirectoryPath();
+  const loadedDirectory = useDirectoryData(dirPath);
 
   const { folders, bookmarks } = loadedDirectory?.data ?? {};
 
