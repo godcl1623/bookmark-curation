@@ -33,7 +33,7 @@ export default function DirectoryTree() {
       <DefaultFilterButton>All</DefaultFilterButton>
       <DefaultFilterButton>Favorites</DefaultFilterButton>
       <nav>
-        {flattenedDirectory.length === 0 ? (
+        {isLoading && flattenedDirectory.length === 0 ? (
           Array.from({ length: 3 }, (_, k) => k).map((value) => (
             <Skeleton
               key={`skeleton-${value}`}

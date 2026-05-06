@@ -54,6 +54,7 @@ export default function DirectoryButton({
         size={"custom"}
         onClick={handleClick}
         className={"max-w-full py-1"}
+        aria-label={`${dataType}: ${String(children)}`}
       >
         <div className={"line-clamp-1 flex items-center gap-2 px-2"}>
           <div
@@ -66,7 +67,13 @@ export default function DirectoryButton({
         </div>
       </Button>
       {dataType !== "bookmark" && (
-        <Button variant={"ghost"} size={"icon-sm"} onClick={onClick}>
+        <Button
+          variant={"ghost"}
+          size={"icon-sm"}
+          onClick={onClick}
+          aria-label={`${String(children)} ${isOpen ? "접기" : "펼치기"}`}
+          aria-expanded={isOpen}
+        >
           <ChevronRight className={isOpen ? "rotate-90" : ""} />
         </Button>
       )}

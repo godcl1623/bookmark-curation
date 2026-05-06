@@ -7,7 +7,6 @@ import BookmarkDetail from "@/features/bookmarks/BookmarkList/components/Bookmar
 import DirectoryButton from "@/features/bookmarks/DirectoryTree/components/DirectoryButton";
 import Skeleton from "@/shared/components/molecules/Skeleton";
 import { useDirectoryData } from "@/shared/hooks/useDirectoryData";
-import { useDirectoryPath } from "@/shared/hooks/useDirectoryPath";
 import useGlobalStore from "@/stores/global";
 
 type DirectoryListItemProps = (Bookmark | Folder) & {
@@ -25,7 +24,6 @@ export default function DirectoryListItem({
   const parentId = type === "folder" ? props.parent_id : props.folder_id;
   const toggleOpen = useGlobalStore((state) => state.toggleOpen);
   const openPaths = useGlobalStore((state) => state.openPaths);
-  const dirPath = useDirectoryPath();
 
   const isOpen = useMemo(
     () => (type === "folder" ? openPaths.has(String(props.id)) : false),
