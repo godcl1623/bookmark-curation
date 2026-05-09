@@ -1,20 +1,21 @@
 import type { Folder as FolderType } from "@linkvault/shared";
 import { Folder } from "lucide-react";
-import { useLocation, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 import Button from "@/shared/components/atoms/button";
 import { FOLDER_COLORS } from "@/shared/consts";
+import { useDirectoryPath } from "@/shared/hooks/useDirectoryPath";
 
 export default function FolderButton({
   title,
   color = FOLDER_COLORS.DEFAULT,
 }: FolderType) {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const dirPath = useDirectoryPath();
 
   const handleClick = () => {
-    if (pathname.includes(title)) return;
-    navigate(pathname !== "/" ? `${pathname}/${title}` : `/${title}`);
+    if (dirPath.includes(title)) return;
+    navigate(dirPath === "/" ? `/main/${title}` : `/main${dirPath}/${title}`);
   };
 
   return (

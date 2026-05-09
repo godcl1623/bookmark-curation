@@ -11,6 +11,7 @@ interface DirectoryButtonProps {
   isOpen?: boolean;
   dataType?: DataType;
   url?: string;
+  hierarchy?: number;
 }
 
 export default function DirectoryButton({
@@ -20,6 +21,7 @@ export default function DirectoryButton({
   children,
   onClick,
   color,
+  hierarchy = 0,
 }: DirectoryButtonProps & ComponentProps<"button">) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -27,7 +29,6 @@ export default function DirectoryButton({
     () => (dataType === "bookmark" ? <File /> : <Folder />),
     [dataType]
   );
-  const hierarchy = url == null ? 0 : url.split("/").length - 1;
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     if (!isOpen && onClick) {
@@ -53,6 +54,7 @@ export default function DirectoryButton({
         size={"custom"}
         onClick={handleClick}
         className={"max-w-full py-1"}
+        aria-label={`${dataType}: ${String(children)}`}
       >
         <div className={"line-clamp-1 flex items-center gap-2 px-2"}>
           <div
@@ -65,7 +67,13 @@ export default function DirectoryButton({
         </div>
       </Button>
       {dataType !== "bookmark" && (
-        <Button variant={"ghost"} size={"icon-sm"} onClick={onClick}>
+        <Button
+          variant={"ghost"}
+          size={"icon-sm"}
+          onClick={onClick}
+          aria-label={`${String(children)} ${isOpen ? "접기" : "펼치기"}`}
+          aria-expanded={isOpen}
+        >
           <ChevronRight className={isOpen ? "rotate-90" : ""} />
         </Button>
       )}

@@ -6,7 +6,7 @@ import {
   type RenderOptions,
 } from "@testing-library/react";
 import { type ReactNode, useState } from "react";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 
 import ModalProvider from "@/app/providers/ModalProvider";
 
@@ -73,8 +73,13 @@ function TestProvider({
 
   return (
     <QueryClientProvider client={queryClientInstance}>
-      <MemoryRouter initialEntries={[initialPath]}>
-        <ModalProvider>{children}</ModalProvider>
+      <MemoryRouter initialEntries={["/main" + initialPath]}>
+        <Routes>
+          <Route
+            path={"/main/*"}
+            element={<ModalProvider>{children}</ModalProvider>}
+          />
+        </Routes>
       </MemoryRouter>
     </QueryClientProvider>
   );

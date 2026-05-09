@@ -32,10 +32,10 @@ const useHandleCallback = () => {
     (isError: boolean = true) => {
       if (isError) {
         toast.error("올바르지 않은 접근입니다.");
-        navigate("/login", { replace: true });
+        navigate("/", { replace: true });
       } else {
         setIsLoggedOut(false);
-        navigate("/", { replace: true });
+        navigate("/main", { replace: true });
       }
       return;
     },
@@ -80,7 +80,7 @@ const useHandleCallback = () => {
       // Small delay to ensure token is persisted in Zustand
       setTimeout(() => {
         // App Links로 앱이 포그라운드로 왔으므로, 단순히 navigate만 하면 됨
-        navigate("/", { replace: true });
+        navigate("/main", { replace: true });
       }, 100);
     } else {
       // Web flow - just navigate

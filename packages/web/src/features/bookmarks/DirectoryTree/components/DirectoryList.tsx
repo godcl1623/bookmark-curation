@@ -1,25 +1,23 @@
-import type { Folder as FolderType } from "@linkvault/shared";
+import type { Bookmark, Folder } from "@linkvault/shared";
 
 import DirectoryListItem from "@/features/bookmarks/DirectoryTree/components/DirectoryListItem";
 
 interface DirectoryListProps {
-  directoryList: FolderType[];
-  currentDir?: string;
+  directoryList: (Folder | Bookmark)[];
+  isTotalLoading?: boolean;
 }
 
 export default function DirectoryList({
   directoryList,
-  currentDir = "/",
+  isTotalLoading = false,
 }: DirectoryListProps) {
   return (
     <ul className={"flex flex-col gap-2"} aria-label={"directory_list"}>
-      {directoryList?.map((folder) => {
-        return (
-          <li key={folder.data_id}>
-            <DirectoryListItem currentDir={currentDir} {...folder} />
-          </li>
-        );
-      })}
+      {directoryList.map((directory) => (
+        <li key={directory.data_id}>
+          <DirectoryListItem isTotalLoading={isTotalLoading} {...directory} />
+        </li>
+      ))}
     </ul>
   );
 }

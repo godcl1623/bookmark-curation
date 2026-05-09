@@ -1,14 +1,16 @@
+import type { Bookmark, Directory, Folder } from "@linkvault/shared";
+import { useMemo } from "react";
+
 import Button from "@/shared/components/atoms/button";
 import Skeleton from "@/shared/components/molecules/Skeleton";
 import useAuth from "@/shared/hooks/useAuth.ts";
+import { useDirectoriesData } from "@/shared/hooks/useDirectoryData.ts";
 import type { BasicComponentProps } from "@/shared/types";
 
-import useDirectoriesData from "../../../shared/hooks/useDirectoriesData";
 import DirectoryList from "./components/DirectoryList";
 
 export default function DirectoryTree() {
-  const loadedDirectory = useDirectoriesData("/");
-  const { folders, bookmarks } = loadedDirectory?.data ?? {};
+  const { flattenedDirectory, isLoading } = useFlatDirectory();
   const { user } = useAuth();
 
   return (
@@ -17,23 +19,21 @@ export default function DirectoryTree() {
         "flex w-[15%] min-w-[200px] flex-col gap-5 overflow-y-auto bg-white p-5"
       }
     >
-      {loadedDirectory?.isLoading ? (
-        <Skeleton height={35} />
+      {user == null ? (
+        <Skeleton height={32} />
       ) : (
-        user != null && (
-          <div
-            className={
-              "rounded-lg bg-blue-400 py-1.5 text-center text-sm font-bold text-white"
-            }
-          >
-            {user?.email}
-          </div>
-        )
+        <div
+          className={
+            "rounded-lg bg-blue-400 py-1.5 text-center text-sm font-bold text-white"
+          }
+        >
+          {user?.email}
+        </div>
       )}
       <DefaultFilterButton>All</DefaultFilterButton>
       <DefaultFilterButton>Favorites</DefaultFilterButton>
       <nav>
-        {loadedDirectory?.isLoading ? (
+        {isLoading && flattenedDirectory.length === 0 ? (
           Array.from({ length: 3 }, (_, k) => k).map((value) => (
             <Skeleton
               key={`skeleton-${value}`}
@@ -43,8 +43,8 @@ export default function DirectoryTree() {
           ))
         ) : (
           <DirectoryList
-            currentDir={"/"}
-            directoryList={[...(folders ?? []), ...(bookmarks ?? [])]}
+            directoryList={flattenedDirectory}
+            isTotalLoading={isLoading}
           />
         )}
       </nav>
@@ -59,3 +59,43 @@ function DefaultFilterButton({ children }: BasicComponentProps) {
     </Button>
   );
 }
+
+const useFlatDirectory = () => {
+  const { data: directories, isLoading } = useDirectoriesData();
+  const flattenedDirectory = useMemo(() => {
+    const validDirectories = directories.filter(
+      (directory) => directory != null
+    );
+    if (validDirectories.length === 0) return [];
+
+    const rootDir = validDirectories.find(
+      (directory) => directory.breadcrumbs.length === 0
+    );
+    if (rootDir == null) return [];
+
+    const directoryByFolderId = new Map(
+      validDirectories
+        .filter((directory) => directory.folder != null)
+        .map((directory) => [directory.folder.id, directory])
+    );
+
+    const result: (Folder | Bookmark)[] = [];
+
+    const traverse = (directory: Directory) => {
+      const level = directory.breadcrumbs.length;
+      for (const folder of directory.folders) {
+        result.push({ ...folder, position: level });
+        const childDir = directoryByFolderId.get(folder.id);
+        if (childDir != null) traverse(childDir);
+      }
+      for (const bookmark of directory.bookmarks) {
+        result.push({ ...bookmark, position: level });
+      }
+    };
+
+    traverse(rootDir);
+    return result;
+  }, [directories]);
+
+  return { flattenedDirectory, isLoading };
+};
