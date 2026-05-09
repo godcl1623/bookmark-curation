@@ -73,10 +73,10 @@ function TestProvider({
 
   return (
     <QueryClientProvider client={queryClientInstance}>
-      <MemoryRouter initialEntries={["/home" + initialPath]}>
+      <MemoryRouter initialEntries={["/main" + initialPath]}>
         <Routes>
           <Route
-            path={"/home/*"}
+            path={"/main/*"}
             element={<ModalProvider>{children}</ModalProvider>}
           />
         </Routes>

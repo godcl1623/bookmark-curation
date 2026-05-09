@@ -15,7 +15,7 @@ export default function FolderButton({
 
   const handleClick = () => {
     if (dirPath.includes(title)) return;
-    navigate(dirPath === "/" ? `/home/${title}` : `/home${dirPath}/${title}`);
+    navigate(dirPath === "/" ? `/main/${title}` : `/main${dirPath}/${title}`);
   };
 
   return (

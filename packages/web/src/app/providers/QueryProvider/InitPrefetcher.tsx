@@ -1,13 +1,9 @@
 import type { Directory } from "@linkvault/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import toast from "react-hot-toast";
-import { useNavigate } from "react-router";
 
-import useAuth from "@/shared/hooks/useAuth.ts";
 import { useDirectoryPath } from "@/shared/hooks/useDirectoryPath";
 import useFolderList from "@/shared/hooks/useFolderList";
-import refreshToken from "@/shared/services/auth/refresh-token";
 import getDirectoryByPath from "@/shared/services/directories/get-directory-by-path";
 import DIRECTORY_QUERY_KEY from "@/shared/services/directories/queryKey";
 import type { BasicComponentProps } from "@/shared/types";
@@ -17,8 +13,6 @@ import useGlobalStore from "@/stores/global";
 export default function InitPrefetcher({ children }: BasicComponentProps) {
   usePrefetchDirectories();
   useFolderList();
-  useAuth();
-  useCheckAuthentication();
 
   return children;
 }
@@ -71,29 +65,4 @@ const useGlobalLayout = () => {
     resizeObserver.observe(document.body);
     return () => resizeObserver.disconnect();
   }, [setIsMobile, setIsTablet]);
-};
-
-const useCheckAuthentication = () => {
-  const accessToken = useAuthStore((state) => state.accessToken);
-  const isLoggedOut = useAuthStore((state) => state.isLoggedOut);
-  const setAccessToken = useAuthStore((state) => state.setAccessToken);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (accessToken == null) {
-      refreshToken()
-        .then((response) => {
-          if (response.access_token) {
-            setAccessToken(response.access_token);
-          }
-        })
-        .catch((error) => {
-          if (!isLoggedOut) {
-            toast.error("세션이 만료되었습니다. 다시 로그인해주세요.");
-          }
-          navigate("/");
-          console.error(error);
-        });
-    }
-  }, [accessToken, setAccessToken, navigate, isLoggedOut]);
 };

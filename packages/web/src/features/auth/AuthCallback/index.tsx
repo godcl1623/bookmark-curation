@@ -35,7 +35,7 @@ const useHandleCallback = () => {
         navigate("/", { replace: true });
       } else {
         setIsLoggedOut(false);
-        navigate("/home", { replace: true });
+        navigate("/main", { replace: true });
       }
       return;
     },
@@ -80,7 +80,7 @@ const useHandleCallback = () => {
       // Small delay to ensure token is persisted in Zustand
       setTimeout(() => {
         // App Links로 앱이 포그라운드로 왔으므로, 단순히 navigate만 하면 됨
-        navigate("/home", { replace: true });
+        navigate("/main", { replace: true });
       }, 100);
     } else {
       // Web flow - just navigate

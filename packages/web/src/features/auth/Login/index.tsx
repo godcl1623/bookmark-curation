@@ -1,11 +1,10 @@
 import { useEffect } from "react";
 import toast from "react-hot-toast";
-import { useNavigate, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 
 import Logo from "@/shared/components/molecules/Logo";
 import { openOAuthUrl } from "@/shared/lib/auth/oauth";
 import { checkIfMobileNative } from "@/shared/lib/utils";
-import useAuthStore from "@/stores/auth";
 
 export default function Login() {
   const handleLogin = async () => {
@@ -16,7 +15,6 @@ export default function Login() {
   };
 
   useHandleLoginError();
-  useRedirect();
 
   return (
     <div className={"h-screen bg-blue-50/75"}>
@@ -54,15 +52,4 @@ const useHandleLoginError = () => {
       toast.error(errorMessages[error] || "알 수 없는 오류가 발생했습니다.");
     }
   }, [searchParams]);
-};
-
-const useRedirect = () => {
-  const accessToken = useAuthStore((state) => state.accessToken);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (accessToken != null) {
-      navigate("/home", { replace: true });
-    }
-  }, [accessToken, navigate]);
 };

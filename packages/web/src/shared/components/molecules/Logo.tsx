@@ -8,7 +8,7 @@ export default function Logo() {
   const isMobile = useGlobalStore((state) => state.isMobile);
 
   return (
-    <NavLink className={STYLES.container} to={"/home"}>
+    <NavLink className={STYLES.container} to={"/main"}>
       <div
         className={cn(
           "rounded-md bg-blue-600 p-1.5 text-white",

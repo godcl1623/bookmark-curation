@@ -41,7 +41,7 @@ export default function BookmarkList() {
             }
           >
             <li className={"flex-center gap-1 md:gap-2"}>
-              <NavLink to={"/home"} className={"hover:underline"}>
+              <NavLink to={"/main"} className={"hover:underline"}>
                 홈
               </NavLink>
               {dirPath !== "/" && <BreadcrumbChevron />}
@@ -53,7 +53,7 @@ export default function BookmarkList() {
               >
                 <NavLink
                   to={
-                    "/home" +
+                    "/main" +
                     selfArray
                       .slice(0, index + 1)
                       .map((item) => item.title)
