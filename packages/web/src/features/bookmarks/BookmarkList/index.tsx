@@ -1,11 +1,12 @@
 import { ChevronRight, LayoutGrid, LayoutList } from "lucide-react";
-import { NavLink, useLocation } from "react-router";
+import { NavLink } from "react-router";
 
 import ExplorerView from "@/features/bookmarks/BookmarkList/components/ExplorerView";
-import OptionButton from "@/shared/components/molecules/OptionButton.tsx";
+import OptionButton from "@/shared/components/molecules/OptionButton";
 import Skeleton from "@/shared/components/molecules/Skeleton";
 import { COMMON_STYLES } from "@/shared/consts";
-import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
+import { useDirectoryData } from "@/shared/hooks/useDirectoryData";
+import { useDirectoryPath } from "@/shared/hooks/useDirectoryPath";
 import { cn } from "@/shared/lib/utils";
 import useGlobalStore from "@/stores/global";
 
@@ -13,8 +14,8 @@ export default function BookmarkList() {
   const currentView = useGlobalStore((state) => state.currentView);
   const isMobile = useGlobalStore((state) => state.isMobile);
   const setCurrentView = useGlobalStore((state) => state.setCurrentView);
-  const { pathname } = useLocation();
-  const loadedDirectory = useDirectoriesData(pathname ?? "/");
+  const dirPath = useDirectoryPath();
+  const loadedDirectory = useDirectoryData(dirPath);
 
   const { breadcrumbs } = loadedDirectory?.data ?? {};
   const smallIconStyle = isMobile ? STYLES.iconSm : STYLES.iconMd;
@@ -40,10 +41,10 @@ export default function BookmarkList() {
             }
           >
             <li className={"flex-center gap-1 md:gap-2"}>
-              <NavLink to={"/"} className={"hover:underline"}>
+              <NavLink to={"/home"} className={"hover:underline"}>
                 홈
               </NavLink>
-              {pathname !== "/" && <BreadcrumbChevron />}
+              {dirPath !== "/" && <BreadcrumbChevron />}
             </li>
             {breadcrumbs?.map((breadcrumb, index, selfArray) => (
               <li
@@ -52,7 +53,7 @@ export default function BookmarkList() {
               >
                 <NavLink
                   to={
-                    "/" +
+                    "/home" +
                     selfArray
                       .slice(0, index + 1)
                       .map((item) => item.title)

@@ -1,9 +1,9 @@
 import { EXAMPLES } from "@/__tests__/__utils__";
 import { renderHook, waitFor } from "@/__tests__/mock/utils";
-import useDirectoriesData from "@/shared/hooks/useDirectoriesData";
+import { useDirectoryData } from "@/shared/hooks/useDirectoryData";
 import useAuthStore from "@/stores/auth";
 
-describe("# useDirectoriesData 테스트", () => {
+describe("# useDirectoryData 테스트", () => {
   // setup
   beforeEach(() => {
     useAuthStore.getState().clearAuth();
@@ -18,7 +18,7 @@ describe("# useDirectoriesData 테스트", () => {
     setToken("access-token");
 
     // act
-    const { result } = renderHook(() => useDirectoriesData(path));
+    const { result } = renderHook(() => useDirectoryData(path));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -41,7 +41,7 @@ describe("# useDirectoriesData 테스트", () => {
       setToken("access-token");
 
       // act
-      const { result } = renderHook(() => useDirectoriesData(path, false));
+      const { result } = renderHook(() => useDirectoryData(path, false));
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -56,7 +56,7 @@ describe("# useDirectoriesData 테스트", () => {
       const path = "/";
 
       // act
-      const { result } = renderHook(() => useDirectoriesData(path));
+      const { result } = renderHook(() => useDirectoryData(path));
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -71,7 +71,7 @@ describe("# useDirectoriesData 테스트", () => {
       const path = "/";
 
       // act
-      const { result } = renderHook(() => useDirectoriesData(path, false));
+      const { result } = renderHook(() => useDirectoryData(path, false));
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -89,7 +89,7 @@ describe("# useDirectoriesData 테스트", () => {
       setToken("access-token");
 
       // act
-      const { result } = renderHook(() => useDirectoriesData(path));
+      const { result } = renderHook(() => useDirectoryData(path));
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -113,7 +113,7 @@ describe("# useDirectoriesData 테스트", () => {
 
     // act
     const { result, rerender } = renderHook(
-      ({ path }: { path: string }) => useDirectoriesData(path),
+      ({ path }: { path: string }) => useDirectoryData(path),
       { initialProps: { path } }
     );
 

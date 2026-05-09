@@ -30,7 +30,7 @@ export interface Folder {
   deleted_at: string | null;
   id: number;
   parent: { id: number; title: string; color: string } | null;
-  parent_id: string | null;
+  parent_id: number | null;
   position: number;
   title: string;
   type: DataType;
@@ -38,6 +38,7 @@ export interface Folder {
   user_id: number;
   users: { id: number; display_name: string };
   _count: { bookmarks: number; children: number };
+  folder_id?: undefined;
 }
 
 export interface Tag {
@@ -53,7 +54,7 @@ export interface Tag {
   _count: { bookmark_tags: number };
 }
 
-export interface Bookmark extends Folder {
+export interface Bookmark extends Omit<Folder, "parent_id" | "folder_id"> {
   description: string | null;
   url: string;
   domain: string;
@@ -68,6 +69,8 @@ export interface Bookmark extends Folder {
   tags: Tag[];
   type: DataType;
   folders: { id: number; title: string; color: string } | null;
+  folder_id: number | null;
+  parent_id: string | null;
 }
 
 export interface BookmarkTag {

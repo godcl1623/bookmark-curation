@@ -16,9 +16,9 @@ export default function AppRoutes() {
       <DeepLinkListener />
       <Routes>
         <Route path={"/auth/callback"} element={<AuthCallback />} />
-        <Route path={"/login"} element={<Login />} />
+        <Route path={"/"} element={<Login />} />
         <Route
-          path={"/*"}
+          path={"/home/*"}
           element={
             <InitPrefetcher>
               <App />
@@ -63,7 +63,7 @@ function DeepLinkListener() {
             } catch (error) {
               console.warn("Browser already closed or not open:", error);
             }
-            navigate("/", { replace: true });
+            navigate("/home", { replace: true });
           }
         }
       });

@@ -1,18 +1,18 @@
 import { Clock, SearchIcon, TrendingUp } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types.ts";
+import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
 import BookmarkCard from "@/features/bookmarks/BookmarkList/components/BookmarkCard";
-import RecentItem from "@/features/search/SearchModal/RecentItem.tsx";
-import XButton from "@/features/search/SearchModal/XButton.tsx";
-import Button from "@/shared/components/atoms/button.tsx";
-import TagItem from "@/shared/components/molecules/TagItem.tsx";
-import useBookmarksList from "@/shared/hooks/useBookmarksList.ts";
-import useDebouncedInput from "@/shared/hooks/useDebouncedInput.ts";
-import useDirectoriesData from "@/shared/hooks/useDirectoriesData.ts";
-import useTagsList from "@/shared/hooks/useTagsList.ts";
+import RecentItem from "@/features/search/SearchModal/RecentItem";
+import XButton from "@/features/search/SearchModal/XButton";
+import Button from "@/shared/components/atoms/button";
+import TagItem from "@/shared/components/molecules/TagItem";
+import useBookmarksList from "@/shared/hooks/useBookmarksList";
+import useDebouncedInput from "@/shared/hooks/useDebouncedInput";
+import { useDirectoryData } from "@/shared/hooks/useDirectoryData";
+import useTagsList from "@/shared/hooks/useTagsList";
 import { cn } from "@/shared/lib/utils";
-import useGlobalStore from "@/stores/global.ts";
+import useGlobalStore from "@/stores/global";
 
 export default function SearchModal({ reject }: DefaultModalChildrenProps) {
   const isMobile = useGlobalStore((state) => state.isMobile);
@@ -22,7 +22,7 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
   const { recentSearches, removeRecentItem, clearRecentSearches, bookmarks } =
     useSearchBookmark(debouncedValue);
   const { data: tags } = useTagsList({ sort_by: "count", limit: 10 });
-  const loadedDirectory = useDirectoriesData(window.location.pathname);
+  const loadedDirectory = useDirectoryData(window.location.pathname);
 
   const tagsList = useMemo(
     () =>

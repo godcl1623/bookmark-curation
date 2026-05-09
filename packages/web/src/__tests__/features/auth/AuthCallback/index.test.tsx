@@ -78,7 +78,7 @@ describe("# AuthCallback 컴포넌트 테스트", () => {
       /* assert */
       // 정상적으로 로그인이 진행되어 메인 화면으로 이동
       await waitFor(() => {
-        expect(mockNavigate).toBeCalledWith("/", { replace: true });
+        expect(mockNavigate).toBeCalledWith("/home", { replace: true });
         expect(mockReplaceState).toBeCalledWith({}, "", "/auth/callback");
       });
     });
@@ -89,7 +89,7 @@ describe("# AuthCallback 컴포넌트 테스트", () => {
 
       /* assert */
       await waitFor(() => {
-        expect(mockNavigate).toBeCalledWith("/login", { replace: true });
+        expect(mockNavigate).toBeCalledWith("/", { replace: true });
         expect(toast.error).toBeCalledWith("올바르지 않은 접근입니다.");
       });
     });
@@ -102,7 +102,7 @@ describe("# AuthCallback 컴포넌트 테스트", () => {
 
       /* assert */
       await waitFor(() => {
-        expect(mockNavigate).toBeCalledWith("/login", { replace: true });
+        expect(mockNavigate).toBeCalledWith("/", { replace: true });
         expect(toast.error).toBeCalledWith("올바르지 않은 접근입니다.");
       });
     });
@@ -121,7 +121,7 @@ describe("# AuthCallback 컴포넌트 테스트", () => {
 
       /* assert */
       await waitFor(() => {
-        expect(mockNavigate).toBeCalledWith("/", { replace: true });
+        expect(mockNavigate).toBeCalledWith("/home", { replace: true });
         expect(mockReplaceState).toBeCalledWith({}, "", "/auth/callback");
       });
     });
@@ -134,7 +134,7 @@ describe("# AuthCallback 컴포넌트 테스트", () => {
 
       /* assert */
       await waitFor(() => {
-        expect(mockNavigate).toBeCalledWith("/login", { replace: true });
+        expect(mockNavigate).toBeCalledWith("/", { replace: true });
         expect(toast.error).toBeCalledWith("올바르지 않은 접근입니다.");
       });
     });

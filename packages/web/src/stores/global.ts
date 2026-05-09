@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 interface GlobalStore {
-  openIds: Set<string>;
+  openPaths: Map<string, string>;
   slugToId: Record<string, string>;
   currentView: "card" | "list";
   isMobile: boolean;
@@ -9,7 +9,7 @@ interface GlobalStore {
 }
 
 interface GlobalActions {
-  toggleOpen: (id: string) => void;
+  toggleOpen: (id: string, dirPath: string) => void;
   updateSlugToId: (tables: Record<string, string>[]) => void;
   setCurrentView: (view: "card" | "list") => void;
   setIsMobile: (isMobile: boolean) => void;
@@ -17,27 +17,25 @@ interface GlobalActions {
   __resetStore: () => void;
 }
 
-const useGlobalStore = create<GlobalStore & GlobalActions>((set, get) => ({
-  openIds: new Set(),
+const useGlobalStore = create<GlobalStore & GlobalActions>((set) => ({
+  openPaths: new Map(),
   slugToId: {},
   currentView: "card",
   isMobile: false,
   isTablet: false,
-  toggleOpen: (id) => {
-    if (get().openIds.has(id)) {
-      return set((state) => {
-        const newSet = new Set(state.openIds);
-        newSet.delete(id);
-        return { openIds: newSet };
-      });
-    } else {
-      return set((state) => {
-        const newSet = new Set(state.openIds);
-        newSet.add(id);
-        return { openIds: newSet };
-      });
-    }
-  },
+  toggleOpen: (id, dirPath) =>
+    set((state) => {
+      const next = new Map(state.openPaths);
+      if (next.get(id)) {
+        next.forEach((value, key) => {
+          if (value === dirPath || value.startsWith(dirPath + "/"))
+            next.delete(key);
+        });
+      } else {
+        next.set(id, dirPath);
+      }
+      return { openPaths: next };
+    }),
   updateSlugToId: (tables) =>
     set((state) => ({
       slugToId: {
@@ -52,7 +50,7 @@ const useGlobalStore = create<GlobalStore & GlobalActions>((set, get) => ({
   setIsTablet: (isTablet) => set({ isTablet }),
   __resetStore: () =>
     set({
-      openIds: new Set(),
+      openPaths: new Map(),
       slugToId: {},
       currentView: "card",
       isMobile: false,
