@@ -37,8 +37,15 @@ export default function ControlledSelect({
     event: MouseEvent<HTMLButtonElement> | TouchEvent<HTMLButtonElement>
   ) => {
     event.preventDefault();
+    // TODO: 고정값이 아니라 요소 값을 참조하도록 수정
     const buttonRect = buttonRef.current?.getBoundingClientRect();
-    toggleDropdown(buttonRect)();
+    if (buttonRect == null) return;
+    const adjustedRect = { ...buttonRect.toJSON() };
+    const viewportBottom = window.scrollY + window.innerHeight;
+    if (buttonRect.bottom + 208 > viewportBottom) {
+      adjustedRect.top = buttonRect.top - 218;
+    }
+    toggleDropdown(adjustedRect)();
   };
 
   return (
