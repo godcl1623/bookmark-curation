@@ -25,6 +25,13 @@ interface ControlledSelectProps {
   name?: string;
 }
 
+interface ButtonRect {
+  top?: number;
+  left?: number;
+  bottom?: number;
+  width?: number;
+}
+
 export default function ControlledSelect({
   values,
   initialIndex = 0,
@@ -39,10 +46,9 @@ export default function ControlledSelect({
     event.preventDefault();
     // TODO: 고정값이 아니라 요소 값을 참조하도록 수정
     const buttonRect = buttonRef.current?.getBoundingClientRect();
-    if (buttonRect == null) return;
-    const adjustedRect = { ...buttonRect.toJSON() };
+    const adjustedRect = { ...copyDOMRect(buttonRect) };
     const viewportBottom = window.scrollY + window.innerHeight;
-    if (buttonRect.bottom + 208 > viewportBottom) {
+    if (buttonRect && buttonRect.bottom + 208 > viewportBottom) {
       adjustedRect.top = buttonRect.top - 218;
     }
     toggleDropdown(adjustedRect)();
@@ -77,6 +83,19 @@ export default function ControlledSelect({
   );
 }
 
+const copyDOMRect = (
+  originalRect: DOMRect | undefined
+): ButtonRect | undefined => {
+  if (!originalRect) return;
+
+  return {
+    top: originalRect?.top ?? 0,
+    left: originalRect?.left ?? 0,
+    bottom: originalRect?.bottom ?? 0,
+    width: originalRect?.width ?? 0,
+  };
+};
+
 const useSelect = (values: ValueType[], initialIndex: number) => {
   const { openModal, findModal, closeModal } = useModal();
   const [selectedValue, setSelectedValue] = useState<{
@@ -108,7 +127,7 @@ const useSelect = (values: ValueType[], initialIndex: number) => {
     [values, closeOptionModal]
   );
 
-  const toggleDropdown = (buttonRect?: DOMRect | null) => async () => {
+  const toggleDropdown = (buttonRect?: ButtonRect | null) => async () => {
     try {
       const detail = findModal({ id: optionIdRef.current });
       if (detail == null) {
