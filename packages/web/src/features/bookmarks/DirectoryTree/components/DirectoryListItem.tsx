@@ -45,7 +45,7 @@ export default function DirectoryListItem({
   }, [title, openPaths, parentId]);
   const navUrl = useMemo(() => `/main${targetUrl}`, [targetUrl]);
 
-  const loadedDirectory = useDirectoryData(encodeURI(targetUrl), isOpen);
+  const loadedDirectory = useDirectoryData(targetUrl, isOpen);
   const { openModal } = useModal();
 
   const isLoading = loadedDirectory?.isLoading ?? false;
