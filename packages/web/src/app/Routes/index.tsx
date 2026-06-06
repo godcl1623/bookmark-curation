@@ -71,7 +71,7 @@ const useCheckAuthentication = () => {
       return;
     }
 
-    if (pathname !== "/main") {
+    if (pathname === "/") {
       navigate("/main", { replace: true });
     } else {
       setIsReady(true);
