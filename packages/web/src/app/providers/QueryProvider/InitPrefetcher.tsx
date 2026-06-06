@@ -18,8 +18,7 @@ export default function InitPrefetcher({ children }: BasicComponentProps) {
 }
 
 const usePrefetchDirectories = () => {
-  const toggleOpen = useGlobalStore((state) => state.toggleOpen);
-  const openPaths = useGlobalStore((state) => state.openPaths);
+  const openDirectories = useGlobalStore((state) => state.openDirectories);
   const accessToken = useAuthStore((state) => state.accessToken);
   const dirPath = useDirectoryPath();
 
@@ -32,14 +31,18 @@ const usePrefetchDirectories = () => {
   useEffect(() => {
     if (response?.data == null) return;
     const { breadcrumbs } = response.data;
-    if (breadcrumbs.length > 0) {
-      breadcrumbs.forEach(({ id }) => {
-        if (!openPaths.has(String(id))) {
-          toggleOpen(String(id), decodeURI(dirPath));
-        }
-      });
-    }
-  }, [response, toggleOpen, openPaths, dirPath]);
+    if (breadcrumbs.length === 0) return;
+
+    openDirectories(
+      breadcrumbs.map(({ id }, index) => [
+        String(id),
+        breadcrumbs
+          .slice(0, index + 1)
+          .map(({ title }) => `/${title}`)
+          .join(""),
+      ])
+    );
+  }, [response, openDirectories]);
 
   useGlobalLayout();
 };
