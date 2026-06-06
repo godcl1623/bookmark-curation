@@ -56,8 +56,8 @@ export default function BookmarkList() {
                     "/main" +
                     selfArray
                       .slice(0, index + 1)
-                      .map((item) => item.title)
-                      .join("/")
+                      .map((item) => `/${item.title}`)
+                      .join("")
                   }
                   className={`hover:underline`}
                 >
