@@ -1,17 +1,16 @@
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps } from "react";
 
 import Button from "@/shared/components/atoms/button.tsx";
 
 interface OptionButtonProps extends ComponentProps<"button"> {
-  children?: ReactNode;
   isActive?: boolean;
-  onClick?: () => void;
 }
 
 export default function OptionButton({
   children,
   isActive = false,
   onClick = () => null,
+  type = "button",
   ...props
 }: OptionButtonProps) {
   const activeVariant = isActive ? "outline" : "ghost";
@@ -19,6 +18,7 @@ export default function OptionButton({
 
   return (
     <Button
+      type={type}
       size={"icon-sm"}
       variant={activeVariant}
       onClick={onClick}

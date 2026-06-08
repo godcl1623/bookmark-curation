@@ -14,6 +14,7 @@ export default function XButton({
   className = "",
   iconSize = "sm",
   variants = "round",
+  type = "button",
   ...props
 }: XButtonProps) {
   const size = iconSize === "sm" ? "size-4" : "size-6";
@@ -21,6 +22,7 @@ export default function XButton({
 
   return (
     <Button
+      type={type}
       variant={"ghost"}
       size={"custom"}
       className={cn(rounded, className)}
