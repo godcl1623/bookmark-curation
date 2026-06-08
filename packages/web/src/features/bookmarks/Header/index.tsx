@@ -19,7 +19,13 @@ export default function Header() {
     <header className={"flex-center-between bg-white p-1.5 md:px-10 md:py-3"}>
       <Logo />
       <div className={STYLES.container}>
-        <OptionButton onClick={handleSearchClick}>
+        {/* TODO: aria-expanded 추가 */}
+        <OptionButton
+          onClick={handleSearchClick}
+          aria-label={"북마크/폴더 찾기"}
+          aria-haspopup={"dialog"}
+          aria-controls={"search-modal"}
+        >
           <Search className={normalIconStyle} />
         </OptionButton>
         <OptionButton onClick={handleSettingClick}>
