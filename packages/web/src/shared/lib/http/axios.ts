@@ -83,7 +83,9 @@ instance.interceptors.response.use(
         // 리프레시도 실패하면 로그아웃
         toast.error("세션이 만료되어 로그아웃되었습니다. 다시 로그인해주세요.");
         processQueue(refreshError, null);
-        useAuthStore.getState().clearAuth();
+        const authStore = useAuthStore.getState();
+        authStore.clearAuth();
+        authStore.setIsLoggedOut(true);
         setTimeout(() => window.location.replace("/"), 1000);
         return Promise.reject(refreshError);
       } finally {
