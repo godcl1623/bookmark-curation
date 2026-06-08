@@ -26,6 +26,7 @@ export default function Options({ reject }: DefaultModalChildrenProps) {
     <ModalLayout reject={reject}>
       <ModalTemplate
         reject={reject}
+        modalId={"options-modal"}
         width={"w-full md:w-[40%]"}
         height={"h-[80vh] md:h-[50vh]"}
         title={"Options"}

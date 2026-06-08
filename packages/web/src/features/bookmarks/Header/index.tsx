@@ -24,11 +24,17 @@ export default function Header() {
           onClick={handleSearchClick}
           aria-label={"북마크/폴더 찾기"}
           aria-haspopup={"dialog"}
+          // TODO: id 중앙 관리 형식으로 수정
           aria-controls={"search-modal"}
         >
           <Search className={normalIconStyle} />
         </OptionButton>
-        <OptionButton onClick={handleSettingClick}>
+        <OptionButton
+          onClick={handleSettingClick}
+          aria-label={"LinkVault 설정"}
+          aria-haspopup={"dialog"}
+          aria-controls={"options-modal"}
+        >
           <Settings className={normalIconStyle} />
         </OptionButton>
         <SignInOutButton />
