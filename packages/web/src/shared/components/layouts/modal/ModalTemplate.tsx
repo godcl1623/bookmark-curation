@@ -2,7 +2,11 @@ import { X } from "lucide-react";
 import { type ReactNode, useId } from "react";
 
 import Button from "@/shared/components/atoms/button";
-import { Card, CardContent, CardHeader, } from "@/shared/components/organisms/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@/shared/components/organisms/card";
 import { cn } from "@/shared/lib/utils";
 import type { BasicComponentProps } from "@/shared/types";
 
