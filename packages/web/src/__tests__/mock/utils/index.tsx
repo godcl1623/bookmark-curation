@@ -69,14 +69,16 @@ function TestProvider({
 }: TestOptions & {
   children: ReactNode;
 }) {
-  const [queryClientInstance] = useState(queryClient ?? createTestQueryClient);
+  const [queryClientInstance] = useState(
+    queryClient ?? createTestQueryClient()
+  );
 
   return (
     <QueryClientProvider client={queryClientInstance}>
-      <MemoryRouter initialEntries={["/home" + initialPath]}>
+      <MemoryRouter initialEntries={["/main" + initialPath]}>
         <Routes>
           <Route
-            path={"/home/*"}
+            path={"/main/*"}
             element={<ModalProvider>{children}</ModalProvider>}
           />
         </Routes>

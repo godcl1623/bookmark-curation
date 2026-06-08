@@ -25,7 +25,7 @@ export default function BookmarkList() {
   return (
     <main
       className={
-        "relative w-full rounded-2xl bg-blue-50/75 md:h-[calc(100vh-64px)] md:w-[85%]"
+        "relative flex size-full flex-col overflow-y-auto rounded-2xl bg-blue-50/75 md:h-[calc(100vh-64px)] md:w-[85%]"
       }
     >
       {/* FIXME: 긴 폴더명 처리방법 생각 */}
@@ -41,7 +41,7 @@ export default function BookmarkList() {
             }
           >
             <li className={"flex-center gap-1 md:gap-2"}>
-              <NavLink to={"/home"} className={"hover:underline"}>
+              <NavLink to={"/main"} className={"hover:underline"}>
                 홈
               </NavLink>
               {dirPath !== "/" && <BreadcrumbChevron />}
@@ -53,11 +53,11 @@ export default function BookmarkList() {
               >
                 <NavLink
                   to={
-                    "/home" +
+                    "/main" +
                     selfArray
                       .slice(0, index + 1)
-                      .map((item) => item.title)
-                      .join("/")
+                      .map((item) => `/${item.title}`)
+                      .join("")
                   }
                   className={`hover:underline`}
                 >
@@ -72,11 +72,14 @@ export default function BookmarkList() {
           className={
             "flex-center ml-auto w-max gap-0.5 rounded-md bg-neutral-200 p-0.5 md:gap-1 md:p-1"
           }
+          aria-label={"보기 방식"}
         >
           <li className={"flex-center"}>
             <OptionButton
               isActive={currentView === "card"}
               onClick={toggleView("card")}
+              aria-label={"카드 뷰"}
+              aria-pressed={currentView === "card"}
             >
               <LayoutGrid className={smallIconStyle} />
             </OptionButton>
@@ -85,6 +88,8 @@ export default function BookmarkList() {
             <OptionButton
               isActive={currentView === "list"}
               onClick={toggleView("list")}
+              aria-label={"리스트 뷰"}
+              aria-pressed={currentView === "list"}
             >
               <LayoutList className={smallIconStyle} />
             </OptionButton>

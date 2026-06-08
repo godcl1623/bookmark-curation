@@ -4,7 +4,12 @@ import instance from "@/shared/lib/http/axios";
 
 const getDirectoryByPath = async (pathname: string = "/") => {
   const response = await instance.get(
-    `${SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path}?path=${pathname}`
+    `${SERVICE_ENDPOINTS.DIRECTORY.BY_PATH.path}`,
+    {
+      params: {
+        path: pathname,
+      },
+    }
   );
   return response.data;
 };

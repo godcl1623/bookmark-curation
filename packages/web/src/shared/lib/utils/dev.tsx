@@ -8,7 +8,7 @@ interface AutoA11yTestOptions {
 
 export const autoA11yTest = async ({
   locale = "ko",
-  timeout = 1000,
+  timeout = 3000,
 }: AutoA11yTestOptions = {}) => {
   if (import.meta.env.DEV) {
     try {
@@ -18,7 +18,15 @@ export const autoA11yTest = async ({
         const loader = localeMap[locale];
         lang = (await loader()).default;
       }
-      void axe(React, ReactDOM, timeout, lang ? { locale: lang } : {});
+      const config = {
+        ...(lang ? { locale: lang } : {}),
+        disableDeduplicate: true,
+      };
+      const context = {
+        include: [["#root"]],
+      };
+
+      void axe(React, ReactDOM, timeout, config, context);
     } catch (error) {
       if (error instanceof Error && "message" in error) {
         console.error(error.message);

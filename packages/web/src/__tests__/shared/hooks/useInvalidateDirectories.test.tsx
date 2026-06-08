@@ -52,17 +52,13 @@ describe("# useInvalidateDirectories 테스트", () => {
     });
     const saveButton = screen.getByRole("button", { name: "Save Bookmark" });
 
-    await waitFor(async () => {
-      await user.clear(urlInput);
-      await user.clear(titleInput);
-      await user.clear(noteTextarea);
-    });
+    await user.clear(urlInput);
+    await user.clear(titleInput);
+    await user.clear(noteTextarea);
 
-    await waitFor(async () => {
-      await user.type(urlInput, EXAMPLE.URL);
-      await user.type(titleInput, EXAMPLE.TITLE);
-      await user.type(noteTextarea, EXAMPLE.NOTE);
-    });
+    await user.type(urlInput, EXAMPLE.URL);
+    await user.type(titleInput, EXAMPLE.TITLE);
+    await user.type(noteTextarea, EXAMPLE.NOTE);
 
     await user.click(saveButton);
 

@@ -30,7 +30,7 @@ describe("# useDirectoryData 테스트", () => {
       folders: [EXAMPLES.FOLDER],
       bookmarks: [EXAMPLES.BOOKMARK],
       path: "/",
-      breadcrumbs: {},
+      breadcrumbs: [],
     });
   });
 
@@ -101,7 +101,7 @@ describe("# useDirectoryData 테스트", () => {
         folders: [EXAMPLES.FOLDER],
         bookmarks: [EXAMPLES.BOOKMARK],
         path,
-        breadcrumbs: {},
+        breadcrumbs: [],
       });
     });
   });
@@ -127,7 +127,7 @@ describe("# useDirectoryData 테스트", () => {
       folders: [EXAMPLES.FOLDER],
       bookmarks: [EXAMPLES.BOOKMARK],
       path: "/",
-      breadcrumbs: {},
+      breadcrumbs: [],
     });
 
     // act
@@ -145,7 +145,7 @@ describe("# useDirectoryData 테스트", () => {
       folders: [EXAMPLES.FOLDER],
       bookmarks: [EXAMPLES.BOOKMARK],
       path: "/Favorites",
-      breadcrumbs: {},
+      breadcrumbs: [],
     });
   });
 });

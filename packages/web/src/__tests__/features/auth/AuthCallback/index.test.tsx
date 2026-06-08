@@ -1,3 +1,5 @@
+import toast from "react-hot-toast";
+
 import { render, screen, waitFor } from "@/__tests__/mock/utils";
 import AuthCallback from "@/features/auth/AuthCallback";
 import useAuthStore from "@/stores/auth";
@@ -42,8 +44,6 @@ Object.defineProperty(window, "history", {
   writable: true,
 });
 
-import toast from "react-hot-toast";
-
 describe("# AuthCallback 컴포넌트 테스트", () => {
   beforeEach(() => {
     useAuthStore.getState().clearAuth();
@@ -78,7 +78,7 @@ describe("# AuthCallback 컴포넌트 테스트", () => {
       /* assert */
       // 정상적으로 로그인이 진행되어 메인 화면으로 이동
       await waitFor(() => {
-        expect(mockNavigate).toBeCalledWith("/home", { replace: true });
+        expect(mockNavigate).toBeCalledWith("/main", { replace: true });
         expect(mockReplaceState).toBeCalledWith({}, "", "/auth/callback");
       });
     });
@@ -121,7 +121,7 @@ describe("# AuthCallback 컴포넌트 테스트", () => {
 
       /* assert */
       await waitFor(() => {
-        expect(mockNavigate).toBeCalledWith("/home", { replace: true });
+        expect(mockNavigate).toBeCalledWith("/main", { replace: true });
         expect(mockReplaceState).toBeCalledWith({}, "", "/auth/callback");
       });
     });

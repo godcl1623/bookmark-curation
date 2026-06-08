@@ -14,7 +14,7 @@ describe("# get-directory-by-path 테스트", () => {
         folders: [EXAMPLES.FOLDER],
         bookmarks: [EXAMPLES.BOOKMARK],
         path: "/",
-        breadcrumbs: {},
+        breadcrumbs: [],
       },
     });
   });
@@ -34,7 +34,7 @@ describe("# get-directory-by-path 테스트", () => {
         folders: [EXAMPLES.FOLDER],
         bookmarks: [EXAMPLES.BOOKMARK],
         path: "/test/directory",
-        breadcrumbs: {},
+        breadcrumbs: [],
       },
     });
   });

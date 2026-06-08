@@ -1,6 +1,6 @@
 import type { Bookmark } from "@linkvault/shared";
-import { EllipsisVertical, Share2, Star } from "lucide-react";
-import type { MouseEvent } from "react";
+import { Star } from "lucide-react";
+import type { ComponentProps, MouseEvent } from "react";
 
 import { useModal } from "@/app/providers/ModalProvider/context";
 import handleFavorite from "@/features/bookmarks/BookmarkList/utils";
@@ -104,6 +104,12 @@ export default function BookmarkCard({
                   props.is_favorite,
                   refetch
                 )}
+                aria-label={
+                  props.is_favorite
+                    ? `${title} 즐겨찾기 해제`
+                    : `${title} 즐겨찾기 추가`
+                }
+                aria-pressed={props.is_favorite}
               >
                 <Star
                   className={
@@ -111,13 +117,16 @@ export default function BookmarkCard({
                   }
                 />
               </OptionButton>
-              <OptionButton isLoading={isLoading}>
-                <Share2 />
-              </OptionButton>
+              {/*<OptionButton*/}
+              {/*  isLoading={isLoading}*/}
+              {/*  aria-label={`${title} 공유하기`}*/}
+              {/*>*/}
+              {/*  <Share2 />*/}
+              {/*</OptionButton>*/}
             </div>
-            <OptionButton isLoading={isLoading}>
-              <EllipsisVertical />
-            </OptionButton>
+            {/*<OptionButton isLoading={isLoading} aria-label={`${title} 옵션`}>*/}
+            {/*  <EllipsisVertical />*/}
+            {/*</OptionButton>*/}
           </div>
         </div>
       </CardContent>
@@ -200,21 +209,24 @@ function OptionButton({
   isLoading = true,
   children,
   onClick,
-}: BookmarkCommonProps & { onClick?: () => void }) {
+  ...props
+}: BookmarkCommonProps & ComponentProps<"button">) {
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
-    onClick?.();
+    onClick?.(event);
   };
 
   if (isLoading) return <LoadingComponent size={"sm"} />;
 
   return (
     <Button
+      type={"button"}
       size={"icon-sm"}
       variant={"ghost"}
       className={"text-neutral-400"}
       onClick={handleClick}
+      {...props}
     >
       {children}
     </Button>
