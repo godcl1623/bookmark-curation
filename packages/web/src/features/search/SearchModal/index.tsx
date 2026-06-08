@@ -38,6 +38,10 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
 
   return (
     <article
+      id={"search-modal"}
+      role={"dialog"}
+      aria-modal={"true"}
+      aria-labelledby={"search-modal-title"}
       className={
         "absolute inset-0 h-max min-h-full min-w-full bg-white pt-7 md:pt-0"
       }
@@ -47,7 +51,11 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
         onClick={reject}
         iconSize={"lg"}
         variants={"square"}
+        aria-label={"모달 닫기"}
       />
+      <h1 id={"search-modal-title"} className={"sr-only"}>
+        북마크 검색
+      </h1>
       <section className={"w-full p-2.5 shadow-md md:p-5"}>
         <div
           className={
@@ -60,9 +68,14 @@ export default function SearchModal({ reject }: DefaultModalChildrenProps) {
             onChange={handleChange}
             className={"flex-1 outline-none"}
             placeholder={"Search..."}
+            aria-label={"북마크/폴더 검색어"}
           />
           {inputValue.length > 0 && (
-            <XButton className={"p-1"} onClick={() => changeValue("")} />
+            <XButton
+              className={"p-1"}
+              onClick={() => changeValue("")}
+              aria-label={"입력 삭제"}
+            />
           )}
         </div>
       </section>

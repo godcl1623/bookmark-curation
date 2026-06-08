@@ -42,7 +42,7 @@ export default function SignInOutButton() {
       size={isMobile ? "sm" : "lg"}
       className={cn(
         "text-xs font-bold text-white md:text-base",
-        user ? "bg-red-400" : "bg-blue-400"
+        user ? "bg-red-600" : "bg-blue-600"
       )}
       onClick={handleLogOut}
     >

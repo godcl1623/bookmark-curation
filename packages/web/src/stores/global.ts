@@ -10,6 +10,7 @@ interface GlobalStore {
 
 interface GlobalActions {
   toggleOpen: (id: string, dirPath: string) => void;
+  openDirectories: (directories: [string, string][]) => void;
   updateSlugToId: (tables: Record<string, string>[]) => void;
   setCurrentView: (view: "card" | "list") => void;
   setIsMobile: (isMobile: boolean) => void;
@@ -34,6 +35,14 @@ const useGlobalStore = create<GlobalStore & GlobalActions>((set) => ({
       } else {
         next.set(id, dirPath);
       }
+      return { openPaths: next };
+    }),
+  openDirectories: (directories) =>
+    set((state) => {
+      const next = new Map(state.openPaths);
+      directories.forEach(([id, dirPath]) => {
+        next.set(id, dirPath);
+      });
       return { openPaths: next };
     }),
   updateSlugToId: (tables) =>

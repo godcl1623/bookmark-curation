@@ -69,7 +69,9 @@ function TestProvider({
 }: TestOptions & {
   children: ReactNode;
 }) {
-  const [queryClientInstance] = useState(queryClient ?? createTestQueryClient);
+  const [queryClientInstance] = useState(
+    queryClient ?? createTestQueryClient()
+  );
 
   return (
     <QueryClientProvider client={queryClientInstance}>

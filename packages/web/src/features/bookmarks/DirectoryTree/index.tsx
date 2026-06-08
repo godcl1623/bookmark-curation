@@ -24,8 +24,9 @@ export default function DirectoryTree() {
       ) : (
         <div
           className={
-            "rounded-lg bg-blue-400 py-1.5 text-center text-sm font-bold text-white"
+            "rounded-lg bg-blue-600 py-1.5 text-center text-sm font-bold text-white"
           }
+          aria-label={"사용자 이메일"}
         >
           {user?.email}
         </div>
