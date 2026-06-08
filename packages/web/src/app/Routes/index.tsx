@@ -2,7 +2,6 @@ import { App as CapApp } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import {
   BrowserRouter,
   Outlet,
@@ -46,7 +45,6 @@ export default function AppRoutes() {
 
 const useCheckAuthentication = () => {
   const accessToken = useAuthStore((state) => state.accessToken);
-  const isLoggedOut = useAuthStore((state) => state.isLoggedOut);
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -61,9 +59,6 @@ const useCheckAuthentication = () => {
           }
         })
         .catch((error) => {
-          if (!isLoggedOut) {
-            toast.error("세션이 만료되었습니다. 다시 로그인해주세요.");
-          }
           navigate("/", { replace: true });
           setIsReady(true);
           console.error(error);
@@ -76,7 +71,7 @@ const useCheckAuthentication = () => {
     } else {
       setIsReady(true);
     }
-  }, [accessToken, setAccessToken, navigate, isLoggedOut, pathname]);
+  }, [accessToken, setAccessToken, navigate, pathname]);
 
   return { isReady };
 };

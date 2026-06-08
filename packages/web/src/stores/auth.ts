@@ -14,7 +14,7 @@ interface AuthAction {
 const useAuthStore = create<AuthStore & AuthAction>((set) => ({
   accessToken: null,
   isLoggedOut: false,
-  setAccessToken: (accessToken) => set({ accessToken }),
+  setAccessToken: (accessToken) => set({ accessToken, isLoggedOut: false }),
   clearAuth: () => set({ accessToken: null }),
   setIsLoggedOut: (isLoggedOut) => set({ isLoggedOut }),
 }));
