@@ -1,5 +1,5 @@
 import { Folder, Hash } from "lucide-react";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ComponentProps, type ReactNode, useState } from "react";
 
 import type { DefaultModalChildrenProps } from "@/app/providers/ModalProvider/types";
 import AddFolder from "@/features/bookmarks/Header/components/AddFolder";
@@ -10,17 +10,11 @@ import ModalTemplate from "@/shared/components/layouts/modal/ModalTemplate";
 import useFolderList from "@/shared/hooks/useFolderList";
 import useTagsList from "@/shared/hooks/useTagsList";
 import { cn } from "@/shared/lib/utils";
-import type { BasicComponentProps } from "@/shared/types";
 
 export default function Options({ reject }: DefaultModalChildrenProps) {
   const { data: folders } = useFolderList();
   const { data: tags } = useTagsList();
   const [activeTab, changeTab] = useTab();
-
-  const tabView = useMemo(() => {
-    if (activeTab === "folders") return <AddFolder />;
-    if (activeTab === "tags") return <AddTags />;
-  }, [activeTab]);
 
   return (
     <ModalLayout reject={reject}>
@@ -36,15 +30,18 @@ export default function Options({ reject }: DefaultModalChildrenProps) {
           className={
             "flex-center w-full overflow-x-auto border-b border-neutral-200 px-4 pt-2 md:px-8"
           }
+          role={"tablist"}
+          aria-label={"설정 탭"}
         >
-          {TABS_DATA.map(({ value, display }) => {
+          {TABS_DATA.map(({ tabId, display }) => {
             return (
-              <li key={`tab_${value}`}>
+              <li key={`tab_${tabId}`} role={"presentation"}>
                 {display({
-                  isActive: activeTab === value,
-                  changeTab: changeTab(value),
+                  tabId,
+                  isActive: activeTab === tabId,
+                  changeTab: changeTab(tabId),
                   count:
-                    value === "folders"
+                    tabId === "folders"
                       ? (folders?.length ?? 0)
                       : (tags?.length ?? 0),
                 })}
@@ -52,37 +49,55 @@ export default function Options({ reject }: DefaultModalChildrenProps) {
             );
           })}
         </ul>
-        {tabView}
+        {TABS_DATA.map(({ tabId, panel }) => (
+          <div
+            key={`panel_${tabId}`}
+            id={`options-panel-${tabId}`}
+            role={"tabpanel"}
+            aria-labelledby={`options-tab-${tabId}`}
+            hidden={activeTab !== tabId}
+          >
+            {activeTab === tabId && panel()}
+          </div>
+        ))}
       </ModalTemplate>
     </ModalLayout>
   );
 }
 
-interface TabButtonProps {
+type TabValue = "folders" | "tags";
+
+interface TabDataButtonProps {
+  tabId: TabValue;
   isActive?: boolean;
   changeTab?: () => void;
+  count?: number;
 }
 
 const TABS_DATA = [
   {
-    value: "folders",
-    display: (props: TabButtonProps) => (
+    tabId: "folders",
+    panel: () => <AddFolder />,
+    display: (props: TabDataButtonProps) => (
       <TabButton icon={() => <Folder />} {...props}>
         Folders
       </TabButton>
     ),
   },
   {
-    value: "tags",
-    display: (props: TabButtonProps) => (
+    tabId: "tags",
+    panel: () => <AddTags />,
+    display: (props: TabDataButtonProps) => (
       <TabButton icon={() => <Hash />} {...props}>
         Tags
       </TabButton>
     ),
   },
-];
-
-type TabValue = (typeof TABS_DATA)[number]["value"];
+] satisfies Array<{
+  tabId: TabValue;
+  panel: () => ReactNode;
+  display: (props: TabDataButtonProps) => ReactNode;
+}>;
 
 const useTab = () => {
   const [activeTab, setActiveTab] = useState<TabValue>("folders");
@@ -94,7 +109,8 @@ const useTab = () => {
   return [activeTab, changeTab] as const;
 };
 
-interface TabButtonProps extends BasicComponentProps {
+interface TabButtonProps extends ComponentProps<"button"> {
+  tabId: TabValue;
   icon?: () => ReactNode;
   isActive?: boolean;
   count?: number;
@@ -102,16 +118,24 @@ interface TabButtonProps extends BasicComponentProps {
 }
 
 function TabButton({
+  tabId,
   children,
   icon,
   isActive,
   count,
   changeTab,
+  ...props
 }: TabButtonProps) {
   const countText = String(count ? (count < 100 ? count : "99+") : 0);
 
   return (
     <Button
+      {...props}
+      type={"button"}
+      id={`options-tab-${tabId}`}
+      role={"tab"}
+      aria-selected={isActive}
+      aria-controls={`options-panel-${tabId}`}
       variant={"ghost"}
       size={"custom"}
       className={cn(
