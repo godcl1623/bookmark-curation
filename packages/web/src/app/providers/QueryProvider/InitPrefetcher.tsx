@@ -31,7 +31,7 @@ const usePrefetchDirectories = () => {
   useEffect(() => {
     if (response?.data == null) return;
     const { breadcrumbs } = response.data;
-    if (breadcrumbs.length === 0) return;
+    if (!Array.isArray(breadcrumbs) || breadcrumbs.length === 0) return;
 
     openDirectories(
       breadcrumbs.map(({ id }, index) => [

@@ -145,7 +145,7 @@ export const handlers = [
           folders: [EXAMPLES.FOLDER],
           bookmarks: [EXAMPLES.BOOKMARK],
           path,
-          breadcrumbs: {},
+          breadcrumbs: [],
         },
       });
     })
